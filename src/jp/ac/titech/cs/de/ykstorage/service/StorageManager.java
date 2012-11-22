@@ -14,7 +14,7 @@ public class StorageManager {
 		return null;
 	}
 
-	public Object put(Object key, Object value) {
-		return null;
+	public boolean put(Object key, Object value) {
+		return false;
 	}
 }
