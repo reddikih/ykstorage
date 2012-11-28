@@ -91,7 +91,7 @@ public class DiskManagerTest {
 		DiskManager diskMgr = new DiskManager();
 		assertThat(diskMgr.put(key, value4), is(true));
 		assertThat(diskMgr.get(key), is(value4));
-		//assertThat(diskMgr.delete(key), is(true));
+		assertThat(diskMgr.delete(key), is(true));
 	}
 
 }
