@@ -21,6 +21,7 @@ public class DiskManagerTest {
 	private byte[] value = "value".getBytes();
 	private byte[] value2 = "value2".getBytes();
 	private byte[] value3 = "value3".getBytes();
+	private byte[] value4 = new byte[1024 * 1024 * 10];
 	private DiskManager dm = new DiskManager();
 	
 	
@@ -80,6 +81,17 @@ public class DiskManagerTest {
 		assertThat(diskMgr.put(key, value), is(true));
 		assertThat(diskMgr.get(key), is(value));
 		assertThat(diskMgr.delete(key), is(true));
+	}
+	
+	@Test
+	public void mainTest3() {
+		for(int i = 0; i < value4.length; i++) {
+			value4[i] = (byte) i;
+		}
+		DiskManager diskMgr = new DiskManager();
+		assertThat(diskMgr.put(key, value4), is(true));
+		assertThat(diskMgr.get(key), is(value4));
+		//assertThat(diskMgr.delete(key), is(true));
 	}
 
 }

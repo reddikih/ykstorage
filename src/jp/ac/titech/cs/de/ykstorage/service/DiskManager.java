@@ -67,8 +67,6 @@ public class DiskManager {
 			
 			bis.close();
 			return value;
-		}catch(NullPointerException e) {
-			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -101,8 +99,8 @@ public class DiskManager {
 			File f = new File(filepath);
 			return f.delete();
 		}catch(NullPointerException e) {
-			
-		}catch(Exception e) {
+			e.printStackTrace();
+		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
 		}
