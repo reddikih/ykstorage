@@ -15,7 +15,7 @@ public class CacheMemoryManager {
 	
 	public CacheMemoryManager(int max, double threshold) {
 		if (threshold < 0 || threshold > 1.0)
-			throw new IllegalArgumentException("max should be greater than threshold.");
+			throw new IllegalArgumentException("threshold must be in range 0 to 1.0.");
 		
 		this.max = max;
 		this.limit = (int)Math.floor(max * threshold);
