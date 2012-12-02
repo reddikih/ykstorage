@@ -3,33 +3,37 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
+import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
 @RunWith(JUnit4.class)
 public class StorageManagerTest {
 	
 	private StorageManager sm;
 	
-	@BeforeClass
+	@Before
 	public void setUpClass() {
-		this.sm = new StorageManager();
+		int cmmMax = 10;
+		double threshold = 1.0;
+		CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
+		this.sm = new StorageManager(cmm);
 	}
 	
 
 	@Test
-	public void testGet() {
-		
-		fail("Not yet implemented");
-	}
-
-	@Test
-	public void testPut() {
-		fail("Not yet implemented");
+	public void testPutAndGet() {
+		String key1 = "key1";
+		String key2 = "key2";
+		byte[] value1 = {1,2,3};
+		byte[] value2 = {4,5,6};
+		sm.put(key1, value1);
+		sm.put(key2, value2);
+		assertEquals(value1, sm.get(key1));
+		assertEquals(value2, sm.get(key2));
 	}
 
 }

@@ -6,7 +6,6 @@ import static org.junit.Assert.assertFalse;
 import jp.ac.titech.cs.de.ykstorage.service.StorageService;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -16,7 +15,7 @@ public class StorageServiceTest {
 	
 	private StorageService storage;
 	
-	@BeforeClass
+	@Before
 	public void setUpClass() {
 		this.storage = new StorageService();
 	}
