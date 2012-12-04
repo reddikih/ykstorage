@@ -87,7 +87,7 @@ public class DiskManager {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return Value.NULL;
 	}
 	
 	private boolean write(int key, Value value) {
