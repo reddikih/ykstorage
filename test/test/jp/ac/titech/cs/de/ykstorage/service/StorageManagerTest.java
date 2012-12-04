@@ -26,7 +26,7 @@ public class StorageManagerTest {
 	}
 	
 	@Test
-	public void testPutAndGet() {
+	public void testPutAndGetOnCacheMemory() {
 		String key1 = "key1";
 		String key2 = "key2";
 		byte[] value1 = {1,2,3};
