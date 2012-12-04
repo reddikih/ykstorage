@@ -9,33 +9,36 @@ import java.util.HashMap;
 
 
 public class DiskManager {
-	private static final String[] diskpaths = {"/disk0/", "/disk1/"};	// TODO
+	private String[] diskpaths;
 	
-	private HashMap<String, String> keyFileMap = new HashMap<String, String>();
+	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 	
 	
-	public byte[] get(String key) {
-		return isNullOrEmpty(key) ? null: read(key); 
+	public DiskManager() {
+		this.diskpaths = new String[2];
+		this.diskpaths[0] = "/disk0/";
+		this.diskpaths[1] = "/disk1/";
 	}
 	
-	public boolean put(String key, byte[] value) {
-		return isNullOrEmpty(key) ? false: write(key, value);
+	public DiskManager(String[] diskpaths) {
+		this.diskpaths = diskpaths;
 	}
 	
-	public boolean delete(String key) {
-		return isNullOrEmpty(key) ? false: remove(key);
+	public byte[] get(int key) {
+		return read(key); 
 	}
 	
-	private static boolean isNullOrEmpty(String key) {
-		if(key == null || key.isEmpty()) {
-			return true;
-		}
-		return false;
+	public boolean put(int key, byte[] value) {
+		return write(key, value);
+	}
+	
+	public boolean delete(int key) {
+		return remove(key);
 	}
 	
 	// キーに基づいて格納先のディスクを選択
-	private String selectDisk(String key) {
+	private String selectDisk(int key) {
 		String filepath = keyFileMap.get(key);
 		if(filepath != null) {
 			return filepath;
@@ -46,7 +49,7 @@ public class DiskManager {
 		return filepath;
 	}
 	
-	private String roundRobin(String key) {
+	private String roundRobin(int key) {
 		String filepath = diskpaths[diskIndex] + key;
 		diskIndex++;
 		if(diskIndex > diskpaths.length - 1) {
@@ -55,14 +58,25 @@ public class DiskManager {
 		return filepath;
 	}
 	
-	private byte[] read(String key) {
+	private int getDiskId(String filepath) {
+		int diskId = -1;
+		for(int i = 0; i < diskpaths.length; i++) {
+			diskId = filepath.indexOf(diskpaths[i]);
+			if(diskId > -1) {
+				return diskId;
+			}
+		}
+		return -1;
+	}
+	
+	private byte[] read(int key) {
 		String filepath = keyFileMap.get(key);
 		try {
 			File f = new File(filepath);
 			FileInputStream fis = new FileInputStream(f);
 			BufferedInputStream bis = new BufferedInputStream(fis);
 			
-			byte[] value = new byte[(int) f.length()];	// TODO
+			byte[] value = new byte[(int) f.length()];
 			bis.read(value);
 			
 			bis.close();
@@ -73,14 +87,14 @@ public class DiskManager {
 		return null;
 	}
 	
-	private boolean write(String key, byte[] value) {
+	private boolean write(int key, byte[] value) {
 		String filepath = selectDisk(key);
 		try {
 			File f = new File(filepath);
 			FileOutputStream fos = new FileOutputStream(f);
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
 			
-			bos.write(value);	// TODO
+			bos.write(value);
 			bos.flush();
 			
 			bos.close();
@@ -92,7 +106,7 @@ public class DiskManager {
 		return false;
 	}
 	
-	private boolean remove(String key) {
+	private boolean remove(int key) {
 		String filepath = keyFileMap.get(key);
 		keyFileMap.remove(key);
 		try {
