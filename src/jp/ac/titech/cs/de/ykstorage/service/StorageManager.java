@@ -23,15 +23,16 @@ public class StorageManager {
 
 	public byte[] get(String key) {
 		int innerKey = getKeySequenceNumber(key);
-		byte[] value = cmm.get(innerKey);
-		if (value == null) {
+		Value value = cmm.get(innerKey);
+		if (Value.NULL.equals(value)) {
 			value = dm.get(innerKey);
 		}
-		return value;
+		return value.getValue();
 	}
 
-	public boolean put(String key, byte[] value) {
+	public boolean put(String key, byte[] bytes) {
 		int keyNum = getKeySequenceNumber((String)key);
+		Value value = new Value(bytes);
 		if (cmm.put(keyNum, value)) {
 			return true;
 		} else {

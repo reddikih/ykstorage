@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import jp.ac.titech.cs.de.ykstorage.service.Value;
+
 public class CacheMemoryManager {
 
 	private ByteBuffer memBuffer;
@@ -24,29 +26,31 @@ public class CacheMemoryManager {
 		this.memTable = new HashMap<Integer, MemoryHeader>();
 	}
 	
-	public boolean put(int key, byte[] value) {
+	public boolean put(int key, Value value) {
 		int usage = memBuffer.capacity() - memBuffer.remaining();
-		if (this.limit < usage + value.length)
+		if (this.limit < usage + value.getValue().length)
 			return false;
 		
 		MemoryHeader header = 
-				new MemoryHeader(memBuffer.position(), value.length);
+				new MemoryHeader(memBuffer.position(), value.getValue().length);
 		memTable.put(key, header);
-		memBuffer.put(value);
+		memBuffer.put(value.getValue());
 		
 		return true;
 	}
 	
-	public byte[] get(int key) {
+	public Value get(int key) {
 		MemoryHeader header = memTable.get(key);
 		if (header == null) {
-			return null;
+			return Value.NULL;
 		}
-		byte[] value = new byte[header.getSize()];
+		byte[] byteVal = new byte[header.getSize()];
 		int curPos = memBuffer.position();
 		memBuffer.position(header.getPosition());
-		memBuffer.get(value, 0, header.getSize());
+		memBuffer.get(byteVal, 0, header.getSize());
 		memBuffer.position(curPos);
+		
+		Value value = new Value(byteVal);
 
 		return value;
 	}

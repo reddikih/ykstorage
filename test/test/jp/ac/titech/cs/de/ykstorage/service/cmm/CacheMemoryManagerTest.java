@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
+import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
 import org.junit.Before;
@@ -29,20 +30,20 @@ public class CacheMemoryManagerTest {
 	@Test
 	public void testPutAndGet() {
 		int key1 = 1;
-		byte[] value1 = {1,2,3};
+		Value value1 = new Value(new byte[]{1,2,3});
 		assertTrue(cmm.put(key1, value1));
 		
 		int key2 = 2;
-		byte[] value2 = {4,5,6,7,8,9,10};
+		Value value2 = new Value(new byte[]{4,5,6,7,8,9,10});
 		assertTrue(cmm.put(key2, value2));
 
 		int key3 = 3;
-		byte[] value3 = {11};
+		Value value3 = new Value(new byte[]{11});
 		assertFalse(cmm.put(key3, value3));
 
-		assertTrue(Arrays.equals(value1, cmm.get(key1)));
-		assertTrue(Arrays.equals(value2, cmm.get(key2)));
-		assertTrue(Arrays.equals(value1, cmm.get(key1)));
+		assertTrue(value1.equals(cmm.get(key1)));
+		assertTrue(value2.equals(cmm.get(key2)));
+		assertTrue(value1.equals(cmm.get(key1)));
 	}
 
 }
