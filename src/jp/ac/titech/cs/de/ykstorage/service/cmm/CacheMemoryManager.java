@@ -13,7 +13,7 @@ public class CacheMemoryManager {
 	private int max;
 	private int limit;
 	
-	private Map<Integer, MemoryHeader> memTable;
+	private Map<Integer, MemoryHeader> headerTable;
 	
 	public CacheMemoryManager(int max, double threshold) {
 		if (threshold < 0 || threshold > 1.0)
@@ -23,7 +23,7 @@ public class CacheMemoryManager {
 		this.limit = (int)Math.floor(max * threshold);
 		
 		this.memBuffer = ByteBuffer.allocateDirect(max);
-		this.memTable = new HashMap<Integer, MemoryHeader>();
+		this.headerTable = new HashMap<Integer, MemoryHeader>();
 	}
 	
 	public boolean put(int key, Value value) {
@@ -33,22 +33,22 @@ public class CacheMemoryManager {
 		
 		MemoryHeader header = 
 				new MemoryHeader(memBuffer.position(), value.getValue().length);
-		memTable.put(key, header);
+		headerTable.put(key, header);
 		memBuffer.put(value.getValue());
 		
 		return true;
 	}
 	
 	public Value get(int key) {
-		MemoryHeader header = memTable.get(key);
+		MemoryHeader header = headerTable.get(key);
 		if (header == null) {
 			return Value.NULL;
 		}
 		byte[] byteVal = new byte[header.getSize()];
-		int curPos = memBuffer.position();
+		int currentPos = memBuffer.position();
 		memBuffer.position(header.getPosition());
 		memBuffer.get(byteVal, 0, header.getSize());
-		memBuffer.position(curPos);
+		memBuffer.position(currentPos);
 		
 		Value value = new Value(byteVal);
 
