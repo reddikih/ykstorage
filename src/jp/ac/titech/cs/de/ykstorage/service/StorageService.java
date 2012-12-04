@@ -21,7 +21,8 @@ public class StorageService {
 	}
 
 	public Object get(String key) {
-		String value = (String)(sm.get(key));
+		byte[] byteVal = sm.get(key);
+		String value = new String(byteVal); //TODO set character code
 		return value;
 	}
 }

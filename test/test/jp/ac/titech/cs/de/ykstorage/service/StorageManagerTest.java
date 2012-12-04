@@ -2,6 +2,8 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +25,6 @@ public class StorageManagerTest {
 		this.sm = new StorageManager(cmm);
 	}
 	
-
 	@Test
 	public void testPutAndGet() {
 		String key1 = "key1";
@@ -32,8 +33,8 @@ public class StorageManagerTest {
 		byte[] value2 = {4,5,6};
 		sm.put(key1, value1);
 		sm.put(key2, value2);
-		assertEquals(value1, sm.get(key1));
-		assertEquals(value2, sm.get(key2));
+		assertTrue(Arrays.equals(value1, sm.get(key1)));
+		assertTrue(Arrays.equals(value2, sm.get(key2)));
 	}
 
 }

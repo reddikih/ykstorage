@@ -21,11 +21,16 @@ public class StorageManager {
 		this.keyMap = new HashMap<String, Integer>();
 	}
 
-	public Object get(Object key) {
-		return null;
+	public byte[] get(String key) {
+		int innerKey = getKeySequenceNumber(key);
+		byte[] value = cmm.get(innerKey);
+		if (value == null) {
+			value = dm.get(innerKey);
+		}
+		return value;
 	}
 
-	public boolean put(Object key, byte[] value) {
+	public boolean put(String key, byte[] value) {
 		int keyNum = getKeySequenceNumber((String)key);
 		if (cmm.put(keyNum, value)) {
 			return true;
