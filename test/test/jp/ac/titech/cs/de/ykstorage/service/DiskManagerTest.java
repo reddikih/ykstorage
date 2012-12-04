@@ -13,39 +13,31 @@ import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 @RunWith(JUnit4.class)
 public class DiskManagerTest {
 	
-	private String key = "key";
-	private String key2 = "key2";
-	private String key3 = "key3";
-	private String nullKey = null;
-	private String emptyKey = "";
+	private int key = 1;
+	private int key2 = 123;
+	private int key3 = 123456;
 	private byte[] value = "value".getBytes();
 	private byte[] value2 = "value2".getBytes();
 	private byte[] value3 = "value3".getBytes();
-	private byte[] value4 = new byte[1024 * 1024 * 10];
+	private byte[] value4 = new byte[1024 * 1024 * 1];
 	private DiskManager dm = new DiskManager();
 	
 	
 	@Test
 	public void testGet() {
 		assertThat(dm.get(key), is(nullValue()));
-		assertThat(dm.get(nullKey), is(nullValue()));
-		assertThat(dm.get(emptyKey), is(nullValue()));
 		//fail("Not yet implemented");
 	}
 
 	@Test
 	public void testPut() {
 		assertThat(dm.put(key, value), is(true));
-		assertThat(dm.put(nullKey, value), is(false));
-		assertThat(dm.put(emptyKey, value), is(false));
 		//fail("Not yet implemented");
 	}
 	
 	@Test
 	public void testDelete() {
 		assertThat(dm.delete(key), is(false));
-		assertThat(dm.delete(nullKey), is(false));
-		assertThat(dm.delete(emptyKey), is(false));
 		//fail("Not yet implemented");
 	}
 	
