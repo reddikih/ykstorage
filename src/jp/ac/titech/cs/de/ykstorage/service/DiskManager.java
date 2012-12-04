@@ -25,11 +25,11 @@ public class DiskManager {
 		this.diskpaths = diskpaths;
 	}
 	
-	public byte[] get(int key) {
+	public Value get(int key) {
 		return read(key); 
 	}
 	
-	public boolean put(int key, byte[] value) {
+	public boolean put(int key, Value value) {
 		return write(key, value);
 	}
 	
@@ -69,8 +69,11 @@ public class DiskManager {
 		return -1;
 	}
 	
-	private byte[] read(int key) {
+	private Value read(int key) {
 		String filepath = keyFileMap.get(key);
+		if(filepath == null) {
+			return Value.NULL;
+		}
 		try {
 			File f = new File(filepath);
 			FileInputStream fis = new FileInputStream(f);
@@ -80,21 +83,21 @@ public class DiskManager {
 			bis.read(value);
 			
 			bis.close();
-			return value;
+			return new Value(value);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 	
-	private boolean write(int key, byte[] value) {
+	private boolean write(int key, Value value) {
 		String filepath = selectDisk(key);
 		try {
 			File f = new File(filepath);
 			FileOutputStream fos = new FileOutputStream(f);
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
 			
-			bos.write(value);
+			bos.write(value.getValue());
 			bos.flush();
 			
 			bos.close();
@@ -108,12 +111,13 @@ public class DiskManager {
 	
 	private boolean remove(int key) {
 		String filepath = keyFileMap.get(key);
+		if(filepath == null) {
+			return false;
+		}
 		keyFileMap.remove(key);
 		try {
 			File f = new File(filepath);
 			return f.delete();
-		}catch(NullPointerException e) {
-			e.printStackTrace();
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();

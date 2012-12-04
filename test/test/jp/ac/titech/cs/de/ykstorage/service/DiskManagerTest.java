@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
+import jp.ac.titech.cs.de.ykstorage.service.Value;
 
 
 @RunWith(JUnit4.class)
@@ -16,16 +17,15 @@ public class DiskManagerTest {
 	private int key = 1;
 	private int key2 = 123;
 	private int key3 = 123456;
-	private byte[] value = "value".getBytes();
-	private byte[] value2 = "value2".getBytes();
-	private byte[] value3 = "value3".getBytes();
-	private byte[] value4 = new byte[1024 * 1024 * 1];
+	private Value value = new Value("value".getBytes());
+	private Value value2 = new Value("value2".getBytes());
+	private Value value3 = new Value("value3".getBytes());
 	private DiskManager dm = new DiskManager();
 	
 	
 	@Test
 	public void testGet() {
-		assertThat(dm.get(key), is(nullValue()));
+		assertThat(dm.get(key), is(Value.NULL));
 		//fail("Not yet implemented");
 	}
 
@@ -45,7 +45,7 @@ public class DiskManagerTest {
 	public void mainTest() {
 		DiskManager diskMgr = new DiskManager();
 		assertThat(diskMgr.put(key, value), is(true));
-		assertThat(diskMgr.get(key), is(value));
+		assertThat(diskMgr.get(key).getValue(), is(value.getValue()));
 		assertThat(diskMgr.delete(key), is(true));
 	}
 	
@@ -54,35 +54,24 @@ public class DiskManagerTest {
 		DiskManager diskMgr = new DiskManager();
 		assertThat(diskMgr.put(key, value), is(true));
 		assertThat(diskMgr.put(key2, value2), is(true));
-		assertThat(diskMgr.get(key), is(value));
-		assertThat(diskMgr.get(key2), is(value2));
+		assertThat(diskMgr.get(key).getValue(), is(value.getValue()));
+		assertThat(diskMgr.get(key2).getValue(), is(value2.getValue()));
 		
 		assertThat(diskMgr.put(key, value2), is(true));
-		assertThat(diskMgr.get(key), is(value2));
+		assertThat(diskMgr.get(key).getValue(), is(value2.getValue()));
 		assertThat(diskMgr.put(key2, value), is(true));
-		assertThat(diskMgr.get(key2), is(value));
+		assertThat(diskMgr.get(key2).getValue(), is(value.getValue()));
 		
 		assertThat(diskMgr.put(key3, value3), is(true));
-		assertThat(diskMgr.get(key3), is(value3));
+		assertThat(diskMgr.get(key3).getValue(), is(value3.getValue()));
 		
 		assertThat(diskMgr.delete(key), is(true));
 		assertThat(diskMgr.delete(key2), is(true));
 		assertThat(diskMgr.delete(key3), is(true));
 		
-		assertThat(diskMgr.get(key), is(nullValue()));
+		assertThat(diskMgr.get(key), is(Value.NULL));
 		assertThat(diskMgr.put(key, value), is(true));
-		assertThat(diskMgr.get(key), is(value));
-		assertThat(diskMgr.delete(key), is(true));
-	}
-	
-	@Test
-	public void mainTest3() {
-		for(int i = 0; i < value4.length; i++) {
-			value4[i] = (byte) i;
-		}
-		DiskManager diskMgr = new DiskManager();
-		assertThat(diskMgr.put(key, value4), is(true));
-		assertThat(diskMgr.get(key), is(value4));
+		assertThat(diskMgr.get(key).getValue(), is(value.getValue()));
 		assertThat(diskMgr.delete(key), is(true));
 	}
 
