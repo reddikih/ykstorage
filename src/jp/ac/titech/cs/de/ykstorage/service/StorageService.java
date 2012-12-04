@@ -11,8 +11,14 @@ public class StorageService {
 	}
 	
 	private void init() {
-		CacheMemoryManager cmm = new CacheMemoryManager(10, 1.0);
-		this.sm = new StorageManager(cmm);
+		int capacity = Parameter.CAPACITY_OF_CACHEMEMORY;
+		double threshold = Parameter.MEMORY_THRESHOLD;
+		CacheMemoryManager cmm = new CacheMemoryManager(capacity, threshold);
+		
+		String[] diskPaths = Parameter.DATA_DISK_PATHS;
+		DiskManager dm = new DiskManager(diskPaths);
+
+		this.sm = new StorageManager(cmm, dm);
 	}
 
 	public boolean put(String key, String value) {

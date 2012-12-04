@@ -14,9 +14,9 @@ public class StorageManager {
 	private AtomicInteger seqNum;
 	private Map<String, Integer> keyMap;
 
-	public StorageManager(CacheMemoryManager cmm) {
+	public StorageManager(CacheMemoryManager cmm, DiskManager dm) {
 		this.cmm = cmm;
-		this.dm = new DiskManager();
+		this.dm = dm;
 		this.seqNum = new AtomicInteger(0);
 		this.keyMap = new HashMap<String, Integer>();
 	}
