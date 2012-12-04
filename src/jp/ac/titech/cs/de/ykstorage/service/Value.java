@@ -1,4 +1,4 @@
-package test.jp.ac.titech.cs.de.ykstorage.service;
+package jp.ac.titech.cs.de.ykstorage.service;
 
 public class Value {
 	
