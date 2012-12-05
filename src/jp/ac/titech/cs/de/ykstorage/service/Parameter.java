@@ -29,7 +29,7 @@ public class Parameter {
 	public static final double SPIN_DOWN_THRESHOLD = 10.0;
 	
 	public static final String[] DATA_DISK_PATHS = {
-		"./disk01",
-		"./disk02"
+		"./disk01/",
+		"./disk02/"
 	};
 }

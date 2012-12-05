@@ -14,13 +14,6 @@ public class DiskManager {
 	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 	
-	
-	public DiskManager() {
-		this.diskpaths = new String[2];
-		this.diskpaths[0] = "/disk0/";
-		this.diskpaths[1] = "/disk1/";
-	}
-	
 	public DiskManager(String[] diskpaths) {
 		this.diskpaths = diskpaths;
 	}

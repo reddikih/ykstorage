@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
+import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
@@ -24,7 +25,7 @@ public class StorageManagerTest {
 		double threshold = 1.0;
 		CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
 		
-		DiskManager dm = new DiskManager();
+		DiskManager dm = new DiskManager(Parameter.DATA_DISK_PATHS);
 		
 		this.sm = new StorageManager(cmm, dm);
 	}

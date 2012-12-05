@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
+import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 
 
@@ -20,7 +21,7 @@ public class DiskManagerTest {
 	private Value value = new Value("value".getBytes());
 	private Value value2 = new Value("value2".getBytes());
 	private Value value3 = new Value("value3".getBytes());
-	private DiskManager dm = new DiskManager();
+	private DiskManager dm = new DiskManager(Parameter.DATA_DISK_PATHS);
 	
 	
 	@Test
@@ -43,7 +44,7 @@ public class DiskManagerTest {
 	
 	@Test
 	public void mainTest() {
-		DiskManager diskMgr = new DiskManager();
+		DiskManager diskMgr = new DiskManager(Parameter.DATA_DISK_PATHS);
 		assertThat(diskMgr.put(key, value), is(true));
 		assertThat(diskMgr.get(key).getValue(), is(value.getValue()));
 		assertThat(diskMgr.delete(key), is(true));
@@ -51,7 +52,7 @@ public class DiskManagerTest {
 	
 	@Test
 	public void mainTest2() {
-		DiskManager diskMgr = new DiskManager();
+		DiskManager diskMgr = new DiskManager(Parameter.DATA_DISK_PATHS);
 		assertThat(diskMgr.put(key, value), is(true));
 		assertThat(diskMgr.put(key2, value2), is(true));
 		assertThat(diskMgr.get(key).getValue(), is(value.getValue()));
