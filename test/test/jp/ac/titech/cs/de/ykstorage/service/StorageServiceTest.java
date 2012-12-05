@@ -3,8 +3,13 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
+import java.io.File;
+
+import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.StorageService;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +35,14 @@ public class StorageServiceTest {
 		String key2 = "testKey2";
 		String value2 = "testValue2";
 		assertFalse(value1.equals(storage.get(key2)));
+	}
+	
+	@After
+	public void teardown() {
+		for(String path : Parameter.DATA_DISK_PATHS) {
+			File f = new File(path);
+			f.delete();
+		}
 	}
 
 }

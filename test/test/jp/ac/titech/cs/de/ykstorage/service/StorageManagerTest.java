@@ -2,8 +2,10 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.util.Arrays;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +42,14 @@ public class StorageManagerTest {
 		sm.put(key2, value2);
 		assertTrue(Arrays.equals(value1, sm.get(key1)));
 		assertTrue(Arrays.equals(value2, sm.get(key2)));
+	}
+	
+	@After
+	public void teardown() {
+		for(String path : Parameter.DATA_DISK_PATHS) {
+			File f = new File(path);
+			f.delete();
+		}
 	}
 
 }

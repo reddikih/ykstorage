@@ -32,11 +32,11 @@ public class DiskManager {
 	}
 	
 	private void init() {
-		for(int i = 0; i < diskpaths.length; i++) {
-			File f = new File(diskpaths[i]);
+		for (String path : diskpaths) {
+			File f = new File(path);
 			if(!f.exists() || !f.isDirectory()) {
 				if(!f.mkdirs()) {
-					throw new SecurityException("cannot create dir: " + diskpaths[i]);
+					throw new SecurityException("cannot create dir: " + path);
 				}
 			}
 		}
