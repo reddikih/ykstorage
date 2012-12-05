@@ -10,7 +10,6 @@ import org.junit.runners.JUnit4;
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
 
 @RunWith(JUnit4.class)
