@@ -30,6 +30,9 @@ public class StateManager {
 	}
 	
 	public boolean spindown(int diskId) {
+		if(diskId == 0) {
+			return false;
+		}
 		char id = (char) (0x61 + diskId);
 		String[] cmdarray = {"hdparm", "-y", "/dev/sd" + id};
 		try {
