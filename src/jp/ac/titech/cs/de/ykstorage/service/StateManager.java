@@ -1,6 +1,7 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 
 public class StateManager {
@@ -13,6 +14,7 @@ public class StateManager {
 	private double[] idleIntimes;	// TODO init
 	private double spindownThreshold;
 	private int interval = 1000;
+	private final Logger logger = Logger.getLogger("StateManagerLogging");
 	
 	private StateCheckThread sct;
 	
@@ -37,9 +39,16 @@ public class StateManager {
 		String[] cmdarray = {"hdparm", "-y", "/dev/sd" + id};
 		try {
 			Runtime r = Runtime.getRuntime();
-			r.exec(cmdarray);
-			return true;
+			Process p = r.exec(cmdarray);
+			int ret = p.waitFor();
+			logger.info("hdparm return code: " + ret);
+			if(ret == 0) {
+				return true;
+			}
+			return false;
 		} catch (IOException e) {
+			e.printStackTrace();
+		}catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		return false;
