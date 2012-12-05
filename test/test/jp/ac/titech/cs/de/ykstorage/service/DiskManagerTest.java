@@ -10,6 +10,7 @@ import org.junit.runners.JUnit4;
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
+import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
 
 @RunWith(JUnit4.class)
@@ -23,6 +24,11 @@ public class DiskManagerTest {
 	private Value value3 = new Value("value3".getBytes());
 	private DiskManager dm = new DiskManager(Parameter.DATA_DISK_PATHS);
 	
+	@Test(expected=SecurityException.class)
+	public void initMkdirsTest() {
+		String[] diskpath = {"!?"}; 
+		new DiskManager(diskpath);
+	}
 	
 	@Test
 	public void testGet() {

@@ -16,6 +16,7 @@ public class DiskManager {
 	
 	public DiskManager(String[] diskpaths) {
 		this.diskpaths = diskpaths;
+		init();
 	}
 	
 	public Value get(int key) {
@@ -28,6 +29,17 @@ public class DiskManager {
 	
 	public boolean delete(int key) {
 		return remove(key);
+	}
+	
+	private void init() {
+		for(int i = 0; i < diskpaths.length; i++) {
+			File f = new File(diskpaths[i]);
+			if(!f.exists() || !f.isDirectory()) {
+				if(!f.mkdirs()) {
+					throw new SecurityException("cannot create dir: " + diskpaths[i]);
+				}
+			}
+		}
 	}
 	
 	// キーに基づいて格納先のディスクを選択
