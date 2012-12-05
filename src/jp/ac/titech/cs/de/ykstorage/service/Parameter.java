@@ -12,6 +12,11 @@ package jp.ac.titech.cs.de.ykstorage.service;
 public class Parameter {
 	
 	/**
+	 * Debug flag
+	 */
+	public static final boolean DEBUG = true;
+	
+	/**
 	 * A number of data disks.
 	 */
 	public static final int NUMBER_OF_DATADISK = 8;

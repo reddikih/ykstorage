@@ -99,6 +99,9 @@ public class DiskManager {
 		String filepath = selectDisk(key);
 		try {
 			File f = new File(filepath);
+			if(Parameter.DEBUG) {
+				f.deleteOnExit();
+			}
 			FileOutputStream fos = new FileOutputStream(f);
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
 			
