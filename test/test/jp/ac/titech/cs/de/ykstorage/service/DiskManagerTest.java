@@ -32,12 +32,6 @@ public class DiskManagerTest {
 		this.dm = new DiskManager(Parameter.DATA_DISK_PATHS);
 	}
 	
-	@Test(expected=SecurityException.class)
-	public void initMkdirsTest() {
-		String[] diskpath = {"!?"}; 
-		new DiskManager(diskpath);
-	}
-	
 	@Test
 	public void testGet() {
 		assertThat(dm.get(key), is(Value.NULL));
