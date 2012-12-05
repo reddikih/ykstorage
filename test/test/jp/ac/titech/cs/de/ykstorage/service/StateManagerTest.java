@@ -23,7 +23,8 @@ public class StateManagerTest {
 	
 	@Test
 	public void spindownTest() {
-		fail("Not yet implemented");
+		StateManager sm = new StateManager(Parameter.NUMBER_OF_DATADISK, Parameter.SPIN_DOWN_THRESHOLD);
+		assertThat(sm.spindown(1), is(true));	// spindown /dev/sdb
 	}
 	
 	@Test

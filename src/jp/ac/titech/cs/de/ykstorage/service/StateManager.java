@@ -31,8 +31,7 @@ public class StateManager {
 	
 	public boolean spindown(int diskId) {
 		char id = (char) (0x61 + diskId);
-		System.out.println("/dev/sd" + id + " spindown");
-		String[] cmdarray = {"hdparm", "-C", "/dev/sd" + id};
+		String[] cmdarray = {"hdparm", "-y", "/dev/sd" + id};
 		try {
 			Runtime r = Runtime.getRuntime();
 			r.exec(cmdarray);
