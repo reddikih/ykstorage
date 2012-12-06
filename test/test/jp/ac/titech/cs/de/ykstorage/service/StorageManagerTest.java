@@ -27,7 +27,7 @@ public class StorageManagerTest {
 		double threshold = 1.0;
 		CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
 		
-		DiskManager dm = new DiskManager(Parameter.DATA_DISK_PATHS);
+		DiskManager dm = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
 		
 		this.sm = new StorageManager(cmm, dm);
 	}

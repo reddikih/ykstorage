@@ -16,7 +16,8 @@ public class StorageService {
 		CacheMemoryManager cmm = new CacheMemoryManager(capacity, threshold);
 		
 		String[] diskPaths = Parameter.DATA_DISK_PATHS;
-		DiskManager dm = new DiskManager(diskPaths);
+		String savePath = Parameter.DATA_DISK_SAVE_FILE_PATH;
+		DiskManager dm = new DiskManager(diskPaths, savePath);
 
 		this.sm = new StorageManager(cmm, dm);
 	}

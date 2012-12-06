@@ -29,7 +29,7 @@ public class DiskManagerTest {
 	
 	@Before
 	public void setUpClass() {
-		this.dm = new DiskManager(Parameter.DATA_DISK_PATHS);
+		this.dm = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
 	}
 	
 	@Test
@@ -45,6 +45,18 @@ public class DiskManagerTest {
 	@Test
 	public void testDelete() {
 		assertThat(dm.delete(key), is(false));
+	}
+	
+	@Test
+	public void loadAndSaveTest() {
+		assertThat(dm.put(key, value), is(true));
+		assertThat(dm.put(key2, value2), is(true));
+		assertThat(dm.put(key3, value3), is(true));
+		dm.end();
+		DiskManager dm2 = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
+		assertThat(dm2.get(key).getValue(), is(value.getValue()));
+		assertThat(dm2.get(key2).getValue(), is(value2.getValue()));
+		assertThat(dm2.get(key3).getValue(), is(value3.getValue()));
 	}
 	
 	@Test
@@ -85,6 +97,8 @@ public class DiskManagerTest {
 			File f = new File(path);
 			f.delete();
 		}
+		File f = new File(Parameter.DATA_DISK_SAVE_FILE_PATH);
+		f.delete();
 	}
 
 }

@@ -42,6 +42,7 @@ public class StateManager {
 			Process p = r.exec(cmdarray);
 			int ret = p.waitFor();
 			logger.info("hdparm return code: " + ret);
+			// TODO create log file
 			if(ret == 0) {
 				return true;
 			}

@@ -2,20 +2,30 @@ package jp.ac.titech.cs.de.ykstorage.service;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.StringTokenizer;
 
 
 public class DiskManager {
 	private String[] diskpaths;
+	private String savePath;
 	
 	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 	
-	public DiskManager(String[] diskpaths) {
+	public DiskManager(String[] diskpaths, String savePath) {
 		this.diskpaths = diskpaths;
+		this.savePath = savePath;
 		init();
 	}
 	
@@ -31,6 +41,10 @@ public class DiskManager {
 		return remove(key);
 	}
 	
+	public void end() {
+		saveHashMap();
+	}
+	
 	private void init() {
 		for (String path : diskpaths) {
 			File f = new File(path);
@@ -39,6 +53,56 @@ public class DiskManager {
 					throw new SecurityException("cannot create dir: " + path);
 				}
 			}
+		}
+		
+		loadHashMap();
+	}
+	
+	private void loadHashMap() {
+		try {
+			File f = new File(savePath);
+			if(!f.isFile()) {
+				return;
+			}
+			BufferedReader br = new BufferedReader(new FileReader(f));
+			
+			String line = "";
+			while((line = br.readLine()) != null) {
+				StringTokenizer st = new StringTokenizer(line, ",");
+				
+				int key = Integer.parseInt(st.nextToken());
+				String value = st.nextToken();
+				keyFileMap.put(key, value);
+			}
+			
+			br.close();
+		}catch(FileNotFoundException e) {
+			e.printStackTrace();
+		}catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void saveHashMap() {
+		try {
+			File f = new File(savePath);
+			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+			
+			Iterator<Integer> keys = keyFileMap.keySet().iterator();
+			while(keys.hasNext()) {
+				int key = (Integer) keys.next();
+				String value = keyFileMap.get(key);
+				
+				bw.write(key + "," + value);
+				bw.newLine();
+				bw.flush();
+			}
+			
+			bw.close();
+		}catch(FileNotFoundException e) {
+			e.printStackTrace();
+		}catch(IOException e) {
+			e.printStackTrace();
 		}
 	}
 	

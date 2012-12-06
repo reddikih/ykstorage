@@ -37,4 +37,6 @@ public class Parameter {
 		"./disk01/",
 		"./disk02/"
 	};
+	
+	public static final String DATA_DISK_SAVE_FILE_PATH = "./datamap";
 }
