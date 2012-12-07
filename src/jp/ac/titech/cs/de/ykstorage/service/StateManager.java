@@ -3,6 +3,8 @@ package jp.ac.titech.cs.de.ykstorage.service;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
+
 
 public class StateManager {
 	public static final int ACTIVE = 0;
@@ -14,7 +16,7 @@ public class StateManager {
 	private double[] idleIntimes;	// TODO init
 	private double spindownThreshold;
 	private int interval = 1000;
-	private final Logger logger = Logger.getLogger("StateManagerLogging");
+	private final Logger logger = StorageLogger.getLogger();
 	
 	private StateCheckThread sct;
 	
@@ -41,11 +43,10 @@ public class StateManager {
 			Runtime r = Runtime.getRuntime();
 			Process p = r.exec(cmdarray);
 			int ret = p.waitFor();
-			logger.info("hdparm return code: " + ret);
-			// TODO create log file
 			if(ret == 0) {
 				return true;
 			}
+			logger.info("hdparm return code: " + ret);
 			return false;
 		} catch (IOException e) {
 			e.printStackTrace();
