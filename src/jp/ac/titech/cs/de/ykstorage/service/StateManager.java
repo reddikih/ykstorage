@@ -33,27 +33,41 @@ public class StateManager {
 		sct.start();
 	}
 	
+	public boolean spinup(int diskId) {
+		if(diskId == 0) {
+			return false;
+		}
+		String diskPath = Parameter.DATA_DISK_PATHS[diskId - 1];
+		String[] cmdarray = {"ls", diskPath};
+		int returnCode = this.execCommand(cmdarray);
+		return (returnCode == 0) ? true : false;
+	}
+	
 	public boolean spindown(int diskId) {
 		if(diskId == 0) {
 			return false;
 		}
 		char id = (char) (0x61 + diskId);
 		String[] cmdarray = {"hdparm", "-y", "/dev/sd" + id};
+		int returnCode = this.execCommand(cmdarray);
+		return (returnCode == 0) ? true : false;
+	}
+	
+	private int execCommand(String[] cmd) {
+		int returnCode = 1;
 		try {
 			Runtime r = Runtime.getRuntime();
-			Process p = r.exec(cmdarray);
-			int ret = p.waitFor();
-			if(ret == 0) {
-				return true;
+			Process p = r.exec(cmd);
+			returnCode = p.waitFor();
+			if(returnCode != 0) {
+				logger.info(cmd[0] + " return code: " + returnCode);
 			}
-			logger.info("hdparm return code: " + ret);
-			return false;
 		} catch (IOException e) {
 			e.printStackTrace();
-		}catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		return false;
+		return returnCode;
 	}
 	
 	public boolean setDiskState(int diskId, int state) {

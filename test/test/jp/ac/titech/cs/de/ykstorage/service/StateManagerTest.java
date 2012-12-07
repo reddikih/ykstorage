@@ -3,34 +3,56 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.StateManager;
+import jp.ac.titech.cs.de.ykstorage.service.Value;
 
 
 @RunWith(JUnit4.class)
 public class StateManagerTest {
+	private StateManager sm;
+	
+	@Before
+	public void setUpClass() {
+		this.sm = new StateManager(Parameter.NUMBER_OF_DATADISK, Parameter.SPIN_DOWN_THRESHOLD);
+	}
 	
 	@Test
 	public void startTest() {
-		StateManager sm = new StateManager(Parameter.NUMBER_OF_DATADISK, Parameter.SPIN_DOWN_THRESHOLD);
 		sm.start();
 		assertThat(sm.getDiskState(0), is(StateManager.ACTIVE));
 	}
 	
 	@Test
+	public void spinupTest() {
+		assertThat(sm.spinup(1), is(true));
+	}
+	
+	@Test
 	public void spindownTest() {
-		StateManager sm = new StateManager(Parameter.NUMBER_OF_DATADISK, Parameter.SPIN_DOWN_THRESHOLD);
 		assertThat(sm.spindown(1), is(true));	// spindown /dev/sdb
 	}
 	
 	@Test
-	public void mainTest() {
-		StateManager sm = new StateManager(Parameter.NUMBER_OF_DATADISK, Parameter.SPIN_DOWN_THRESHOLD);
+	public void writeToSpindownDiskTest() {
+		int key = 1;
+		Value value = new Value("value".getBytes());
+		DiskManager dm = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
 		
+		assertThat(sm.spindown(1), is(true));	// spindown /dev/sdb
+		assertThat(sm.spinup(1), is(true));
+		assertThat(dm.put(key, value), is(true));
+		assertThat(dm.get(key).getValue(), is(value.getValue()));
+	}
+	
+	@Test
+	public void mainTest() {
 		assertThat(sm.setDiskState(0, StateManager.ACTIVE), is(true));
 		assertThat(sm.setDiskState(1, StateManager.IDLE), is(true));
 		assertThat(sm.setDiskState(2, StateManager.STANDBY), is(true));
