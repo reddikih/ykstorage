@@ -76,7 +76,7 @@ public class DiskManagerTest {
 
 	@Test
 	public void getDiskStateTest() {
-		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.ACTIVE));
+		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
 		assertThat(dm.put(key, value), is(true));
 		assertThat(dm.getDiskState(devicePaths[1]), is(DiskState.IDLE));
 
