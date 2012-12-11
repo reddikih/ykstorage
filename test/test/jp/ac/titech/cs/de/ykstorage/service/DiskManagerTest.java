@@ -15,11 +15,12 @@ import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.StateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
+import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
 
 @RunWith(JUnit4.class)
 public class DiskManagerTest {
-	
+
 	private int key = 1;
 	private int key2 = 123;
 	private int key3 = 123456;
@@ -27,12 +28,12 @@ public class DiskManagerTest {
 	private Value value2 = new Value("value2".getBytes());
 	private Value value3 = new Value("value3".getBytes());
 	private DiskManager dm;
-	
+
 	@Before
 	public void setUpClass() {
 		this.dm = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
 	}
-	
+
 	@Test
 	public void testGet() {
 		assertThat(dm.get(key), is(Value.NULL));
@@ -42,12 +43,12 @@ public class DiskManagerTest {
 	public void testPut() {
 		assertThat(dm.put(key, value), is(true));
 	}
-	
+
 	@Test
 	public void testDelete() {
 		assertThat(dm.delete(key), is(false));
 	}
-	
+
 	@Test
 	public void loadAndSaveTest() {
 		assertThat(dm.put(key, value), is(true));
@@ -59,55 +60,55 @@ public class DiskManagerTest {
 		assertThat(dm2.get(key2).getValue(), is(value2.getValue()));
 		assertThat(dm2.get(key3).getValue(), is(value3.getValue()));
 	}
-	
+
 	@Test
 	public void getDiskStateTest() {
-		assertThat(dm.getDiskState(1), is(StateManager.ACTIVE));
+		assertThat(dm.getDiskState(1), is(DiskState.ACTIVE));
 		assertThat(dm.put(key, value), is(true));
-		assertThat(dm.getDiskState(1), is(StateManager.IDLE));
-		
+		assertThat(dm.getDiskState(1), is(DiskState.IDLE));
+
 		try {
 			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 100));
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		assertThat(dm.getDiskState(1), is(StateManager.STANDBY));
+
+		assertThat(dm.getDiskState(1), is(DiskState.STANDBY));
 	}
-	
+
 	@Test
 	public void mainTest() {
 		assertThat(dm.put(key, value), is(true));
 		assertThat(dm.get(key).getValue(), is(value.getValue()));
 		assertThat(dm.delete(key), is(true));
 	}
-	
+
 	@Test
 	public void mainTest2() {
 		assertThat(dm.put(key, value), is(true));
 		assertThat(dm.put(key2, value2), is(true));
 		assertThat(dm.get(key).getValue(), is(value.getValue()));
 		assertThat(dm.get(key2).getValue(), is(value2.getValue()));
-		
+
 		assertThat(dm.put(key, value2), is(true));
 		assertThat(dm.get(key).getValue(), is(value2.getValue()));
 		assertThat(dm.put(key2, value), is(true));
 		assertThat(dm.get(key2).getValue(), is(value.getValue()));
-		
+
 		assertThat(dm.put(key3, value3), is(true));
 		assertThat(dm.get(key3).getValue(), is(value3.getValue()));
-		
+
 		assertThat(dm.delete(key), is(true));
 		assertThat(dm.delete(key2), is(true));
 		assertThat(dm.delete(key3), is(true));
-		
+
 		assertThat(dm.get(key), is(Value.NULL));
 		assertThat(dm.put(key, value), is(true));
 		assertThat(dm.get(key).getValue(), is(value.getValue()));
 		assertThat(dm.delete(key), is(true));
 	}
-	
+
 	@After
 	public void teardown() {
 		for(String path : Parameter.DATA_DISK_PATHS) {
