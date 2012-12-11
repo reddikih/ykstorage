@@ -1,6 +1,7 @@
 package test.jp.ac.titech.cs.de.ykstorage.service;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 import java.io.File;
 import java.util.Arrays;
@@ -46,6 +47,12 @@ public class StorageManagerTest {
 		sm.put(key2, value2);
 		assertTrue(Arrays.equals(value1, sm.get(key1)));
 		assertTrue(Arrays.equals(value2, sm.get(key2)));
+
+		// write to disk due to cache overflow.
+		String key3 = "key3";
+		byte[] value3 = {7,8,9,10,11};
+		assertThat(sm.put(key3, value3), is(true));
+		assertThat((Arrays.equals(value3, sm.get(key3))), is(true));
 	}
 
 	@After

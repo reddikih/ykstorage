@@ -10,7 +10,7 @@ public class StorageManager {
 
 	private CacheMemoryManager cmm;
 	private DiskManager dm;
-	
+
 	private AtomicInteger seqNum;
 	private Map<String, Integer> keyMap;
 
@@ -36,10 +36,10 @@ public class StorageManager {
 		if (cmm.put(keyNum, value)) {
 			return true;
 		} else {
-			return false;
+			return dm.put(keyNum, value);
 		}
 	}
-	
+
 	private int getKeySequenceNumber(String key) {
 		int keySeqNum = -1;
 		if (keyMap.containsKey(key)) {
