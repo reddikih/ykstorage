@@ -1,7 +1,5 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -32,56 +30,35 @@ public class Parameter {
 	 * The disk spin down threshold time(second).
 	 */
 	public static final double SPIN_DOWN_THRESHOLD = 10.0;
+	
+//	public static String DATA_DIR = "/ecoim/ykstorage/data";
+	public static String DATA_DIR = "./data";
 
-	public static final String[] DATA_DISK_PATHS = {
-		"/ecoim/ykstorage/data/disk5/",
-		"/ecoim/ykstorage/data/disk6/",
-		"/ecoim/ykstorage/data/disk7/",
-		"/ecoim/ykstorage/data/disk8/",
-		"/ecoim/ykstorage/data/disk9/",
-		"/ecoim/ykstorage/data/disk10/",
-		"/ecoim/ykstorage/data/disk11/",
-		"/ecoim/ykstorage/data/disk12/",
-		"/ecoim/ykstorage/data/disk13/",
-		"/ecoim/ykstorage/data/disk14/",
-//		"/ecoim/ykstorage/data/disk15/",
-//		"/ecoim/ykstorage/data/disk16/",
-//		"/ecoim/ykstorage/data/disk17/",
-//		"/ecoim/ykstorage/data/disk18/",
-//		"/ecoim/ykstorage/data/disk19/",
-//		"/ecoim/ykstorage/data/disk20/",
-//		"/ecoim/ykstorage/data/disk21/",
-//		"/ecoim/ykstorage/data/disk22/",
-//		"/ecoim/ykstorage/data/disk23/",
-//		"/ecoim/ykstorage/data/disk24/",
-//		"/ecoim/ykstorage/data/disk25/",
-//		"/ecoim/ykstorage/data/disk26/",
-//		"/ecoim/ykstorage/data/disk27/",
-//		"/ecoim/ykstorage/data/disk28/",
-//		"/ecoim/ykstorage/data/disk29/",
-//		"/ecoim/ykstorage/data/disk30/",
-//		"/ecoim/ykstorage/data/disk31/",
-//		"/ecoim/ykstorage/data/disk32/",
+	public static String[] DATA_DISK_PATHS;
+	static {
+		int numOfDisks = 14;
+		int origin = 1;
+		String prefix = DATA_DIR + "/disk%d/";
+		DATA_DISK_PATHS = new String[numOfDisks];
+		for (int i=0; i < DATA_DISK_PATHS.length; i++) {
+			DATA_DISK_PATHS[i] = String.format(prefix, origin + i);
+		}
+		// above code generate data disk paths like follows:
+		//  /ecoim/ykstorage/data/disk1, /ecoim/ykstorage/data/disk2, ...
 	};
 
-	public static final SortedMap<String, String> MOUNT_POINT_PATHS = new TreeMap<String, String>();
+	public static SortedMap<String, String> MOUNT_POINT_PATHS = new TreeMap<String, String>();
 	static {
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk1", "/dev/sdb1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk2", "/dev/sdc1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk3", "/dev/sdd1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk4", "/dev/sde1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk5", "/dev/sdf1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk6", "/dev/sdg1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk7", "/dev/sdh1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk8", "/dev/sdi1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk9", "/dev/sdj1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk10", "/dev/sdk1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk11", "/dev/sdl1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk12", "/dev/sdm1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk13", "/dev/sdn1");
-		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk14", "/dev/sdo1");
+		char diskIds[] = {'b','c','d','e','f','g','h','i','j','k','l','m','n','o'};
+		String prefix = "/dev/sd%s";
+		int i = 0;
+		for (char diskId : diskIds) {
+			MOUNT_POINT_PATHS.put(DATA_DISK_PATHS[i], String.format(prefix, diskId));
+			i++;
+		}
+		// above code generate data disk paths like follows:
+		//  /dev/sdb, /dev/sdc, ...
 	}
-
 
 	/**
 	 * A number of data disks.
