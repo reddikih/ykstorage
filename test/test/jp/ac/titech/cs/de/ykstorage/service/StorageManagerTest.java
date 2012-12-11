@@ -13,25 +13,30 @@ import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+import jp.ac.titech.cs.de.ykstorage.service.StateManager;
 import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
 @RunWith(JUnit4.class)
 public class StorageManagerTest {
-	
+
 	private StorageManager sm;
-	
+
 	@Before
 	public void setUpClass() {
 		int cmmMax = 10;
 		double threshold = 1.0;
 		CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
-		
-		DiskManager dm = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
-		
+
+		DiskManager dm = new DiskManager(
+				Parameter.DATA_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD);
+
 		this.sm = new StorageManager(cmm, dm);
 	}
-	
+
 	@Test
 	public void testPutAndGetOnCacheMemory() {
 		String key1 = "key1";
@@ -43,7 +48,7 @@ public class StorageManagerTest {
 		assertTrue(Arrays.equals(value1, sm.get(key1)));
 		assertTrue(Arrays.equals(value2, sm.get(key2)));
 	}
-	
+
 	@After
 	public void teardown() {
 		for(String path : Parameter.DATA_DISK_PATHS) {

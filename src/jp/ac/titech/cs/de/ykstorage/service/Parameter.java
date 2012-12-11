@@ -1,5 +1,10 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 /**
  * 起動パラメータ用の一時的なクラス．最終的にはXMLやプロパティファイル
  * から起動時にパラメータを読み込むようにさせる．
@@ -58,6 +63,25 @@ public class Parameter {
 //		"/ecoim/ykstorage/data/disk31/",
 //		"/ecoim/ykstorage/data/disk32/",
 	};
+
+	public static final SortedMap<String, String> MOUNT_POINT_PATHS = new TreeMap<String, String>();
+	static {
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk1", "/dev/sdb1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk2", "/dev/sdc1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk3", "/dev/sdd1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk4", "/dev/sde1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk5", "/dev/sdf1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk6", "/dev/sdg1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk7", "/dev/sdh1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk8", "/dev/sdi1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk9", "/dev/sdj1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk10", "/dev/sdk1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk11", "/dev/sdl1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk12", "/dev/sdm1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk13", "/dev/sdn1");
+		MOUNT_POINT_PATHS.put("/ecoim/ykstorage/data/disk14", "/dev/sdo1");
+	}
+
 
 	/**
 	 * A number of data disks.

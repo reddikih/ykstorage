@@ -1,21 +1,21 @@
 package test.jp.ac.titech.cs.de.ykstorage.service;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.StateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 
 @RunWith(JUnit4.class)
@@ -31,7 +31,12 @@ public class DiskManagerTest {
 
 	@Before
 	public void setUpClass() {
-		this.dm = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
+		this.dm = new DiskManager(
+				Parameter.DATA_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD
+		);
 	}
 
 	@Test
@@ -55,7 +60,11 @@ public class DiskManagerTest {
 		assertThat(dm.put(key2, value2), is(true));
 		assertThat(dm.put(key3, value3), is(true));
 		dm.end();
-		DiskManager dm2 = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
+		DiskManager dm2 = new DiskManager(
+								Parameter.DATA_DISK_PATHS,
+								Parameter.DATA_DISK_SAVE_FILE_PATH,
+								Parameter.MOUNT_POINT_PATHS,
+								Parameter.SPIN_DOWN_THRESHOLD);
 		assertThat(dm2.get(key).getValue(), is(value.getValue()));
 		assertThat(dm2.get(key2).getValue(), is(value2.getValue()));
 		assertThat(dm2.get(key3).getValue(), is(value3.getValue()));

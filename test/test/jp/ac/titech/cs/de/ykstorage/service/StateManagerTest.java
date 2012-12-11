@@ -21,7 +21,7 @@ public class StateManagerTest {
 
 	@Before
 	public void setUpClass() {
-		this.sm = new StateManager(Parameter.NUMBER_OF_DATADISK, Parameter.SPIN_DOWN_THRESHOLD);
+		this.sm = new StateManager(Parameter.MOUNT_POINT_PATHS.keySet(), Parameter.SPIN_DOWN_THRESHOLD);
 	}
 
 	@Test
@@ -44,7 +44,11 @@ public class StateManagerTest {
 	public void writeToSpindownDiskTest() {
 		int key = 1;
 		Value value = new Value("value".getBytes());
-		DiskManager dm = new DiskManager(Parameter.DATA_DISK_PATHS, Parameter.DATA_DISK_SAVE_FILE_PATH);
+		DiskManager dm = new DiskManager(
+				Parameter.DATA_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD);
 
 		assertThat(sm.spindown(1), is(true));	// spindown /dev/sdb
 		assertThat(sm.spinup(1), is(true));

@@ -1,6 +1,9 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
@@ -8,13 +11,19 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class StateManager {
-//	public static final int ACTIVE = 0;
-//	public static final int IDLE = 1;
-//	public static final int STANDBY = 2;
 
-	private int disknum;
-	private DiskState[] diskStates;	// TODO init
-	private double[] idleIntimes;	// TODO init
+	/**
+	 * key: disk path on file system
+	 * value: disk state
+	 */
+	private Map<String, DiskState> diskStates;
+
+	/**
+	 * key: disk path on file system
+	 * value: start time of idle state
+	 */
+	private Map<String, Long> idleIntimes;
+
 	private double spindownThreshold;
 	private int interval = 1000;
 	private final Logger logger = StorageLogger.getLogger();
@@ -22,18 +31,26 @@ public class StateManager {
 	private StateCheckThread sct;
 
 
-	public StateManager(int disknum, double threshold) {
-		this.disknum = disknum;
-		this.diskStates = initDiskStates(disknum);
-		this.idleIntimes = new double[disknum];
-		this.spindownThreshold = threshold;
+	public StateManager(Set<String> diskPaths, double spinDownThreshold) {
+		this.diskStates = initDiskStates(diskPaths);
+		this.idleIntimes = initIdleInTimes(diskPaths);
+		this.spindownThreshold = spinDownThreshold;
 		this.sct = new StateCheckThread();
 	}
 
-	private DiskState[] initDiskStates(int disknum) {
-		DiskState[] result = new DiskState[disknum];
-		for (int i = 0; i < disknum; i++) {
-			result[i] = DiskState.ACTIVE;
+	private Map<String, DiskState> initDiskStates(Set<String> diskPaths) {
+		Map<String, DiskState> result = new HashMap<String, DiskState>();
+		for (String path : diskPaths) {
+			result.put(path, DiskState.IDLE);
+		}
+		return result;
+	}
+
+	private Map<String, Long> initIdleInTimes(Set<String> diskPaths) {
+		Map<String, Long> result = new HashMap<String, Long>();
+		long thisTime = System.currentTimeMillis();
+		for (String path : diskPaths) {
+			result.put(path, thisTime);
 		}
 		return result;
 	}

@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.SortedMap;
 import java.util.StringTokenizer;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
@@ -23,14 +24,25 @@ public class DiskManager {
 
 	private String[] diskpaths;
 	private String savePath;
+	/**
+	 * key: disk path on file system
+	 * value: device file path
+	 */
+	private SortedMap<String, String> mountPointPaths;
 
 	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 
-	public DiskManager(String[] diskpaths, String savePath) {
-		this.sm = new StateManager(Parameter.NUMBER_OF_DATADISK, Parameter.SPIN_DOWN_THRESHOLD);
+	public DiskManager(
+			String[] diskpaths,
+			String savePath,
+			SortedMap<String, String> mountPointPaths,
+			double spinDownThreshold) {
 		this.diskpaths = diskpaths;
 		this.savePath = savePath;
+		this.mountPointPaths = mountPointPaths;
+
+		this.sm = new StateManager(this.mountPointPaths.keySet(), spinDownThreshold);
 
 		init();
 		this.sm.start();
