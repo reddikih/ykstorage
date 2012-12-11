@@ -17,6 +17,8 @@ import java.util.StringTokenizer;
 
 
 public class DiskManager {
+	private StateManager sm;
+	
 	private String[] diskpaths;
 	private String savePath;
 	
@@ -24,9 +26,12 @@ public class DiskManager {
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 	
 	public DiskManager(String[] diskpaths, String savePath) {
+		this.sm = new StateManager(Parameter.NUMBER_OF_DATADISK, Parameter.SPIN_DOWN_THRESHOLD);
 		this.diskpaths = diskpaths;
 		this.savePath = savePath;
+		
 		init();
+		this.sm.start();
 	}
 	
 	public Value get(int key) {
@@ -56,6 +61,10 @@ public class DiskManager {
 		}
 		
 		loadHashMap();
+	}
+	
+	public int getDiskState(int diskId) {
+		return sm.getDiskState(diskId);
 	}
 	
 	private void loadHashMap() {
@@ -132,7 +141,7 @@ public class DiskManager {
 		for(int i = 0; i < diskpaths.length; i++) {
 			diskId = filepath.indexOf(diskpaths[i]);
 			if(diskId > -1) {
-				return diskId;
+				return diskId + 1;
 			}
 		}
 		return -1;
@@ -143,7 +152,10 @@ public class DiskManager {
 		if(filepath == null) {
 			return Value.NULL;
 		}
+		
+		int diskId = getDiskId(filepath);
 		try {
+			sm.setDiskState(diskId, StateManager.ACTIVE);
 			File f = new File(filepath);
 			FileInputStream fis = new FileInputStream(f);
 			BufferedInputStream bis = new BufferedInputStream(fis);
@@ -152,16 +164,22 @@ public class DiskManager {
 			bis.read(value);
 			
 			bis.close();
+			sm.setIdleIntime(diskId, System.currentTimeMillis());
+			sm.setDiskState(diskId, StateManager.IDLE);
 			return new Value(value);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
+		sm.setIdleIntime(diskId, System.currentTimeMillis());
+		sm.setDiskState(diskId, StateManager.IDLE);
 		return Value.NULL;
 	}
 	
 	private boolean write(int key, Value value) {
 		String filepath = selectDisk(key);
+		int diskId = getDiskId(filepath);
 		try {
+			sm.setDiskState(diskId, StateManager.ACTIVE);
 			File f = new File(filepath);
 			if(Parameter.DEBUG) {
 				f.deleteOnExit();
@@ -173,11 +191,15 @@ public class DiskManager {
 			bos.flush();
 			
 			bos.close();
+			sm.setIdleIntime(diskId, System.currentTimeMillis());
+			sm.setDiskState(diskId, StateManager.IDLE);
 			return true;
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
 		}
+		sm.setIdleIntime(diskId, System.currentTimeMillis());
+		sm.setDiskState(diskId, StateManager.IDLE);
 		return false;
 	}
 	
@@ -187,13 +209,21 @@ public class DiskManager {
 			return false;
 		}
 		keyFileMap.remove(key);
+		
+		int diskId = getDiskId(filepath);
 		try {
+			sm.setDiskState(diskId, StateManager.ACTIVE);
 			File f = new File(filepath);
-			return f.delete();
+			boolean ret = f.delete();
+			sm.setIdleIntime(diskId, System.currentTimeMillis());
+			sm.setDiskState(diskId, StateManager.IDLE);
+			return ret;
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
 		}
+		sm.setIdleIntime(diskId, System.currentTimeMillis());
+		sm.setDiskState(diskId, StateManager.IDLE);
 		return false;
 	}
 }

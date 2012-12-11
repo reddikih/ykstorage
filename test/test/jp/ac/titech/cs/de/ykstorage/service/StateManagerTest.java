@@ -26,7 +26,7 @@ public class StateManagerTest {
 	@Test
 	public void startTest() {
 		sm.start();
-		assertThat(sm.getDiskState(0), is(StateManager.ACTIVE));
+		assertThat(sm.getDiskState(1), is(StateManager.ACTIVE));
 	}
 	
 	@Test
@@ -53,19 +53,19 @@ public class StateManagerTest {
 	
 	@Test
 	public void mainTest() {
-		assertThat(sm.setDiskState(0, StateManager.ACTIVE), is(true));
-		assertThat(sm.setDiskState(1, StateManager.IDLE), is(true));
-		assertThat(sm.setDiskState(2, StateManager.STANDBY), is(true));
+		assertThat(sm.setDiskState(1, StateManager.ACTIVE), is(true));
+		assertThat(sm.setDiskState(2, StateManager.IDLE), is(true));
+		assertThat(sm.setDiskState(3, StateManager.STANDBY), is(true));
 		
-		assertThat(sm.getDiskState(0), is(StateManager.ACTIVE));
-		assertThat(sm.getDiskState(1), is(StateManager.IDLE));
-		assertThat(sm.getDiskState(2), is(StateManager.STANDBY));
+		assertThat(sm.getDiskState(1), is(StateManager.ACTIVE));
+		assertThat(sm.getDiskState(2), is(StateManager.IDLE));
+		assertThat(sm.getDiskState(3), is(StateManager.STANDBY));
 		
-		assertThat(sm.setIdleIntime(0, System.currentTimeMillis()), is(true));
 		assertThat(sm.setIdleIntime(1, System.currentTimeMillis()), is(true));
 		assertThat(sm.setIdleIntime(2, System.currentTimeMillis()), is(true));
+		assertThat(sm.setIdleIntime(3, System.currentTimeMillis()), is(true));
 		
-		assertThat(sm.setDiskState(0, StateManager.IDLE), is(true));
-		assertThat(sm.getDiskState(0), is(StateManager.IDLE));
+		assertThat(sm.setDiskState(1, StateManager.IDLE), is(true));
+		assertThat(sm.getDiskState(1), is(StateManager.IDLE));
 	}
 }

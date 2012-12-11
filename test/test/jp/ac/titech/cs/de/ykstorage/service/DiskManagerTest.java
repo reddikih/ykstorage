@@ -13,6 +13,7 @@ import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+import jp.ac.titech.cs.de.ykstorage.service.StateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 
 
@@ -57,6 +58,22 @@ public class DiskManagerTest {
 		assertThat(dm2.get(key).getValue(), is(value.getValue()));
 		assertThat(dm2.get(key2).getValue(), is(value2.getValue()));
 		assertThat(dm2.get(key3).getValue(), is(value3.getValue()));
+	}
+	
+	@Test
+	public void getDiskStateTest() {
+		assertThat(dm.getDiskState(1), is(StateManager.ACTIVE));
+		assertThat(dm.put(key, value), is(true));
+		assertThat(dm.getDiskState(1), is(StateManager.IDLE));
+		
+		try {
+			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 100));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		assertThat(dm.getDiskState(1), is(StateManager.STANDBY));
 	}
 	
 	@Test

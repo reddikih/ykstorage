@@ -71,21 +71,33 @@ public class StateManager {
 	}
 	
 	public boolean setDiskState(int diskId, int state) {
-		diskStates[diskId] = state;
+		if(diskId == 0) {
+			return false;
+		}
+		diskStates[diskId - 1] = state;
 		return true;
 	}
 	
 	public int getDiskState(int diskId) {
-		return diskStates[diskId];
+		if(diskId == 0) {
+			return -1;
+		}
+		return diskStates[diskId - 1];
 	}
 	
 	public boolean setIdleIntime(int diskId, long time) {
-		idleIntimes[diskId] = time;
+		if(diskId == 0) {
+			return false;
+		}
+		idleIntimes[diskId - 1] = time;
 		return true;
 	}
 	
 	public double getIdleIntime(int diskId) {
-		return idleIntimes[diskId];
+		if(diskId == 0) {
+			return -1.0;
+		}
+		return idleIntimes[diskId - 1];
 	}
 	
 	class StateCheckThread extends Thread {
@@ -95,7 +107,7 @@ public class StateManager {
 			running = true;
 			while(running) {
 				long now = System.currentTimeMillis();	// TODO long double
-				for(int i = 0; i < disknum; i++) {
+				for(int i = 1; i < disknum + 1; i++) {
 					if(getDiskState(i) == StateManager.IDLE && now - getIdleIntime(i) > spindownThreshold) {
 						if(spindown(i)) {
 							setDiskState(i, StateManager.STANDBY);
