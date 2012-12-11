@@ -32,7 +32,7 @@ public class StateManagerTest {
 	@Test
 	public void startTest() {
 		sm.start();
-		assertThat(sm.getDiskState(devicePaths[0]), is(DiskState.ACTIVE));
+		assertThat(sm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
 	}
 
 	@Test
