@@ -33,7 +33,6 @@ public class StorageServiceTest {
 		assertEquals(value1, storage.get(key1));
 
 		String key2 = "testKey2";
-		String value2 = "testValue2";
 		assertFalse(value1.equals(storage.get(key2)));
 	}
 	

@@ -1,9 +1,9 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
@@ -13,44 +13,58 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 public class StateManager {
 
 	/**
-	 * key: disk path on file system
+	 * key: device file path
 	 * value: disk state
 	 */
 	private Map<String, DiskState> diskStates;
 
 	/**
-	 * key: disk path on file system
+	 * key: device file path
 	 * value: start time of idle state
 	 */
 	private Map<String, Long> idleIntimes;
 
-	private double spindownThreshold;
+//	private double spindownThreshold;
+	/**
+	 * In this class, given spin down threshold time is converted 
+	 * from second(in double type) to millisecond(in long type) value
+	 */
+	private long spindownThreshold;
+	
 	private int interval = 1000;
 	private final Logger logger = StorageLogger.getLogger();
 
 	private StateCheckThread sct;
 
 
-	public StateManager(Set<String> diskPaths, double spinDownThreshold) {
-		this.diskStates = initDiskStates(diskPaths);
-		this.idleIntimes = initIdleInTimes(diskPaths);
-		this.spindownThreshold = spinDownThreshold;
+	public StateManager(Collection<String> devicePaths, double spinDownThreshold) {
+		this.diskStates = initDiskStates(devicePaths);
+		this.idleIntimes = initIdleInTimes(devicePaths);
+		this.spindownThreshold = (long)(spinDownThreshold * 1000);
 		this.sct = new StateCheckThread();
 	}
 
-	private Map<String, DiskState> initDiskStates(Set<String> diskPaths) {
+	private Map<String, DiskState> initDiskStates(Collection<String> devicePaths) {
 		Map<String, DiskState> result = new HashMap<String, DiskState>();
-		for (String path : diskPaths) {
-			result.put(path, DiskState.IDLE);
+		for (String device : devicePaths) {
+			result.put(device, DiskState.IDLE);
 		}
 		return result;
 	}
 
-	private Map<String, Long> initIdleInTimes(Set<String> diskPaths) {
+	private Map<String, Long> initIdleInTimes(Collection<String> devicePaths) {
 		Map<String, Long> result = new HashMap<String, Long>();
 		long thisTime = System.currentTimeMillis();
-		for (String path : diskPaths) {
-			result.put(path, thisTime);
+		for (String device : devicePaths) {
+			result.put(device, thisTime);
+		}
+		return result;
+	}
+	
+	private boolean devicePathCheck(String devicePath) {
+		boolean result = true;
+		if(devicePath == null || devicePath == "") {
+			result = false;
 		}
 		return result;
 	}
@@ -59,23 +73,19 @@ public class StateManager {
 		sct.start();
 	}
 
-	public boolean spinup(int diskId) {
-		if(diskId == 0) {
-			return false;
-		}
-		String diskPath = Parameter.DATA_DISK_PATHS[diskId - 1];
-		String[] cmdarray = {"ls", diskPath};
-		int returnCode = this.execCommand(cmdarray);
+	public boolean spinup(String devicePath) {
+		if(!devicePathCheck(devicePath)) return false;
+
+		String[] cmdarray = {"ls", devicePath};
+		int returnCode = execCommand(cmdarray);
 		return (returnCode == 0) ? true : false;
 	}
 
-	public boolean spindown(int diskId) {
-		if(diskId == 0) {
-			return false;
-		}
-		char id = (char) (0x61 + diskId);
-		String[] cmdarray = {"hdparm", "-y", "/dev/sd" + id};
-		int returnCode = this.execCommand(cmdarray);
+	public boolean spindown(String devicePath) {
+		if(!devicePathCheck(devicePath)) return false;
+
+		String[] cmdarray = {"hdparm", "-y", devicePath};
+		int returnCode = execCommand(cmdarray);
 		return (returnCode == 0) ? true : false;
 	}
 
@@ -96,50 +106,59 @@ public class StateManager {
 		return returnCode;
 	}
 
-	public boolean setDiskState(int diskId, DiskState state) {
-		if(diskId == 0) {
-			return false;
-		}
-		diskStates[diskId - 1] = state;
-		return true;
+	public boolean setDiskState(String devicePath, DiskState state) {
+		boolean result = true;
+		if(!devicePathCheck(devicePath))
+			result = false;
+		this.diskStates.put(devicePath, state);
+		return result;
 	}
 
-	public DiskState getDiskState(int diskId) {
-		if(diskId == 0) {
-			return DiskState.NA;
+	public DiskState getDiskState(String devicePath) {
+		if(!devicePathCheck(devicePath)) return DiskState.NA;
+
+		DiskState state = diskStates.get(devicePath);
+		if (state == null) {
+			state = DiskState.NA;			
 		}
-		return diskStates[diskId - 1];
+		return state;
 	}
 
-	public boolean setIdleIntime(int diskId, long time) {
-		if(diskId == 0) {
-			return false;
+	public boolean setIdleIntime(String devicePath, long time) {
+		boolean result = true;
+		if(!devicePathCheck(devicePath)) {
+			result = false;
 		}
-		idleIntimes[diskId - 1] = time;
-		return true;
+		idleIntimes.put(devicePath, time);
+		return result;
 	}
 
-	public double getIdleIntime(int diskId) {
-		if(diskId == 0) {
-			return -1.0;
-		}
-		return idleIntimes[diskId - 1];
+	public double getIdleIntime(String devicePath) {
+		if(!devicePathCheck(devicePath)) return -1.0;
+		return idleIntimes.get(devicePath);
 	}
 
 	class StateCheckThread extends Thread {
-		private boolean running = false;
-
 		public void run() {
-			running = true;
-			while(running) {
+			while(true) {
 				long now = System.currentTimeMillis();	// TODO long double
-				for(int i = 1; i < disknum + 1; i++) {
-					if(getDiskState(i) == DiskState.IDLE && now - getIdleIntime(i) > spindownThreshold) {
-						if(spindown(i)) {
-							setDiskState(i, DiskState.STANDBY);
+				
+				for (String devicePath : diskStates.keySet()) {
+					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
+						(now - getIdleIntime(devicePath)) > spindownThreshold) {
+						if (spindown(devicePath)) {
+							setDiskState(devicePath, DiskState.STANDBY);
 						}
 					}
 				}
+				
+//				for(int i = 1; i < disknum + 1; i++) {
+//					if(getDiskState(i) == DiskState.IDLE && now - getIdleIntime(i) > spindownThreshold) {
+//						if(spindown(i)) {
+//							setDiskState(i, DiskState.STANDBY);
+//						}
+//					}
+//				}
 				try {
 					sleep(interval);
 				} catch (InterruptedException e) {

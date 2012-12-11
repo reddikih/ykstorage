@@ -7,7 +7,6 @@ import java.io.File;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.StateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
@@ -28,6 +27,7 @@ public class DiskManagerTest {
 	private Value value2 = new Value("value2".getBytes());
 	private Value value3 = new Value("value3".getBytes());
 	private DiskManager dm;
+	private String devicePaths[];
 
 	@Before
 	public void setUpClass() {
@@ -37,6 +37,10 @@ public class DiskManagerTest {
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD
 		);
+		this.devicePaths = new String[Parameter.DATA_DISK_PATHS.length];
+		for (int i=0; i < devicePaths.length; i++) {
+			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.DATA_DISK_PATHS[i]);
+		}
 	}
 
 	@Test
@@ -72,18 +76,17 @@ public class DiskManagerTest {
 
 	@Test
 	public void getDiskStateTest() {
-		assertThat(dm.getDiskState(1), is(DiskState.ACTIVE));
+		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.ACTIVE));
 		assertThat(dm.put(key, value), is(true));
-		assertThat(dm.getDiskState(1), is(DiskState.IDLE));
+		assertThat(dm.getDiskState(devicePaths[1]), is(DiskState.IDLE));
 
 		try {
 			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 100));
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		assertThat(dm.getDiskState(1), is(DiskState.STANDBY));
+		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.STANDBY));
 	}
 
 	@Test

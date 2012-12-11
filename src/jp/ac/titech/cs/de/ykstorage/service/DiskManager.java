@@ -24,13 +24,19 @@ public class DiskManager {
 
 	private String[] diskpaths;
 	private String savePath;
+	
 	/**
 	 * key: disk path on file system
 	 * value: device file path
 	 */
 	private SortedMap<String, String> mountPointPaths;
 
+	/**
+	 * key: data key
+	 * value: actual file path corresponding to the key
+	 */
 	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
+	
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 
 	public DiskManager(
@@ -42,7 +48,7 @@ public class DiskManager {
 		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
 
-		this.sm = new StateManager(this.mountPointPaths.keySet(), spinDownThreshold);
+		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
 
 		init();
 		this.sm.start();
@@ -77,8 +83,9 @@ public class DiskManager {
 		loadHashMap();
 	}
 
-	public DiskState getDiskState(int diskId) {
-		return sm.getDiskState(diskId);
+	public DiskState getDiskState(String diskPath) {
+		String devicePath = mountPointPaths.get(diskPath);
+		return sm.getDiskState(devicePath);
 	}
 
 	private void loadHashMap() {
@@ -167,9 +174,10 @@ public class DiskManager {
 			return Value.NULL;
 		}
 
-		int diskId = getDiskId(filepath);
+//		int diskId = getDiskId(filepath);
+		String devicePath = mountPointPaths.get(filepath);
 		try {
-			sm.setDiskState(diskId, DiskState.ACTIVE);
+			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			FileInputStream fis = new FileInputStream(f);
 			BufferedInputStream bis = new BufferedInputStream(fis);
@@ -178,22 +186,25 @@ public class DiskManager {
 			bis.read(value);
 
 			bis.close();
-			sm.setIdleIntime(diskId, System.currentTimeMillis());
-			sm.setDiskState(diskId, DiskState.IDLE);
+			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+			sm.setDiskState(devicePath, DiskState.IDLE);
 			return new Value(value);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		sm.setIdleIntime(diskId, System.currentTimeMillis());
-		sm.setDiskState(diskId, DiskState.IDLE);
+		// TODO hikida 何故ここでも状態更新を行っている？
+//		sm.setIdleIntime(diskId, System.currentTimeMillis());
+//		sm.setDiskState(diskId, DiskState.IDLE);
 		return Value.NULL;
 	}
 
 	private boolean write(int key, Value value) {
 		String filepath = selectDisk(key);
-		int diskId = getDiskId(filepath);
+//		int diskId = getDiskId(filepath);
+		String devicePath = mountPointPaths.get(filepath);
 		try {
-			sm.setDiskState(diskId, DiskState.ACTIVE);
+			
+			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			if(Parameter.DEBUG) {
 				f.deleteOnExit();
@@ -205,15 +216,16 @@ public class DiskManager {
 			bos.flush();
 
 			bos.close();
-			sm.setIdleIntime(diskId, System.currentTimeMillis());
-			sm.setDiskState(diskId, DiskState.IDLE);
+			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+			sm.setDiskState(devicePath, DiskState.IDLE);
 			return true;
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
 		}
-		sm.setIdleIntime(diskId, System.currentTimeMillis());
-		sm.setDiskState(diskId, DiskState.IDLE);
+		//TODO hikida duplicate code ?
+//		sm.setIdleIntime(diskId, System.currentTimeMillis());
+//		sm.setDiskState(diskId, DiskState.IDLE);
 		return false;
 	}
 
@@ -224,20 +236,23 @@ public class DiskManager {
 		}
 		keyFileMap.remove(key);
 
-		int diskId = getDiskId(filepath);
+//		int diskId = getDiskId(filepath);
+		String devicePath = mountPointPaths.get(selectDisk(key));
+		
 		try {
-			sm.setDiskState(diskId, DiskState.ACTIVE);
+			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			boolean ret = f.delete();
-			sm.setIdleIntime(diskId, System.currentTimeMillis());
-			sm.setDiskState(diskId, DiskState.IDLE);
+			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+			sm.setDiskState(devicePath, DiskState.IDLE);
 			return ret;
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
 		}
-		sm.setIdleIntime(diskId, System.currentTimeMillis());
-		sm.setDiskState(diskId, DiskState.IDLE);
+		// TODO hikida duplicate code ?
+//		sm.setIdleIntime(diskId, System.currentTimeMillis());
+//		sm.setDiskState(diskId, DiskState.IDLE);
 		return false;
 	}
 }

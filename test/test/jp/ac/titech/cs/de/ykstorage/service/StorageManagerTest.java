@@ -1,21 +1,20 @@
 package test.jp.ac.titech.cs.de.ykstorage.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Arrays;
+
+import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
+import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
+import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.StateManager;
-import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
 @RunWith(JUnit4.class)
 public class StorageManagerTest {
