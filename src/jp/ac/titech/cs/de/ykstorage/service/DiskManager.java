@@ -84,8 +84,9 @@ public class DiskManager {
 	}
 
 	public DiskState getDiskState(String diskPath) {
-		String devicePath = mountPointPaths.get(diskPath);
-		return sm.getDiskState(devicePath);
+		//String devicePath = mountPointPaths.get(diskPath);
+		//return sm.getDiskState(devicePath);
+		return sm.getDiskState(diskPath);
 	}
 
 	private void loadHashMap() {
@@ -157,23 +158,22 @@ public class DiskManager {
 		return filepath;
 	}
 
-	private int getDiskId(String filepath) {
-		int diskId = -1;
-		for(int i = 0; i < diskpaths.length; i++) {
-			diskId = filepath.indexOf(diskpaths[i]);
-			if(diskId > -1) {
-				return diskId + 1;
-			}
-		}
-		return -1;
-	}
+//	private int getDiskId(String filepath) {
+//		int diskId = -1;
+//		for(int i = 0; i < diskpaths.length; i++) {
+//			diskId = filepath.indexOf(diskpaths[i]);
+//			if(diskId > -1) {
+//				return diskId + 1;
+//			}
+//		}
+//		return -1;
+//	}
 
 	private Value read(int key) {
 		String filepath = keyFileMap.get(key);
 		if(filepath == null) {
 			return Value.NULL;
 		}
-
 //		int diskId = getDiskId(filepath);
 		String devicePath = mountPointPaths.get(filepath);
 		try {
@@ -234,10 +234,11 @@ public class DiskManager {
 		if(filepath == null) {
 			return false;
 		}
+		
 		keyFileMap.remove(key);
-
 //		int diskId = getDiskId(filepath);
-		String devicePath = mountPointPaths.get(selectDisk(key));
+		//String devicePath = mountPointPaths.get(selectDisk(key));
+		String devicePath = mountPointPaths.get(filepath);
 		
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);

@@ -3,6 +3,9 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
+import java.io.File;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,5 +80,15 @@ public class StateManagerTest {
 
 		assertThat(sm.setDiskState(devicePaths[0], DiskState.IDLE), is(true));
 		assertThat(sm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
+	}
+	
+	@After
+	public void teardown() {
+		for(String path : Parameter.DATA_DISK_PATHS) {
+			File f = new File(path);
+			f.delete();
+		}
+		File f = new File(Parameter.DATA_DISK_SAVE_FILE_PATH);
+		f.delete();
 	}
 }
