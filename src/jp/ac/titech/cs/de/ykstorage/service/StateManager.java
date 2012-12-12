@@ -26,11 +26,11 @@ public class StateManager {
 
 //	private double spindownThreshold;
 	/**
-	 * In this class, given spin down threshold time is converted 
+	 * In this class, given spin down threshold time is converted
 	 * from second(in double type) to millisecond(in long type) value
 	 */
 	private long spindownThreshold;
-	
+
 	private int interval = 1000;
 	private final Logger logger = StorageLogger.getLogger();
 
@@ -60,7 +60,7 @@ public class StateManager {
 		}
 		return result;
 	}
-	
+
 	private boolean devicePathCheck(String devicePath) {
 		boolean result = true;
 		if(devicePath == null || devicePath == "") {
@@ -119,7 +119,7 @@ public class StateManager {
 
 		DiskState state = diskStates.get(devicePath);
 		if (state == null) {
-			state = DiskState.NA;			
+			state = DiskState.NA;
 		}
 		return state;
 	}
@@ -140,31 +140,24 @@ public class StateManager {
 
 	class StateCheckThread extends Thread {
 		public void run() {
-			while(true) {
-				long now = System.currentTimeMillis();	// TODO long double
-				
-				for (String devicePath : diskStates.keySet()) {
-					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
-						(now - getIdleIntime(devicePath)) > spindownThreshold) {
-						if (spindown(devicePath)) {
-							setDiskState(devicePath, DiskState.STANDBY);
-						}
-					}
-				}
-				
-//				for(int i = 1; i < disknum + 1; i++) {
-//					if(getDiskState(i) == DiskState.IDLE && now - getIdleIntime(i) > spindownThreshold) {
-//						if(spindown(i)) {
-//							setDiskState(i, DiskState.STANDBY);
+//			while(true) {
+//				long now = System.currentTimeMillis();	// TODO long double
+//
+//				for (String devicePath : diskStates.keySet()) {
+//					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
+//						(now - getIdleIntime(devicePath)) > spindownThreshold) {
+//						if (spindown(devicePath)) {
+//							setDiskState(devicePath, DiskState.STANDBY);
 //						}
 //					}
 //				}
-				try {
-					sleep(interval);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
+//
+//				try {
+//					sleep(interval);
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+//			}
 		}
 	}
 
