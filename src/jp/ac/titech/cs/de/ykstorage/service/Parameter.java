@@ -30,7 +30,7 @@ public class Parameter {
 	 * The disk spin down threshold time(second).
 	 */
 	public static final double SPIN_DOWN_THRESHOLD = 10.0;
-	
+
 //	public static String DATA_DIR = "/ecoim/ykstorage/data";
 	public static String DATA_DIR = "./data";
 
@@ -63,7 +63,7 @@ public class Parameter {
 	/**
 	 * A number of data disks.
 	 */
-	public static final int NUMBER_OF_DATADISK = DATA_DISK_PATHS.length;
+	public static final int NUMBER_OF_DATA_DISKS = DATA_DISK_PATHS.length;
 
 	public static final String[] CACHE_DISK_PATHS = {
 		"/ecoim/ykstorage/data/disk1/",
@@ -72,7 +72,7 @@ public class Parameter {
 		"/ecoim/ykstorage/data/disk4/",
 	};
 
-	public static final int NUMBER_OF_CACHEDISK = CACHE_DISK_PATHS.length;
+	public static final int NUMBER_OF_CACHE_DISKS = CACHE_DISK_PATHS.length;
 
 	public static final String DATA_DISK_SAVE_FILE_PATH = "./datamap";
 

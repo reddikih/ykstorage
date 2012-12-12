@@ -26,7 +26,7 @@ public class StateManagerTest {
 	@Before
 	public void setUpClass() {
 		this.sm = new StateManager(Parameter.MOUNT_POINT_PATHS.values(), Parameter.SPIN_DOWN_THRESHOLD);
-		this.devicePaths = new String[Parameter.DATA_DISK_PATHS.length];
+		this.devicePaths = new String[Parameter.NUMBER_OF_DATA_DISKS];
 		for (int i=0; i < devicePaths.length; i++) {
 			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.DATA_DISK_PATHS[i]);
 		}
@@ -81,7 +81,7 @@ public class StateManagerTest {
 		assertThat(sm.setDiskState(devicePaths[0], DiskState.IDLE), is(true));
 		assertThat(sm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
 	}
-	
+
 	@After
 	public void teardown() {
 		for(String path : Parameter.DATA_DISK_PATHS) {

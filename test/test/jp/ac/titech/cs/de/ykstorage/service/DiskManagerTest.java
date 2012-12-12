@@ -37,7 +37,7 @@ public class DiskManagerTest {
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD
 		);
-		this.devicePaths = new String[Parameter.DATA_DISK_PATHS.length];
+		this.devicePaths = new String[Parameter.NUMBER_OF_DATA_DISKS];
 		for (int i=0; i < devicePaths.length; i++) {
 			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.DATA_DISK_PATHS[i]);
 		}
@@ -81,7 +81,7 @@ public class DiskManagerTest {
 		assertThat(dm.getDiskState(devicePaths[1]), is(DiskState.IDLE));
 
 		try {
-			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 100));
+			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 1000));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
