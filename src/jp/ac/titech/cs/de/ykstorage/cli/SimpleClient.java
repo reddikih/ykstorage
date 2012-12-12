@@ -32,7 +32,7 @@ public class SimpleClient {
 
 		this.sm = new StorageManager(cmm, dm);
 
-		StorageLogger.getLogger().config("Starting StorageService.");
+		StorageLogger.getLogger().config("Starting Simple Clinet.");
 	}
 
 	public boolean put(String key, String value) {
@@ -45,23 +45,23 @@ public class SimpleClient {
 		String value = new String(byteVal); //TODO set character code
 		return value;
 	}
-	
-	
+
+
 	public static void main(String[] args) throws IOException {
 		SimpleClient sc = new SimpleClient();
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		
+
 		while(true) {
 			System.out.print("cmd: ");
 			String cmd = br.readLine();
 			String[] cmdArray = cmd.split(" ");
-			
-			if(cmdArray.length == 2 && (cmdArray[0].equals("GET") || cmdArray[0].equals("get"))) {
+
+			if(cmdArray.length == 2 && (cmdArray[0].equalsIgnoreCase("get"))) {
 				System.out.print("[GET] Key: " + cmdArray[1]);
 				System.out.println(" Value: " + sc.get(cmdArray[1]));
 			}
-			
-			if(cmdArray.length == 3 && (cmdArray[0].equals("PUT") || cmdArray[0].equals("put"))) {
+
+			if(cmdArray.length == 3 && (cmdArray[0].equalsIgnoreCase("PUT"))) {
 				if(sc.put(cmdArray[1], cmdArray[2])) {
 					System.out.print("[PUT] Key: " + cmdArray[1]);
 					System.out.println(" Value: " + cmdArray[2]);
