@@ -17,6 +17,10 @@ public class CacheMemoryManager {
 	private int max;
 	private int limit;
 
+	/**
+	 * key: data key
+	 * value: MemoryHeader object
+	 */
 	private Map<Integer, MemoryHeader> headerTable;
 
 	public CacheMemoryManager(int max, double threshold) {
@@ -61,8 +65,8 @@ public class CacheMemoryManager {
 //		}
 
 		logger.info(String.format(
-				"put on cache memory. key id: %d, val size: %d",
-				key, requireSize));
+				"put on cache memory. key id: %d, val pos: %d, size: %d",
+				key, header.getPosition(), requireSize));
 
 		return true;
 	}
@@ -86,9 +90,42 @@ public class CacheMemoryManager {
 	public Value delete(int key) {
 		Value deleted = get(key);
 		if (!Value.NULL.equals(deleted)) {
-
+			headerTable.remove(key);
+			logger.info(String.format("delete from cache memory. key id: %d", key));
 		}
 		return deleted;
+	}
+	
+	public void compaction() {
+		boolean isFirst = true;
+		for (MemoryHeader header : headerTable.values()) {
+			if (isFirst) {
+				int oldPosition = header.getPosition();
+				byte[] byteVal = new byte[header.getSize()];
+				memBuffer.position(oldPosition);
+				memBuffer.get(byteVal, 0, header.getSize());
+				memBuffer.rewind();
+				int newPosition = memBuffer.position();
+				memBuffer.put(byteVal);
+				header.setPosition(newPosition);
+				logger.info(String.format(
+						"migrated. fromPos: %d, toPos: %d, size: %d", 
+						oldPosition, newPosition, header.getSize()));
+				isFirst = false;
+				continue;
+			}
+			int currentPosition = memBuffer.position();
+			int oldPosition = header.getPosition();
+			byte[] byteVal = new byte[header.getSize()];
+			memBuffer.position(oldPosition);
+			memBuffer.get(byteVal, 0, header.getSize());
+			memBuffer.position(currentPosition);
+			memBuffer.put(byteVal);
+			header.setPosition(currentPosition);
+			logger.info(String.format(
+					"migrated. fromPos: %d, toPos: %d, size: %d", 
+					oldPosition, currentPosition, header.getSize()));
+		}
 	}
 
 	class MemoryHeader {
@@ -104,9 +141,17 @@ public class CacheMemoryManager {
 		public int getPosition() {
 			return position;
 		}
+		
+		public void setPosition(int position) {
+			this.position = position;
+		}
 
 		public int getSize() {
 			return size;
+		}
+		
+		public void setSize(int size) {
+			this.size = size;
 		}
 	}
 }

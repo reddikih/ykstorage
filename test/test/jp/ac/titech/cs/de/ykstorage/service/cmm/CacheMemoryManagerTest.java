@@ -51,16 +51,33 @@ public class CacheMemoryManagerTest {
 	public void updateTheSameKeys() {
 		int key1 = 1;
 		Value value1 = new Value(new byte[]{1,2,3});
-		Value value2 = new Value(new byte[]{4,5,6,7});
 		cmm.put(key1, value1);
 		assertThat(cmm.get(key1), is(value1));
-		cmm.put(key1, value2);
-		assertThat(cmm.get(key1), is(value2));
-
+		value1 = new Value(new byte[]{4,5,6,7});
+		cmm.put(key1, value1);
+		assertThat(cmm.get(key1), is(value1));
+		
 		int key2 = 2;
-		Value value3 = new Value(new byte[]{8,9,10,11,12,13});
-		cmm.put(key2, value3);
-		assertThat(cmm.get(key2), is(value3));
+		Value value2 = new Value(new byte[]{8,9});
+		cmm.put(key2, value2);
+		assertThat(cmm.get(key2), is(value2));
+
+		int key3 = 3;
+		Value value3 = new Value(new byte[]{10,11,12,13});
+		
+		// not equal due to space limitation
+		cmm.put(key3, value3);
+		assertThat(cmm.get(key3), not(value3));
+		assertThat(cmm.get(key3), is(Value.NULL));
+		
+		// compaction memory buffer to get buffer space.
+		cmm.compaction();
+		cmm.put(key3, value3);
+		assertThat(cmm.get(key3), is(value3));
+		
+		// also key1 and key2 are available
+		assertThat(cmm.get(key1), is(value1));
+		assertThat(cmm.get(key2), is(value2));
 	}
 
 	@Test
