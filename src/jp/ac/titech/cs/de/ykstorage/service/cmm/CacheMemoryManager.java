@@ -51,19 +51,6 @@ public class CacheMemoryManager {
 		headerTable.put(key, header);
 		memBuffer.put(value.getValue());
 
-//		Value isExist = get(key);
-//		if (Value.NULL.equals(isExist)) {
-//			// In case of to put the new entry.
-//			MemoryHeader header =
-//				new MemoryHeader(memBuffer.position(), requireSize);
-//			headerTable.put(key, header);
-//			memBuffer.put(value.getValue());
-//		} else {
-//			// already store the corresponding value.
-//			MemoryHeader header = headerTable.get(key);
-//
-//		}
-
 		logger.info(String.format(
 				"put on cache memory. key id: %d, val pos: %d, size: %d",
 				key, header.getPosition(), requireSize));
@@ -95,7 +82,7 @@ public class CacheMemoryManager {
 		}
 		return deleted;
 	}
-	
+
 	public void compaction() {
 		boolean isFirst = true;
 		for (MemoryHeader header : headerTable.values()) {
@@ -109,7 +96,7 @@ public class CacheMemoryManager {
 				memBuffer.put(byteVal);
 				header.setPosition(newPosition);
 				logger.info(String.format(
-						"migrated. fromPos: %d, toPos: %d, size: %d", 
+						"migrated. fromPos: %d, toPos: %d, size: %d",
 						oldPosition, newPosition, header.getSize()));
 				isFirst = false;
 				continue;
@@ -123,7 +110,7 @@ public class CacheMemoryManager {
 			memBuffer.put(byteVal);
 			header.setPosition(currentPosition);
 			logger.info(String.format(
-					"migrated. fromPos: %d, toPos: %d, size: %d", 
+					"migrated. fromPos: %d, toPos: %d, size: %d",
 					oldPosition, currentPosition, header.getSize()));
 		}
 	}
@@ -141,7 +128,7 @@ public class CacheMemoryManager {
 		public int getPosition() {
 			return position;
 		}
-		
+
 		public void setPosition(int position) {
 			this.position = position;
 		}
@@ -149,7 +136,7 @@ public class CacheMemoryManager {
 		public int getSize() {
 			return size;
 		}
-		
+
 		public void setSize(int size) {
 			this.size = size;
 		}
