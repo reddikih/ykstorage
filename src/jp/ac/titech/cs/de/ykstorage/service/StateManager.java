@@ -140,24 +140,24 @@ public class StateManager {
 
 	class StateCheckThread extends Thread {
 		public void run() {
-//			while(true) {
-//				long now = System.currentTimeMillis();	// TODO long double
-//
-//				for (String devicePath : diskStates.keySet()) {
-//					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
-//						(now - getIdleIntime(devicePath)) > spindownThreshold) {
-//						if (spindown(devicePath)) {
-//							setDiskState(devicePath, DiskState.STANDBY);
-//						}
-//					}
-//				}
-//
-//				try {
-//					sleep(interval);
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-//			}
+			while(true) {
+				long now = System.currentTimeMillis();	// TODO long double
+
+				for (String devicePath : diskStates.keySet()) {
+					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
+						(now - getIdleIntime(devicePath)) > spindownThreshold) {
+						if (spindown(devicePath)) {
+							setDiskState(devicePath, DiskState.STANDBY);
+						}
+					}
+				}
+
+				try {
+					sleep(interval);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
