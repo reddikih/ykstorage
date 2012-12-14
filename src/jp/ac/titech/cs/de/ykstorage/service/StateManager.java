@@ -83,10 +83,16 @@ public class StateManager {
 
 	public boolean spindown(String devicePath) {
 		if(!devicePathCheck(devicePath)) return false;
-
-		String[] cmdarray = {"hdparm", "-y", devicePath};
-		int returnCode = execCommand(cmdarray);
-		return (returnCode == 0) ? true : false;
+		
+		String[] sync = {"sync"};
+		int syncRet = execCommand(sync);
+		if(syncRet != 0) {
+			return false;
+		}
+		
+		String[] hdparm = {"hdparm", "-y", devicePath};
+		int hdparmRet = execCommand(hdparm);
+		return (hdparmRet == 0) ? true : false;
 	}
 
 	private int execCommand(String[] cmd) {
