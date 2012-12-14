@@ -170,9 +170,11 @@ public class DiskManager {
 //	}
 
 	private Value read(int key) {
+		Value result = Value.NULL;
+		
 		String filepath = keyFileMap.get(key);
 		if(filepath == null) {
-			return Value.NULL;
+			return result;
 		}
 //		int diskId = getDiskId(filepath);
 		String devicePath = mountPointPaths.get(filepath);
@@ -186,24 +188,23 @@ public class DiskManager {
 			bis.read(value);
 
 			bis.close();
-			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-			sm.setDiskState(devicePath, DiskState.IDLE);
-			return new Value(value);
+			result = new Value(value);
 		}catch(Exception e) {
 			e.printStackTrace();
+		}finally {
+			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+			sm.setDiskState(devicePath, DiskState.IDLE);
 		}
-		// TODO hikida 何故ここでも状態更新を行っている？
-//		sm.setIdleIntime(diskId, System.currentTimeMillis());
-//		sm.setDiskState(diskId, DiskState.IDLE);
-		return Value.NULL;
+		return result;
 	}
 
 	private boolean write(int key, Value value) {
+		boolean result = false;
+		
 		String filepath = selectDisk(key);
 //		int diskId = getDiskId(filepath);
 		String devicePath = mountPointPaths.get(filepath);
-		try {
-			
+		try {	
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			if(Parameter.DEBUG) {
@@ -216,44 +217,40 @@ public class DiskManager {
 			bos.flush();
 
 			bos.close();
-			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-			sm.setDiskState(devicePath, DiskState.IDLE);
-			return true;
+			result = true;
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
+		}finally {
+			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+			sm.setDiskState(devicePath, DiskState.IDLE);
 		}
-		//TODO hikida duplicate code ?
-//		sm.setIdleIntime(diskId, System.currentTimeMillis());
-//		sm.setDiskState(diskId, DiskState.IDLE);
-		return false;
+		return result;
 	}
 
 	private boolean remove(int key) {
+		boolean result = false;
+		
 		String filepath = keyFileMap.get(key);
 		if(filepath == null) {
-			return false;
+			return result;
 		}
 		
 		keyFileMap.remove(key);
 //		int diskId = getDiskId(filepath);
 		//String devicePath = mountPointPaths.get(selectDisk(key));
 		String devicePath = mountPointPaths.get(filepath);
-		
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
-			boolean ret = f.delete();
-			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-			sm.setDiskState(devicePath, DiskState.IDLE);
-			return ret;
+			result = f.delete();
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
+		}finally {
+			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+			sm.setDiskState(devicePath, DiskState.IDLE);
 		}
-		// TODO hikida duplicate code ?
-//		sm.setIdleIntime(diskId, System.currentTimeMillis());
-//		sm.setDiskState(diskId, DiskState.IDLE);
-		return false;
+		return result;
 	}
 }
