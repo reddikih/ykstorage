@@ -23,6 +23,7 @@ public class Parameter {
 	 * Capacity of cache memory. It's unit is byte.
 	 */
 	public static final int CAPACITY_OF_CACHEMEMORY = 10;
+//	public static final int CAPACITY_OF_CACHEMEMORY = 0;
 
 	public static final double MEMORY_THRESHOLD = 1.0;
 
@@ -30,6 +31,7 @@ public class Parameter {
 	 * The disk spin down threshold time(second).
 	 */
 	public static final double SPIN_DOWN_THRESHOLD = 10.0;
+//	public static final double SPIN_DOWN_THRESHOLD = 1.0;
 
 //	public static String DATA_DIR = "/ecoim/ykstorage/data";
 	public static String DATA_DIR = "./data";
@@ -44,7 +46,7 @@ public class Parameter {
 			DATA_DISK_PATHS[i] = String.format(prefix, origin + i);
 		}
 		// above code generate data disk paths like follows:
-		//  /ecoim/ykstorage/data/disk1, /ecoim/ykstorage/data/disk2, ...
+		//  /ecoim/ykstorage/data/disk1/, /ecoim/ykstorage/data/disk2/, ...
 	};
 
 	public static SortedMap<String, String> MOUNT_POINT_PATHS = new TreeMap<String, String>();

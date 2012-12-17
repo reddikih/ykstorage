@@ -83,10 +83,25 @@ public class DiskManager {
 		loadHashMap();
 	}
 
-	public DiskState getDiskState(String diskPath) {
+	public DiskState getDiskState(String devicePath) {
 		//String devicePath = mountPointPaths.get(diskPath);
 		//return sm.getDiskState(devicePath);
-		return sm.getDiskState(diskPath);
+		return sm.getDiskState(devicePath);
+	}
+	
+	public DiskState getDiskState(int key) {
+		String filePath = keyFileMap.get(key);
+		String diskPath = getDiskPath(filePath);
+		String devicePath = mountPointPaths.get(diskPath);
+		return sm.getDiskState(devicePath);
+	}
+	
+	private String getDiskPath(String filePath) {
+		String diskPath = "";
+		if(filePath != null) {
+			diskPath = filePath.substring(0, filePath.lastIndexOf("/") + 1);
+		}
+		return diskPath;
 	}
 
 	private void loadHashMap() {

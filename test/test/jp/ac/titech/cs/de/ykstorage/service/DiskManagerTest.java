@@ -88,6 +88,13 @@ public class DiskManagerTest {
 
 		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.STANDBY));
 	}
+	
+	@Test
+	public void getDiskStateTest2() {
+		assertThat(dm.getDiskState(key), is(DiskState.NA));
+		assertThat(dm.put(key, value), is(true));
+		assertThat(dm.getDiskState(key), is(DiskState.IDLE));
+	}
 
 	@Test
 	public void mainTest() {
