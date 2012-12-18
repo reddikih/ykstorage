@@ -22,26 +22,52 @@ public class Parameter {
 	/**
 	 * Capacity of cache memory. It's unit is byte.
 	 */
-	public static final int CAPACITY_OF_CACHEMEMORY = 10;
+	public static final int CAPACITY_OF_CACHEMEMORY = 0;
 
 	public static final double MEMORY_THRESHOLD = 1.0;
 
 	/**
 	 * The disk spin down threshold time(second).
 	 */
-	public static final double SPIN_DOWN_THRESHOLD = 10.0;
+	public static final double SPIN_DOWN_THRESHOLD = 1.0;
 
 //	public static String DATA_DIR = "/ecoim/ykstorage/data";
 	public static String DATA_DIR = "./data";
 
-	public static String[] DATA_DISK_PATHS;
+	public static String[] DISK_PATHS;
 	static {
 		int numOfDisks = 14;
 		int origin = 1;
 		String prefix = DATA_DIR + "/disk%d/";
+		DISK_PATHS = new String[numOfDisks];
+		for (int i=0; i < DISK_PATHS.length; i++) {
+			DISK_PATHS[i] = String.format(prefix, origin + i);
+		}
+		// above code generate data disk paths like follows:
+		//  /ecoim/ykstorage/data/disk1, /ecoim/ykstorage/data/disk2, ...
+	};
+	
+	public static String[] DATA_DISK_PATHS;
+	static {
+		int numOfDisks = 10;
+		int origin = 5;
+		String prefix = DATA_DIR + "/disk%d/";
 		DATA_DISK_PATHS = new String[numOfDisks];
 		for (int i=0; i < DATA_DISK_PATHS.length; i++) {
 			DATA_DISK_PATHS[i] = String.format(prefix, origin + i);
+		}
+		// above code generate data disk paths like follows:
+		//  /ecoim/ykstorage/data/disk1, /ecoim/ykstorage/data/disk2, ...
+	};
+	
+	public static String[] CACHE_DISK_PATHS;
+	static {
+		int numOfDisks = 4;
+		int origin = 1;
+		String prefix = DATA_DIR + "/disk%d/";
+		CACHE_DISK_PATHS = new String[numOfDisks];
+		for (int i=0; i < CACHE_DISK_PATHS.length; i++) {
+			CACHE_DISK_PATHS[i] = String.format(prefix, origin + i);
 		}
 		// above code generate data disk paths like follows:
 		//  /ecoim/ykstorage/data/disk1, /ecoim/ykstorage/data/disk2, ...
@@ -53,7 +79,7 @@ public class Parameter {
 		String prefix = "/dev/sd%s";
 		int i = 0;
 		for (char diskId : diskIds) {
-			MOUNT_POINT_PATHS.put(DATA_DISK_PATHS[i], String.format(prefix, diskId));
+			MOUNT_POINT_PATHS.put(DISK_PATHS[i], String.format(prefix, diskId));
 			i++;
 		}
 		// above code generate data disk paths like follows:
@@ -65,12 +91,12 @@ public class Parameter {
 	 */
 	public static final int NUMBER_OF_DATA_DISKS = DATA_DISK_PATHS.length;
 
-	public static final String[] CACHE_DISK_PATHS = {
-		"/ecoim/ykstorage/data/disk1/",
-		"/ecoim/ykstorage/data/disk2/",
-		"/ecoim/ykstorage/data/disk3/",
-		"/ecoim/ykstorage/data/disk4/",
-	};
+//	public static final String[] CACHE_DISK_PATHS = {
+//		"/ecoim/ykstorage/data/disk1/",
+//		"/ecoim/ykstorage/data/disk2/",
+//		"/ecoim/ykstorage/data/disk3/",
+//		"/ecoim/ykstorage/data/disk4/",
+//	};
 
 	public static final int NUMBER_OF_CACHE_DISKS = CACHE_DISK_PATHS.length;
 

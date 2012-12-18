@@ -59,36 +59,36 @@ public class MAIDCacheDiskManagerTest {
 		assertThat(dm.delete(key), is(false));
 	}
 
-	@Test
-	public void loadAndSaveTest() {
-		assertThat(dm.put(key, value), is(true));
-		assertThat(dm.put(key2, value2), is(true));
-		assertThat(dm.put(key3, value3), is(true));
-		dm.end();
-		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
-								Parameter.DATA_DISK_PATHS,
-								Parameter.DATA_DISK_SAVE_FILE_PATH,
-								Parameter.MOUNT_POINT_PATHS,
-								Parameter.SPIN_DOWN_THRESHOLD);
-		assertThat(dm2.get(key).getValue(), is(value.getValue()));
-		assertThat(dm2.get(key2).getValue(), is(value2.getValue()));
-		assertThat(dm2.get(key3).getValue(), is(value3.getValue()));
-	}
+//	@Test
+//	public void loadAndSaveTest() {
+//		assertThat(dm.put(key, value), is(true));
+//		assertThat(dm.put(key2, value2), is(true));
+//		assertThat(dm.put(key3, value3), is(true));
+//		dm.end();
+//		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+//								Parameter.DATA_DISK_PATHS,
+//								Parameter.DATA_DISK_SAVE_FILE_PATH,
+//								Parameter.MOUNT_POINT_PATHS,
+//								Parameter.SPIN_DOWN_THRESHOLD);
+//		assertThat(dm2.get(key).getValue(), is(value.getValue()));
+//		assertThat(dm2.get(key2).getValue(), is(value2.getValue()));
+//		assertThat(dm2.get(key3).getValue(), is(value3.getValue()));
+//	}
 
-	@Test
-	public void getDiskStateTest() {
-		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
-		assertThat(dm.put(key, value), is(true));
-		assertThat(dm.getDiskState(devicePaths[1]), is(DiskState.IDLE));
-
-		try {
-			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 1000));
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.STANDBY));
-	}
+//	@Test
+//	public void getDiskStateTest() {
+//		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
+//		assertThat(dm.put(key, value), is(true));
+//		assertThat(dm.getDiskState(devicePaths[1]), is(DiskState.IDLE));
+//
+//		try {
+//			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 1000));
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//
+//		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.STANDBY));
+//	}
 
 	@Test
 	public void mainTest() {

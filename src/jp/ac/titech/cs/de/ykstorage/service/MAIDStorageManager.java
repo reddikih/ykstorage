@@ -39,7 +39,7 @@ public class MAIDStorageManager {
 		
 		// Thread put
 		if (!Value.NULL.equals(value)) {
-			PutThread pt = new PutThread(true, innerKey, value);
+			PutThread pt = new PutThread(false, innerKey, value);
 			pt.start();
 		}
 		
@@ -57,6 +57,10 @@ public class MAIDStorageManager {
 		pt.start();
 		
 		return cachedmResult;
+	}
+	
+	public void end() {
+		datadm.end();
 	}
 
 	private int getKeySequenceNumber(String key) {

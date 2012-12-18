@@ -30,7 +30,7 @@ public class MAIDStorageManagerTest {
 		CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
 		
 		MAIDCacheDiskManager cachedm = new MAIDCacheDiskManager(
-				Parameter.DATA_DISK_PATHS,
+				Parameter.CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD);
@@ -64,7 +64,7 @@ public class MAIDStorageManagerTest {
 
 	@After
 	public void teardown() {
-		for(String path : Parameter.DATA_DISK_PATHS) {
+		for(String path : Parameter.DISK_PATHS) {
 			File f = new File(path);
 			f.delete();
 		}

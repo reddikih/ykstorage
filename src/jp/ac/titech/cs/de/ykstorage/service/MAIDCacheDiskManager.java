@@ -15,12 +15,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
+import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class MAIDCacheDiskManager {
-	private StateManager sm;
+	private Logger logger = StorageLogger.getLogger();
+//	private StateManager sm;
 
 	private String[] diskpaths;
 	private String savePath;
@@ -48,10 +51,10 @@ public class MAIDCacheDiskManager {
 		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
 
-		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
-
+//		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
+//
 		init();
-		this.sm.start();
+//		this.sm.start();
 	}
 
 	public Value get(int key) {
@@ -66,9 +69,9 @@ public class MAIDCacheDiskManager {
 		return remove(key);
 	}
 
-	public void end() {
-		saveHashMap();
-	}
+//	public void end() {
+//		saveHashMap();
+//	}
 
 	private void init() {
 		for (String path : diskpaths) {
@@ -80,62 +83,70 @@ public class MAIDCacheDiskManager {
 			}
 		}
 
-		loadHashMap();
+//		loadHashMap();
 	}
 
-	public DiskState getDiskState(String diskPath) {
-		//String devicePath = mountPointPaths.get(diskPath);
-		//return sm.getDiskState(devicePath);
-		return sm.getDiskState(diskPath);
-	}
+//	public DiskState getDiskState(String diskPath) {
+//		//String devicePath = mountPointPaths.get(diskPath);
+//		//return sm.getDiskState(devicePath);
+//		return sm.getDiskState(diskPath);
+//	}
 
-	private void loadHashMap() {
-		try {
-			File f = new File(savePath);
-			if(!f.isFile()) {
-				return;
-			}
-			BufferedReader br = new BufferedReader(new FileReader(f));
-
-			String line = "";
-			while((line = br.readLine()) != null) {
-				StringTokenizer st = new StringTokenizer(line, ",");
-
-				int key = Integer.parseInt(st.nextToken());
-				String value = st.nextToken();
-				keyFileMap.put(key, value);
-			}
-
-			br.close();
-		}catch(FileNotFoundException e) {
-			e.printStackTrace();
-		}catch(IOException e) {
-			e.printStackTrace();
+	private String getDiskPath(String filePath) {
+		String diskPath = "";
+		if(filePath != null) {
+			diskPath = filePath.substring(0, filePath.lastIndexOf("/") + 1);
 		}
+		return diskPath;
 	}
 
-	private void saveHashMap() {
-		try {
-			File f = new File(savePath);
-			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+//	private void loadHashMap() {
+//		try {
+//			File f = new File(savePath);
+//			if(!f.isFile()) {
+//				return;
+//			}
+//			BufferedReader br = new BufferedReader(new FileReader(f));
+//
+//			String line = "";
+//			while((line = br.readLine()) != null) {
+//				StringTokenizer st = new StringTokenizer(line, ",");
+//
+//				int key = Integer.parseInt(st.nextToken());
+//				String value = st.nextToken();
+//				keyFileMap.put(key, value);
+//			}
+//
+//			br.close();
+//		}catch(FileNotFoundException e) {
+//			e.printStackTrace();
+//		}catch(IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
-			Iterator<Integer> keys = keyFileMap.keySet().iterator();
-			while(keys.hasNext()) {
-				int key = (Integer) keys.next();
-				String value = keyFileMap.get(key);
-
-				bw.write(key + "," + value);
-				bw.newLine();
-				bw.flush();
-			}
-
-			bw.close();
-		}catch(FileNotFoundException e) {
-			e.printStackTrace();
-		}catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	private void saveHashMap() {
+//		try {
+//			File f = new File(savePath);
+//			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+//
+//			Iterator<Integer> keys = keyFileMap.keySet().iterator();
+//			while(keys.hasNext()) {
+//				int key = (Integer) keys.next();
+//				String value = keyFileMap.get(key);
+//
+//				bw.write(key + "," + value);
+//				bw.newLine();
+//				bw.flush();
+//			}
+//
+//			bw.close();
+//		}catch(FileNotFoundException e) {
+//			e.printStackTrace();
+//		}catch(IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	// キーに基づいて格納先のディスクを選択
 	private String selectDisk(int key) {
@@ -177,9 +188,10 @@ public class MAIDCacheDiskManager {
 			return result;
 		}
 //		int diskId = getDiskId(filepath);
-		String devicePath = mountPointPaths.get(filepath);
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {
-			sm.setDiskState(devicePath, DiskState.ACTIVE);
+//			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			FileInputStream fis = new FileInputStream(f);
 			BufferedInputStream bis = new BufferedInputStream(fis);
@@ -192,8 +204,9 @@ public class MAIDCacheDiskManager {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}finally {
-			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-			sm.setDiskState(devicePath, DiskState.IDLE);
+//			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+//			sm.setDiskState(devicePath, DiskState.IDLE);
+			logger.fine("CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -203,9 +216,10 @@ public class MAIDCacheDiskManager {
 		
 		String filepath = selectDisk(key);
 //		int diskId = getDiskId(filepath);
-		String devicePath = mountPointPaths.get(filepath);
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {	
-			sm.setDiskState(devicePath, DiskState.ACTIVE);
+//			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			if(Parameter.DEBUG) {
 				f.deleteOnExit();
@@ -222,8 +236,9 @@ public class MAIDCacheDiskManager {
 			keyFileMap.remove(key);
 			e.printStackTrace();
 		}finally {
-			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-			sm.setDiskState(devicePath, DiskState.IDLE);
+//			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+//			sm.setDiskState(devicePath, DiskState.IDLE);
+			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -239,17 +254,18 @@ public class MAIDCacheDiskManager {
 		keyFileMap.remove(key);
 //		int diskId = getDiskId(filepath);
 		//String devicePath = mountPointPaths.get(selectDisk(key));
-		String devicePath = mountPointPaths.get(filepath);
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {
-			sm.setDiskState(devicePath, DiskState.ACTIVE);
+//			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			result = f.delete();
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
 		}finally {
-			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-			sm.setDiskState(devicePath, DiskState.IDLE);
+//			sm.setIdleIntime(devicePath, System.currentTimeMillis());
+//			sm.setDiskState(devicePath, DiskState.IDLE);
 		}
 		return result;
 	}

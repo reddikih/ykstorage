@@ -105,7 +105,7 @@ public class StateManager {
 				logger.info(cmd[0] + " return code: " + returnCode);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
