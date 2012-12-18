@@ -3,7 +3,6 @@ package test.jp.ac.titech.cs.de.ykstorage.service.cmm;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
