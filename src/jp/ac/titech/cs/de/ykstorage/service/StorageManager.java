@@ -33,7 +33,7 @@ public class StorageManager {
 	public boolean put(String key, byte[] bytes) {
 		int keyNum = getKeySequenceNumber((String)key);
 		Value value = new Value(bytes);
-		if (cmm.put(keyNum, value)) {
+		if (value.equals(cmm.put(keyNum, value))) {
 			return true;
 		} else {
 			return dm.put(keyNum, value);
