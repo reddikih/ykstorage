@@ -1,8 +1,11 @@
 package jp.ac.titech.cs.de.ykstorage.service.cmm;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.Value;
@@ -23,6 +26,13 @@ public class CacheMemoryManager {
 	 */
 	private Map<Integer, MemoryHeader> headerTable;
 
+	/**
+	 * This map folds access time information for the LRU algorithm
+	 * key: last accessed time of the value (nanosecond)
+	 * value: data key
+	 */
+	private TreeMap<Long, Integer> lruKeys;
+
 	public CacheMemoryManager(int max, double threshold) {
 		if (threshold < 0 || threshold > 1.0)
 			throw new IllegalArgumentException("threshold must be in range 0 to 1.0.");
@@ -34,28 +44,33 @@ public class CacheMemoryManager {
 
 		this.memBuffer = ByteBuffer.allocateDirect(max);
 		this.headerTable = new HashMap<Integer, MemoryHeader>();
+		this.lruKeys = new TreeMap<Long, Integer>();
 	}
 
-	public boolean put(int key, Value value) {
+	public Value put(int key, Value value) {
 		int usage = memBuffer.capacity() - memBuffer.remaining();
 		int requireSize = value.getValue().length;
 		if (this.limit < usage + requireSize) {
 			logger.info(String.format(
 					"cache memory overflow. key id: %d, require size: %d[B], available: %d[B]",
 					key, requireSize, memBuffer.remaining()));
-			return false;
+			return Value.NULL;
 		}
 
+		long thisTime = System.nanoTime();
 		MemoryHeader header =
-			new MemoryHeader(memBuffer.position(), requireSize);
+			new MemoryHeader(memBuffer.position(), requireSize, thisTime);
 		headerTable.put(key, header);
 		memBuffer.put(value.getValue());
 
-		logger.info(String.format(
-				"put on cache memory. key id: %d, val pos: %d, size: %d",
-				key, header.getPosition(), requireSize));
+		// update access time for LRU
+		updateLRUInfo(key);
 
-		return true;
+		logger.info(String.format(
+				"put on cache memory. key id: %d, val pos: %d, size: %d, time: %d",
+				key, header.getPosition(), requireSize, thisTime));
+
+		return value;
 	}
 
 	public Value get(int key) {
@@ -71,16 +86,49 @@ public class CacheMemoryManager {
 
 		Value value = new Value(byteVal);
 
+		// update access time for LRU
+		updateLRUInfo(key);
+
 		return value;
 	}
 
 	public Value delete(int key) {
 		Value deleted = get(key);
 		if (!Value.NULL.equals(deleted)) {
-			headerTable.remove(key);
+			MemoryHeader deletedHeader = headerTable.remove(key);
+			lruKeys.remove(deletedHeader.getAccessedTime());
 			logger.info(String.format("delete from cache memory. key id: %d", key));
 		}
 		return deleted;
+	}
+
+	public List<Value> replace(int key, Value value) {
+		List<Value> replacedList = new ArrayList<Value>();
+		while (true) {
+			compaction();
+			int usage = memBuffer.capacity() - memBuffer.remaining();
+			int requireSize = value.getValue().length;
+			if (this.limit < usage + requireSize) {
+				Map.Entry<Long, Integer> lruKey = lruKeys.firstEntry();
+//				Map.Entry<Long, Integer> lruKey = lruKeys.lastEntry();
+				assert lruKey != null;
+				int replacedKey = lruKey.getValue();
+				Value deleted = delete(replacedKey);
+				if (!Value.NULL.equals(deleted)) replacedList.add(deleted);
+			} else {
+				put(key, value);
+				break;
+			}
+		}
+		return replacedList;
+	}
+
+	private void updateLRUInfo(int key) {
+		MemoryHeader header = headerTable.get(key);
+		lruKeys.remove(header.getAccessedTime());
+		long thisTime = System.nanoTime();
+		header.setAccessedTime(thisTime);
+		lruKeys.put(thisTime, key);
 	}
 
 	public void compaction() {
@@ -119,10 +167,12 @@ public class CacheMemoryManager {
 
 		private int position;
 		private int size;
+		private long accessedTime;
 
-		public MemoryHeader(int position, int size) {
+		public MemoryHeader(int position, int size, long accessedTime) {
 			this.position = position;
 			this.size = size;
+			this.accessedTime = accessedTime;
 		}
 
 		public int getPosition() {
@@ -139,6 +189,14 @@ public class CacheMemoryManager {
 
 		public void setSize(int size) {
 			this.size = size;
+		}
+
+		public long getAccessedTime() {
+			return accessedTime;
+		}
+
+		public void setAccessedTime(long accessedTime) {
+			this.accessedTime = accessedTime;
 		}
 	}
 }
