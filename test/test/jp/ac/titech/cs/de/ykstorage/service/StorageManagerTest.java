@@ -48,11 +48,15 @@ public class StorageManagerTest {
 		assertTrue(Arrays.equals(value1, sm.get(key1)));
 		assertTrue(Arrays.equals(value2, sm.get(key2)));
 
-		// write to disk due to cache overflow.
+		// Write key3 to cache memeory due to LRU algorithm.
+		// In this case, replaced key is key1.
+		// TODO We should check the key1 was replaced.
 		String key3 = "key3";
 		byte[] value3 = {7,8,9,10,11};
 		assertThat(sm.put(key3, value3), is(true));
 		assertThat((Arrays.equals(value3, sm.get(key3))), is(true));
+		assertThat((Arrays.equals(value2, sm.get(key2))), is(true));
+		assertThat((Arrays.equals(value1, sm.get(key1))), is(true));
 	}
 
 	@After

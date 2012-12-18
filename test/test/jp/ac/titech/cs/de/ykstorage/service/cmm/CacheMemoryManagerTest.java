@@ -3,6 +3,10 @@ package test.jp.ac.titech.cs.de.ykstorage.service.cmm;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
+
+import java.util.Map;
+import java.util.Set;
+
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
@@ -133,14 +137,22 @@ public class CacheMemoryManagerTest {
 
 		// after insert key4, key1 is replaced due to LRU algorithm.
 		assertThat(cmm.put(key4, value4), is(Value.NULL));
-		cmm.replace(key4, value4);
+		Set<Map.Entry<Integer, Value>> replacies = cmm.replace(key4, value4);
+		for(Map.Entry<Integer, Value> replaced : replacies) {
+			assertThat(replaced.getKey(), is(key1));
+			assertThat(replaced.getValue(), is(value1));
+		}
 		assertThat(cmm.get(key1), is(Value.NULL));
 		assertThat(cmm.get(key2), is(value2));
 		assertThat(cmm.get(key3), is(value3));
 
 		// once more replace. after that, the replaced key should be 4.
 		assertThat(cmm.put(key5, value5), is(Value.NULL));
-		cmm.replace(key5, value5);
+		replacies = cmm.replace(key5, value5);
+		for(Map.Entry<Integer, Value> replaced : replacies) {
+			assertThat(replaced.getKey(), is(key4));
+			assertThat(replaced.getValue(), is(value4));
+		}
 		assertThat(cmm.get(key4), is(Value.NULL));
 		assertThat(cmm.get(key2), is(value2));
 		assertThat(cmm.get(key3), is(value3));

@@ -1,10 +1,9 @@
 package jp.ac.titech.cs.de.ykstorage.service.cmm;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
@@ -89,6 +88,10 @@ public class CacheMemoryManager {
 		// update access time for LRU
 		updateLRUInfo(key);
 
+		long accessedTime = headerTable.get(key).getAccessedTime();
+		logger.info(String.format("get from cache memory. key id: %d, time: %d",
+									key, accessedTime));
+
 		return value;
 	}
 
@@ -102,25 +105,25 @@ public class CacheMemoryManager {
 		return deleted;
 	}
 
-	public List<Value> replace(int key, Value value) {
-		List<Value> replacedList = new ArrayList<Value>();
+	public Set<Map.Entry<Integer,Value>> replace(int key, Value value) {
+		Map<Integer, Value> replacedMap = new HashMap<Integer, Value>();
 		while (true) {
 			compaction();
 			int usage = memBuffer.capacity() - memBuffer.remaining();
 			int requireSize = value.getValue().length;
 			if (this.limit < usage + requireSize) {
 				Map.Entry<Long, Integer> lruKey = lruKeys.firstEntry();
-//				Map.Entry<Long, Integer> lruKey = lruKeys.lastEntry();
 				assert lruKey != null;
 				int replacedKey = lruKey.getValue();
 				Value deleted = delete(replacedKey);
-				if (!Value.NULL.equals(deleted)) replacedList.add(deleted);
+				if (!Value.NULL.equals(deleted))
+					replacedMap.put(replacedKey, deleted);
 			} else {
 				put(key, value);
 				break;
 			}
 		}
-		return replacedList;
+		return replacedMap.entrySet();
 	}
 
 	private void updateLRUInfo(int key) {

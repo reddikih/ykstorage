@@ -2,6 +2,7 @@ package jp.ac.titech.cs.de.ykstorage.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
@@ -31,13 +32,19 @@ public class StorageManager {
 	}
 
 	public boolean put(String key, byte[] bytes) {
+		boolean result = true;
 		int keyNum = getKeySequenceNumber((String)key);
 		Value value = new Value(bytes);
-		if (value.equals(cmm.put(keyNum, value))) {
-			return true;
-		} else {
-			return dm.put(keyNum, value);
+		if (Value.NULL.equals(cmm.put(keyNum, value))) {
+			// LRU replacement on cache memory
+			Set<Map.Entry<Integer, Value>> replaces = cmm.replace(keyNum, value);
+			for (Map.Entry<Integer, Value> replaced : replaces) {
+				if (!dm.put(replaced.getKey(), replaced.getValue())) {
+					result = false;
+				}
+			}
 		}
+		return result;
 	}
 
 	private int getKeySequenceNumber(String key) {
