@@ -34,14 +34,19 @@ public class StorageManager {
 	public boolean put(String key, byte[] bytes) {
 		boolean result = true;
 		int keyNum = getKeySequenceNumber((String)key);
+		int size = bytes.length;
 		Value value = new Value(bytes);
 		if (Value.NULL.equals(cmm.put(keyNum, value))) {
-			// LRU replacement on cache memory
-			Set<Map.Entry<Integer, Value>> replaces = cmm.replace(keyNum, value);
-			for (Map.Entry<Integer, Value> replaced : replaces) {
-				if (!dm.put(replaced.getKey(), replaced.getValue())) {
-					result = false;
+			if(hasCapacity(size)) {
+				// LRU replacement on cache memory
+				Set<Map.Entry<Integer, Value>> replaces = cmm.replace(keyNum, value);
+				for (Map.Entry<Integer, Value> replaced : replaces) {
+					if (!dm.put(replaced.getKey(), replaced.getValue())) {
+						result = false;
+					}
 				}
+			}else {
+				result = dm.put(keyNum, value);
 			}
 		}
 		return result;
@@ -56,5 +61,9 @@ public class StorageManager {
 			keyMap.put(key, keySeqNum);
 		}
 		return keySeqNum;
+	}
+	
+	private boolean hasCapacity(int size) {
+		return this.cmm.hasCapacity(size);
 	}
 }

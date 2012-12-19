@@ -58,6 +58,40 @@ public class StorageManagerTest {
 		assertThat((Arrays.equals(value2, sm.get(key2))), is(true));
 		assertThat((Arrays.equals(value1, sm.get(key1))), is(true));
 	}
+	
+	@Test
+	public void zeroCapacityTest() {
+		int cmmMax = 0;
+		double threshold = 1.0;
+		CacheMemoryManager cmm2 = new CacheMemoryManager(cmmMax, threshold);
+
+		DiskManager dm2 = new DiskManager(
+				Parameter.DATA_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD);
+
+		StorageManager sm2 = new StorageManager(cmm2, dm2);
+		
+		String key1 = "key1";
+		byte[] value1 = {1,2,3};
+		
+		assertThat(sm2.put(key1, value1), is(true));
+		assertThat(sm2.get(key1), is(value1));
+	}
+	
+	@Test
+	public void largeSizeTest() {
+		String key1 = "key1";
+		String key2 = "key2";
+		byte[] value1 = {1,2,3};
+		byte[] value2 = {1,2,3,4,5,6,7,8,9,0};
+		
+		assertThat(sm.put(key1, value1), is(true));
+		assertThat(sm.put(key2, value2), is(true));
+		assertThat(sm.get(key1), is(value1));
+		assertThat(sm.get(key2), is(value2));
+	}
 
 	@After
 	public void teardown() {

@@ -168,6 +168,13 @@ public class CacheMemoryManager {
 					oldPosition, currentPosition, header.getSize()));
 		}
 	}
+	
+	public boolean hasCapacity(int size) {
+		if((this.max == 0) || (this.max < size)) {
+			return false;
+		}
+		return true;
+	}
 
 	class MemoryHeader {
 
