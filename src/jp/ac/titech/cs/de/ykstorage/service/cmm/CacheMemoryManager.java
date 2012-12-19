@@ -136,6 +136,9 @@ public class CacheMemoryManager {
 
 	public void compaction() {
 		boolean isFirst = true;
+		if(headerTable.isEmpty()) {
+			memBuffer.rewind();
+		}
 		for (MemoryHeader header : headerTable.values()) {
 			if (isFirst) {
 				int oldPosition = header.getPosition();
