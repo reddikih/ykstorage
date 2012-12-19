@@ -14,6 +14,11 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 public class SimpleClient2 {
 	private static final String WORKLOAD_PATH = "C:\\Users\\oguri\\Desktop\\Book3.csv";
+	private static final int cmdIndex = 0;
+	private static final int intervalIndex = 1;
+	private static final int keylIndex = 2;
+	private static final int valuelIndex = 3;
+	
 	private StorageManager sm;
 
 	public SimpleClient2() {
@@ -63,20 +68,20 @@ public class SimpleClient2 {
 			interval = 0;
 			String[] cmdArray = line.split(",");
 			
-			if(cmdArray.length == 3 && (cmdArray[0].equalsIgnoreCase("get"))) {
-				System.out.print("[GET] Key: " + cmdArray[1]);
-				System.out.println(" Value: " + sc.get(cmdArray[1]));
-				interval = Integer.parseInt(cmdArray[2]);
+			if(cmdArray.length == 3 && (cmdArray[cmdIndex].equalsIgnoreCase("get"))) {
+				System.out.print("[GET] Key: " + cmdArray[keylIndex]);
+				System.out.println(" Value: " + sc.get(cmdArray[keylIndex]));
+				interval = Integer.parseInt(cmdArray[intervalIndex]);
 			}
 
-			if(cmdArray.length == 4 && (cmdArray[0].equalsIgnoreCase("PUT"))) {
-				if(sc.put(cmdArray[1], cmdArray[2])) {
-					System.out.print("[PUT] Key: " + cmdArray[1]);
-					System.out.println(" Value: " + cmdArray[2]);
+			if(cmdArray.length == 4 && (cmdArray[cmdIndex].equalsIgnoreCase("PUT"))) {
+				if(sc.put(cmdArray[keylIndex], cmdArray[valuelIndex])) {
+					System.out.print("[PUT] Key: " + cmdArray[keylIndex]);
+					System.out.println(" Value: " + cmdArray[valuelIndex]);
 				}else {
 					System.out.println("Cannot put");
 				}
-				interval = Integer.parseInt(cmdArray[3]);
+				interval = Integer.parseInt(cmdArray[intervalIndex]);
 			}
 			
 			Thread.sleep(interval);
