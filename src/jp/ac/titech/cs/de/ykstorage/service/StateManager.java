@@ -153,6 +153,7 @@ public class StateManager {
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
 						(now - getIdleIntime(devicePath)) > spindownThreshold) {
 						if (spindown(devicePath)) {
+							logger.fine("[SPINDOWN]: " + devicePath);
 							setDiskState(devicePath, DiskState.STANDBY);
 						}
 					}
