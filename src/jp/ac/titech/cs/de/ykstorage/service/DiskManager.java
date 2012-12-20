@@ -15,11 +15,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
+import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class DiskManager {
+	private Logger logger = StorageLogger.getLogger();
 	private StateManager sm;
 
 	private String[] diskpaths;
@@ -83,10 +86,25 @@ public class DiskManager {
 		loadHashMap();
 	}
 
-	public DiskState getDiskState(String diskPath) {
+	public DiskState getDiskState(String devicePath) {
 		//String devicePath = mountPointPaths.get(diskPath);
 		//return sm.getDiskState(devicePath);
-		return sm.getDiskState(diskPath);
+		return sm.getDiskState(devicePath);
+	}
+	
+	public DiskState getDiskState(int key) {
+		String filePath = keyFileMap.get(key);
+		String diskPath = getDiskPath(filePath);
+		String devicePath = mountPointPaths.get(diskPath);
+		return sm.getDiskState(devicePath);
+	}
+	
+	private String getDiskPath(String filePath) {
+		String diskPath = "";
+		if(filePath != null) {
+			diskPath = filePath.substring(0, filePath.lastIndexOf("/") + 1);
+		}
+		return diskPath;
 	}
 
 	private void loadHashMap() {
@@ -177,7 +195,8 @@ public class DiskManager {
 			return result;
 		}
 //		int diskId = getDiskId(filepath);
-		String devicePath = mountPointPaths.get(filepath);
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
@@ -194,6 +213,7 @@ public class DiskManager {
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
+			logger.fine("[GET]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -203,7 +223,8 @@ public class DiskManager {
 		
 		String filepath = selectDisk(key);
 //		int diskId = getDiskId(filepath);
-		String devicePath = mountPointPaths.get(filepath);
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {	
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
@@ -224,6 +245,7 @@ public class DiskManager {
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
+			logger.fine("[PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -239,7 +261,8 @@ public class DiskManager {
 		keyFileMap.remove(key);
 //		int diskId = getDiskId(filepath);
 		//String devicePath = mountPointPaths.get(selectDisk(key));
-		String devicePath = mountPointPaths.get(filepath);
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
@@ -250,6 +273,7 @@ public class DiskManager {
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
+			logger.fine("[DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}

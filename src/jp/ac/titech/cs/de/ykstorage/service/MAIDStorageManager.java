@@ -50,7 +50,7 @@ public class MAIDStorageManager {
 		int keyNum = getKeySequenceNumber((String)key);
 		Value value = new Value(bytes);
 		
-		boolean cmmResult = cmm.put(keyNum, value);
+		Value cmmResult = cmm.put(keyNum, value);
 		boolean cachedmResult = cachedm.put(keyNum, value);
 		
 		PutThread pt = new PutThread(true, keyNum, value);
