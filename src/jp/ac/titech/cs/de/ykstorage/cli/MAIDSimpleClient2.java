@@ -2,18 +2,13 @@ package jp.ac.titech.cs.de.ykstorage.cli;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.StringTokenizer;
 
-import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 

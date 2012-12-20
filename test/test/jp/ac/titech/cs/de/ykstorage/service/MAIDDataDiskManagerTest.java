@@ -5,7 +5,6 @@ import static org.junit.Assert.assertThat;
 
 import java.io.File;
 
-import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;

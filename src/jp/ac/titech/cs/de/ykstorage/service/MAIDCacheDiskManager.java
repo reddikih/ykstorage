@@ -2,22 +2,13 @@ package jp.ac.titech.cs.de.ykstorage.service;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.SortedMap;
-import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
-import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
@@ -26,7 +17,7 @@ public class MAIDCacheDiskManager {
 //	private StateManager sm;
 
 	private String[] diskpaths;
-	private String savePath;
+//	private String savePath;
 	
 	/**
 	 * key: disk path on file system
@@ -48,7 +39,7 @@ public class MAIDCacheDiskManager {
 			SortedMap<String, String> mountPointPaths,
 			double spinDownThreshold) {
 		this.diskpaths = diskpaths;
-		this.savePath = savePath;
+//		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
 
 //		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
