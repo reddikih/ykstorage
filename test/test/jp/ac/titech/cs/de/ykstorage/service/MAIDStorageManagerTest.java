@@ -55,11 +55,55 @@ public class MAIDStorageManagerTest {
 		assertTrue(Arrays.equals(value1, sm.get(key1)));
 		assertTrue(Arrays.equals(value2, sm.get(key2)));
 
-		// write to disk due to cache overflow.
+		// Write key3 to cache memeory due to LRU algorithm.
+		// In this case, replaced key is key1.
+		// TODO We should check the key1 was replaced.
 		String key3 = "key3";
 		byte[] value3 = {7,8,9,10,11};
 		assertThat(sm.put(key3, value3), is(true));
 		assertThat((Arrays.equals(value3, sm.get(key3))), is(true));
+		assertThat((Arrays.equals(value2, sm.get(key2))), is(true));
+		assertThat((Arrays.equals(value1, sm.get(key1))), is(true));
+	}
+	
+	@Test
+	public void zeroCapacityTest() {
+		int cmmMax = 0;
+		double threshold = 1.0;
+		CacheMemoryManager cmm2 = new CacheMemoryManager(cmmMax, threshold);
+
+		MAIDCacheDiskManager cachedm2 = new MAIDCacheDiskManager(
+				Parameter.CACHE_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD);
+		
+		MAIDDataDiskManager datadm2 = new MAIDDataDiskManager(
+				Parameter.DATA_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD);
+
+		MAIDStorageManager sm2 = new MAIDStorageManager(cmm2, cachedm2, datadm2);
+		
+		String key1 = "key1";
+		byte[] value1 = {1,2,3};
+		
+		assertThat(sm2.put(key1, value1), is(true));
+		assertThat(sm2.get(key1), is(value1));
+	}
+	
+	@Test
+	public void largeSizeTest() {
+		String key1 = "key1";
+		String key2 = "key2";
+		byte[] value1 = {1,2,3};
+		byte[] value2 = {1,2,3,4,5,6,7,8,9,0};
+		
+		assertThat(sm.put(key1, value1), is(true));
+		assertThat(sm.put(key2, value2), is(true));
+		assertThat(sm.get(key1), is(value1));
+		assertThat(sm.get(key2), is(value2));
 	}
 
 	@After

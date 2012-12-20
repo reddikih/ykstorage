@@ -273,6 +273,7 @@ public class MAIDDataDiskManager {
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
+			logger.fine("DataDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}

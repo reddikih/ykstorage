@@ -86,12 +86,19 @@ public class MAIDCacheDiskManager {
 //		loadHashMap();
 	}
 
-//	public DiskState getDiskState(String diskPath) {
+//	public DiskState getDiskState(String devicePath) {
 //		//String devicePath = mountPointPaths.get(diskPath);
 //		//return sm.getDiskState(devicePath);
-//		return sm.getDiskState(diskPath);
+//		return sm.getDiskState(devicePath);
 //	}
-
+	
+//	public DiskState getDiskState(int key) {
+//		String filePath = keyFileMap.get(key);
+//		String diskPath = getDiskPath(filePath);
+//		String devicePath = mountPointPaths.get(diskPath);
+//		return sm.getDiskState(devicePath);
+//	}
+	
 	private String getDiskPath(String filePath) {
 		String diskPath = "";
 		if(filePath != null) {
@@ -266,6 +273,7 @@ public class MAIDCacheDiskManager {
 		}finally {
 //			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 //			sm.setDiskState(devicePath, DiskState.IDLE);
+			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}

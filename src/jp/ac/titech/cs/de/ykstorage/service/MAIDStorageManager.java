@@ -2,6 +2,7 @@ package jp.ac.titech.cs.de.ykstorage.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
@@ -37,7 +38,7 @@ public class MAIDStorageManager {
 			return value.getValue();
 		}
 		
-		// Thread put
+		// put value to cache disk.
 		if (!Value.NULL.equals(value)) {
 			PutThread pt = new PutThread(false, innerKey, value);
 			pt.start();
@@ -47,16 +48,33 @@ public class MAIDStorageManager {
 	}
 
 	public boolean put(String key, byte[] bytes) {
+		boolean cmmResult = true;
+		boolean cachedmResult = true;
+		
 		int keyNum = getKeySequenceNumber((String)key);
+		int size = bytes.length;
 		Value value = new Value(bytes);
 		
-		Value cmmResult = cmm.put(keyNum, value);
-		boolean cachedmResult = cachedm.put(keyNum, value);
+		// メモリにValueを書き込む
+		if (Value.NULL.equals(cmm.put(keyNum, value))) {
+			if(hasCapacity(size)) {
+				// LRU replacement on cache memory
+				Set<Map.Entry<Integer, Value>> replaces = cmm.replace(keyNum, value);
+				for (Map.Entry<Integer, Value> replaced : replaces) {
+					// メモリから追い出されたValueはデータディスクに書き込む
+					if (!datadm.put(replaced.getKey(), replaced.getValue())) {
+						cmmResult = false;
+					}
+				}
+			}
+		}
+		
+		cachedmResult = cachedm.put(keyNum, value);
 		
 		PutThread pt = new PutThread(true, keyNum, value);
 		pt.start();
 		
-		return cachedmResult;
+		return cmmResult & cachedmResult;
 	}
 	
 	public void end() {
@@ -72,6 +90,10 @@ public class MAIDStorageManager {
 			keyMap.put(key, keySeqNum);
 		}
 		return keySeqNum;
+	}
+	
+	private boolean hasCapacity(int size) {
+		return this.cmm.hasCapacity(size);
 	}
 	
 	class PutThread extends Thread {
@@ -93,5 +115,4 @@ public class MAIDStorageManager {
 			}
 		}
 	}
-	
 }
