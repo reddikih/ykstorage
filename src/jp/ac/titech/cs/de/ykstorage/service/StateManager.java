@@ -75,33 +75,36 @@ public class StateManager {
 
 	public boolean spinup(String devicePath) {
 		if(!devicePathCheck(devicePath)) return false;
+		setDiskState(devicePath, DiskState.IDLE);
 
 		String[] cmdarray = {"ls", devicePath};
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
-			setDiskState(devicePath, DiskState.IDLE);
 			logger.fine("[SPINUP]: " + devicePath);
 			return true;
 		}
+		setDiskState(devicePath, DiskState.STANDBY);
 		return false;
 	}
 
 	public boolean spindown(String devicePath) {
 		if(!devicePathCheck(devicePath)) return false;
+		setDiskState(devicePath, DiskState.STANDBY);
 		
 		String[] sync = {"sync"};
 		int syncRet = execCommand(sync);
 		if(syncRet != 0) {
+			setDiskState(devicePath, DiskState.IDLE);
 			return false;
 		}
 		
 		String[] hdparm = {"hdparm", "-y", devicePath};
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
-			setDiskState(devicePath, DiskState.STANDBY);
 			logger.fine("[SPINDOWN]: " + devicePath);
 			return true;
 		}
+		setDiskState(devicePath, DiskState.IDLE);
 		return false;
 	}
 
