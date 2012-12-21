@@ -78,7 +78,11 @@ public class StateManager {
 
 		String[] cmdarray = {"ls", devicePath};
 		int returnCode = execCommand(cmdarray);
-		return (returnCode == 0) ? true : false;
+		if(returnCode == 0) {
+			setDiskState(devicePath, DiskState.IDLE);
+			return true;
+		}
+		return false;
 	}
 
 	public boolean spindown(String devicePath) {
@@ -92,7 +96,11 @@ public class StateManager {
 		
 		String[] hdparm = {"hdparm", "-y", devicePath};
 		int hdparmRet = execCommand(hdparm);
-		return (hdparmRet == 0) ? true : false;
+		if(hdparmRet == 0) {
+			setDiskState(devicePath, DiskState.STANDBY);
+			return true;
+		}
+		return false;
 	}
 
 	private int execCommand(String[] cmd) {
@@ -154,7 +162,6 @@ public class StateManager {
 						(now - getIdleIntime(devicePath)) > spindownThreshold) {
 						if (spindown(devicePath)) {
 							logger.fine("[SPINDOWN]: " + devicePath);
-							setDiskState(devicePath, DiskState.STANDBY);
 						}
 					}
 				}

@@ -76,17 +76,16 @@ public class DiskManagerTest {
 
 	@Test
 	public void getDiskStateTest() {
-		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
 		assertThat(dm.put(key, value), is(true));
-		assertThat(dm.getDiskState(devicePaths[1]), is(DiskState.IDLE));
+		assertThat(dm.getDiskState(key), is(DiskState.IDLE));
 
 		try {
-			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 1000));
+			Thread.sleep((long) (Parameter.SPIN_DOWN_THRESHOLD * 1000) + 1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 
-		assertThat(dm.getDiskState(devicePaths[0]), is(DiskState.STANDBY));
+		assertThat(dm.getDiskState(key), is(DiskState.STANDBY));
 	}
 	
 	@Test
