@@ -1,6 +1,5 @@
 package test.jp.ac.titech.cs.de.ykstorage.service;
 
-import static org.junit.Assert.*;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 
 import org.junit.Test;
