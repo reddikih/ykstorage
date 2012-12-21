@@ -38,8 +38,8 @@ public class CacheMemoryManager {
 
 		this.max = max;
 		this.limit = (int)Math.floor(max * threshold);
-		logger.info(String.format("cache memory max capacity : %d[Bytes]", this.max));
-		logger.info(String.format("cache memory threshold    : %d[Bytes]", this.limit));
+		logger.fine(String.format("cache memory max capacity : %d[Bytes]", this.max));
+		logger.fine(String.format("cache memory threshold    : %d[Bytes]", this.limit));
 
 		this.memBuffer = ByteBuffer.allocateDirect(max);
 		this.headerTable = new HashMap<Integer, MemoryHeader>();
@@ -50,7 +50,7 @@ public class CacheMemoryManager {
 		int usage = memBuffer.capacity() - memBuffer.remaining();
 		int requireSize = value.getValue().length;
 		if (this.limit < usage + requireSize) {
-			logger.info(String.format(
+			logger.fine(String.format(
 					"cache memory overflow. key id: %d, require size: %d[B], available: %d[B]",
 					key, requireSize, memBuffer.remaining()));
 			return Value.NULL;
@@ -65,7 +65,7 @@ public class CacheMemoryManager {
 		// update access time for LRU
 		updateLRUInfo(key);
 
-		logger.info(String.format(
+		logger.fine(String.format(
 				"put on cache memory. key id: %d, val pos: %d, size: %d, time: %d",
 				key, header.getPosition(), requireSize, thisTime));
 
@@ -89,7 +89,7 @@ public class CacheMemoryManager {
 		updateLRUInfo(key);
 
 		long accessedTime = headerTable.get(key).getAccessedTime();
-		logger.info(String.format("get from cache memory. key id: %d, time: %d",
+		logger.fine(String.format("get from cache memory. key id: %d, time: %d",
 									key, accessedTime));
 
 		return value;
@@ -100,7 +100,7 @@ public class CacheMemoryManager {
 		if (!Value.NULL.equals(deleted)) {
 			MemoryHeader deletedHeader = headerTable.remove(key);
 			lruKeys.remove(deletedHeader.getAccessedTime());
-			logger.info(String.format("delete from cache memory. key id: %d", key));
+			logger.fine(String.format("delete from cache memory. key id: %d", key));
 		}
 		return deleted;
 	}
@@ -149,7 +149,7 @@ public class CacheMemoryManager {
 				int newPosition = memBuffer.position();
 				memBuffer.put(byteVal);
 				header.setPosition(newPosition);
-				logger.info(String.format(
+				logger.fine(String.format(
 						"migrated. fromPos: %d, toPos: %d, size: %d",
 						oldPosition, newPosition, header.getSize()));
 				isFirst = false;
@@ -163,7 +163,7 @@ public class CacheMemoryManager {
 			memBuffer.position(currentPosition);
 			memBuffer.put(byteVal);
 			header.setPosition(currentPosition);
-			logger.info(String.format(
+			logger.fine(String.format(
 					"migrated. fromPos: %d, toPos: %d, size: %d",
 					oldPosition, currentPosition, header.getSize()));
 		}
