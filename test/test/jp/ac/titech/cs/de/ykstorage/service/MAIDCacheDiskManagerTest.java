@@ -26,7 +26,7 @@ public class MAIDCacheDiskManagerTest {
 	private Value value2 = new Value("value2".getBytes());
 	private Value value3 = new Value("value3".getBytes());
 	private MAIDCacheDiskManager dm;
-	private String devicePaths[];
+//	private String devicePaths[];
 
 	@Before
 	public void setUpClass() {
@@ -36,10 +36,6 @@ public class MAIDCacheDiskManagerTest {
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD
 		);
-		this.devicePaths = new String[Parameter.NUMBER_OF_DATA_DISKS];
-		for (int i=0; i < devicePaths.length; i++) {
-			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.DATA_DISK_PATHS[i]);
-		}
 	}
 
 	@Test
