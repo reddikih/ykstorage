@@ -19,6 +19,18 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class MAIDCacheDiskManagerTest {
 	private static final long CAPACITY_OF_CACHEDISK = 30;
+	private static final String[] CACHE_DISK_PATHS;
+	static {
+		int numOfDisks = 1;
+		int origin = 1;
+		String prefix = Parameter.DATA_DIR + "/disk%d/";
+		CACHE_DISK_PATHS = new String[numOfDisks];
+		for (int i=0; i < CACHE_DISK_PATHS.length; i++) {
+			CACHE_DISK_PATHS[i] = String.format(prefix, origin + i);
+		}
+		// above code generate data disk paths like follows:
+		//  /ecoim/ykstorage/data/disk1/, /ecoim/ykstorage/data/disk2/, ...
+	};
 
 	private int key = 1;
 	private int key2 = 123;
@@ -32,11 +44,11 @@ public class MAIDCacheDiskManagerTest {
 	@Before
 	public void setUpClass() {
 		this.dm = new MAIDCacheDiskManager(
-				Parameter.DATA_DISK_PATHS,
+				Parameter.CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD,
-				CAPACITY_OF_CACHEDISK
+				Parameter.CAPACITY_OF_CACHEDISK
 		);
 	}
 
@@ -120,43 +132,71 @@ public class MAIDCacheDiskManagerTest {
 	
 	@Test
 	public void LRUPutTest() {
+		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+				CACHE_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD,
+				CAPACITY_OF_CACHEDISK
+		);
 		Value v = new Value("valuevalue".getBytes());
 		int key4 = 4;
-		assertThat(dm.put(key, v), is(true));
-		assertThat(dm.put(key2, v), is(true));
-		assertThat(dm.put(key3, v), is(true));
-		assertThat(dm.put(key4, v), is(true));
+		assertThat(dm2.put(key, v), is(true));
+		assertThat(dm2.put(key2, v), is(true));
+		assertThat(dm2.put(key3, v), is(true));
+		assertThat(dm2.put(key4, v), is(true));
 	}
 	
 	@Test
 	public void LRUGetTest() {
+		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+				CACHE_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD,
+				CAPACITY_OF_CACHEDISK
+		);
 		Value v = new Value("valuevalue".getBytes());
 		int key4 = 4;
-		assertThat(dm.put(key, v), is(true));
-		assertThat(dm.put(key2, v), is(true));
-		assertThat(dm.put(key3, v), is(true));
-		assertThat(dm.put(key4, v), is(true));
-		assertThat(dm.get(key), is(Value.NULL));
-		assertThat(dm.get(key2).getValue(), is(v.getValue()));
+		assertThat(dm2.put(key, v), is(true));
+		assertThat(dm2.put(key2, v), is(true));
+		assertThat(dm2.put(key3, v), is(true));
+		assertThat(dm2.put(key4, v), is(true));
+		assertThat(dm2.get(key), is(Value.NULL));
+		assertThat(dm2.get(key2).getValue(), is(v.getValue()));
 	}
 	
 	@Test
 	public void LRUUpdateInfoTest() {
+		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+				CACHE_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD,
+				CAPACITY_OF_CACHEDISK
+		);
 		Value v = new Value("valuevalue".getBytes());
 		int key4 = 4;
-		assertThat(dm.put(key, v), is(true));
-		assertThat(dm.put(key2, v), is(true));
-		assertThat(dm.put(key3, v), is(true));
-		assertThat(dm.get(key).getValue(), is(v.getValue()));
-		assertThat(dm.put(key4, v), is(true));
-		assertThat(dm.get(key).getValue(), is(v.getValue()));
-		assertThat(dm.get(key2), is(Value.NULL));
+		assertThat(dm2.put(key, v), is(true));
+		assertThat(dm2.put(key2, v), is(true));
+		assertThat(dm2.put(key3, v), is(true));
+		assertThat(dm2.get(key).getValue(), is(v.getValue()));
+		assertThat(dm2.put(key4, v), is(true));
+		assertThat(dm2.get(key).getValue(), is(v.getValue()));
+		assertThat(dm2.get(key2), is(Value.NULL));
 	}
 	
 	@Test
 	public void LRUPutLargeSizeTest() {
+		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+				CACHE_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
+				Parameter.MOUNT_POINT_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD,
+				CAPACITY_OF_CACHEDISK
+		);
 		Value v = new Value("value value value value value value value".getBytes());
-		assertThat(dm.put(key, v), is(false));
+		assertThat(dm2.put(key, v), is(false));
 	}
 
 	@After

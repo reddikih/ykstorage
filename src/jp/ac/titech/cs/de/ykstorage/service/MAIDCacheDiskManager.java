@@ -5,6 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.SortedMap;
@@ -20,7 +21,7 @@ public class MAIDCacheDiskManager {
 	private String[] diskpaths;
 //	private String savePath;
 	private long maxCapacity;
-	private long capacity;
+	private HashMap<String, Long> capacity = new HashMap<String, Long>();
 	
 	/**
 	 * key: disk path on file system
@@ -77,6 +78,8 @@ public class MAIDCacheDiskManager {
 					throw new SecurityException("cannot create dir: " + path);
 				}
 			}
+			String devicePath = mountPointPaths.get(path);
+			capacity.put(devicePath, 0L);
 		}
 
 //		loadHashMap();
@@ -228,7 +231,7 @@ public class MAIDCacheDiskManager {
 		if(valueSize > maxCapacity) {
 			return false;
 		}
-		while(capacity + valueSize > maxCapacity) {
+		while(capacity.get(devicePath) + valueSize > maxCapacity) {
 			if(!lru()) {
 				return false;
 			}
@@ -248,7 +251,8 @@ public class MAIDCacheDiskManager {
 
 			bos.close();
 			
-			capacity += valueSize;
+//			capacity += valueSize;
+			capacity.put(devicePath, capacity.get(devicePath) + valueSize);
 			result = true;
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
@@ -282,7 +286,8 @@ public class MAIDCacheDiskManager {
 			long tmp = f.length();
 			result = f.delete();
 			
-			capacity -= tmp;
+//			capacity -= tmp;
+			capacity.put(devicePath, capacity.get(devicePath) - tmp);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
