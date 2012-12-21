@@ -5,7 +5,8 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.SortedMap;
 import java.util.logging.Logger;
 
@@ -18,6 +19,8 @@ public class MAIDCacheDiskManager {
 
 	private String[] diskpaths;
 //	private String savePath;
+	private long maxCapacity;
+	private long capacity;
 	
 	/**
 	 * key: disk path on file system
@@ -29,7 +32,8 @@ public class MAIDCacheDiskManager {
 	 * key: data key
 	 * value: actual file path corresponding to the key
 	 */
-	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
+//	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
+	private LinkedHashMap<Integer, String> keyFileMap = new LinkedHashMap<Integer, String>();
 	
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 
@@ -37,11 +41,12 @@ public class MAIDCacheDiskManager {
 			String[] diskpaths,
 			String savePath,
 			SortedMap<String, String> mountPointPaths,
-			double spinDownThreshold) {
+			double spinDownThreshold,
+			long maxCapacity) {
 		this.diskpaths = diskpaths;
 //		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
-
+		this.maxCapacity = maxCapacity;
 //		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
 //
 		init();
@@ -199,6 +204,8 @@ public class MAIDCacheDiskManager {
 
 			bis.close();
 			result = new Value(value);
+			
+			keyFileMap.put(key, keyFileMap.remove(key));
 		}catch(Exception e) {
 			e.printStackTrace();
 		}finally {
@@ -211,11 +218,22 @@ public class MAIDCacheDiskManager {
 
 	private boolean write(int key, Value value) {
 		boolean result = false;
+		long valueSize = value.getValue().length;
 		
 		String filepath = selectDisk(key);
 //		int diskId = getDiskId(filepath);
 		String diskPath = getDiskPath(filepath);
 		String devicePath = mountPointPaths.get(diskPath);
+		
+		if(valueSize > maxCapacity) {
+			return false;
+		}
+		while(capacity + valueSize > maxCapacity) {
+			if(!lru()) {
+				return false;
+			}
+		}
+		
 		try {	
 //			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
@@ -229,7 +247,11 @@ public class MAIDCacheDiskManager {
 			bos.flush();
 
 			bos.close();
+			
+			capacity += valueSize;
 			result = true;
+			
+			keyFileMap.put(key, keyFileMap.remove(key));
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
@@ -257,7 +279,10 @@ public class MAIDCacheDiskManager {
 		try {
 //			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
+			long tmp = f.length();
 			result = f.delete();
+			
+			capacity -= tmp;
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
@@ -267,5 +292,16 @@ public class MAIDCacheDiskManager {
 			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
+	}
+	
+	private boolean lru() {
+		// アクセスが古い順にremoveする
+		Iterator<Integer> itr = keyFileMap.keySet().iterator();
+		if(itr.hasNext()) {
+			int key = itr.next();
+			logger.fine("CacheDisk [LRU]: " + keyFileMap.get(key));
+			return remove(key);
+		}
+		return false;
 	}
 }

@@ -18,6 +18,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class MAIDCacheDiskManagerTest {
+	private static final long CAPACITY_OF_CACHEDISK = 30;
 
 	private int key = 1;
 	private int key2 = 123;
@@ -34,7 +35,8 @@ public class MAIDCacheDiskManagerTest {
 				Parameter.DATA_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD
+				Parameter.SPIN_DOWN_THRESHOLD,
+				CAPACITY_OF_CACHEDISK
 		);
 	}
 
@@ -114,6 +116,47 @@ public class MAIDCacheDiskManagerTest {
 		assertThat(dm.put(key, value), is(true));
 		assertThat(dm.get(key).getValue(), is(value.getValue()));
 		assertThat(dm.delete(key), is(true));
+	}
+	
+	@Test
+	public void LRUPutTest() {
+		Value v = new Value("valuevalue".getBytes());
+		int key4 = 4;
+		assertThat(dm.put(key, v), is(true));
+		assertThat(dm.put(key2, v), is(true));
+		assertThat(dm.put(key3, v), is(true));
+		assertThat(dm.put(key4, v), is(true));
+	}
+	
+	@Test
+	public void LRUGetTest() {
+		Value v = new Value("valuevalue".getBytes());
+		int key4 = 4;
+		assertThat(dm.put(key, v), is(true));
+		assertThat(dm.put(key2, v), is(true));
+		assertThat(dm.put(key3, v), is(true));
+		assertThat(dm.put(key4, v), is(true));
+		assertThat(dm.get(key), is(Value.NULL));
+		assertThat(dm.get(key2).getValue(), is(v.getValue()));
+	}
+	
+	@Test
+	public void LRUUpdateInfoTest() {
+		Value v = new Value("valuevalue".getBytes());
+		int key4 = 4;
+		assertThat(dm.put(key, v), is(true));
+		assertThat(dm.put(key2, v), is(true));
+		assertThat(dm.put(key3, v), is(true));
+		assertThat(dm.get(key).getValue(), is(v.getValue()));
+		assertThat(dm.put(key4, v), is(true));
+		assertThat(dm.get(key).getValue(), is(v.getValue()));
+		assertThat(dm.get(key2), is(Value.NULL));
+	}
+	
+	@Test
+	public void LRUPutLargeSizeTest() {
+		Value v = new Value("value value value value value value value".getBytes());
+		assertThat(dm.put(key, v), is(false));
 	}
 
 	@After

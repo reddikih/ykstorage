@@ -32,6 +32,11 @@ public class Parameter {
 	 */
 	public static final double SPIN_DOWN_THRESHOLD = 10.0;
 //	public static final double SPIN_DOWN_THRESHOLD = 1.0;
+	
+	/**
+	 * Capacity of cache memory. It's unit is byte.
+	 */
+	public static final long CAPACITY_OF_CACHEDISK = 30;
 
 //	public static String DATA_DIR = "/ecoim/ykstorage/data";
 	public static String DATA_DIR = "./data";

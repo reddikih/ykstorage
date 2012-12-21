@@ -37,7 +37,8 @@ public class MAIDSimpleClient {
 				cacheDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD);
+				Parameter.SPIN_DOWN_THRESHOLD,
+				Parameter.CAPACITY_OF_CACHEDISK);
 
 		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
 

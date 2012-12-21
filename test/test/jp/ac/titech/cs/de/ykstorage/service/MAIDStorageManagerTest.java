@@ -33,7 +33,8 @@ public class MAIDStorageManagerTest {
 				Parameter.CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD);
+				Parameter.SPIN_DOWN_THRESHOLD,
+				Parameter.CAPACITY_OF_CACHEDISK);
 		
 		MAIDDataDiskManager datadm = new MAIDDataDiskManager(
 				Parameter.DATA_DISK_PATHS,
@@ -76,7 +77,8 @@ public class MAIDStorageManagerTest {
 				Parameter.CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD);
+				Parameter.SPIN_DOWN_THRESHOLD,
+				Parameter.CAPACITY_OF_CACHEDISK);
 		
 		MAIDDataDiskManager datadm2 = new MAIDDataDiskManager(
 				Parameter.DATA_DISK_PATHS,
