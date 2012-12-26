@@ -11,8 +11,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
@@ -51,7 +53,12 @@ public class DiskManager {
 		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
 
-		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
+//		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
+		ArrayList<String> devices = new ArrayList<String>();
+		for(String diskpath : diskpaths) {
+			devices.add(mountPointPaths.get(diskpath));
+		}
+		this.sm = new StateManager(devices, spinDownThreshold);
 
 		init();
 		this.sm.start();
