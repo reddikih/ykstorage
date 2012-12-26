@@ -232,7 +232,7 @@ public class MAIDCacheDiskManager {
 			return false;
 		}
 		while(capacity.get(devicePath) + valueSize > maxCapacity) {
-			if(!lru()) {
+			if(!lru(devicePath)) {
 				return false;
 			}
 		}
@@ -299,13 +299,18 @@ public class MAIDCacheDiskManager {
 		return result;
 	}
 	
-	private boolean lru() {
+	private boolean lru(String devicePath) {
 		// アクセスが古い順にremoveする
 		Iterator<Integer> itr = keyFileMap.keySet().iterator();
-		if(itr.hasNext()) {
+		while(itr.hasNext()) {
 			int key = itr.next();
-			logger.fine("CacheDisk [LRU]: " + keyFileMap.get(key));
-			return remove(key);
+			// key が devicePath かどうかの確認
+			String filePath = keyFileMap.get(key);
+			String diskPath = getDiskPath(filePath);
+			if(devicePath.equals(mountPointPaths.get(diskPath))) {
+				logger.fine("CacheDisk [LRU]: " + keyFileMap.get(key));
+				return remove(key);
+			}			
 		}
 		return false;
 	}
