@@ -13,7 +13,6 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class SimpleClient2 {
-	private static final String WORKLOAD_PATH = "C:\\Users\\oguri\\Desktop\\Book3.csv";
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
@@ -58,7 +57,8 @@ public class SimpleClient2 {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		SimpleClient2 sc = new SimpleClient2();
 		
-		File f = new File(WORKLOAD_PATH);
+//		File f = new File(WORKLOAD_PATH);
+		File f = new File(args[0]);
 		FileReader fr = new FileReader(f);
 		BufferedReader br = new BufferedReader(fr);
 		String line = "";
