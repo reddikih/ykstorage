@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
@@ -215,12 +214,12 @@ public class DiskManager {
 
 			bis.close();
 			result = new Value(value);
+			logger.fine("[GET]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("[GET]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -246,13 +245,13 @@ public class DiskManager {
 
 			bos.close();
 			result = true;
+			logger.fine("[PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("[PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -274,13 +273,13 @@ public class DiskManager {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			result = f.delete();
+			logger.fine("[DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("[DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}

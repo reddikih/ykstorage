@@ -115,6 +115,7 @@ public class Parameter {
 	public static final String LOGGER_NAME = "jp.ac.titech.cs.de.ykstorage.logger";
 
 	public static final String LOG_DIR = System.getProperty("user.home");
+//	public static final String LOG_DIR = "/ecoim/ykstorage";
 
 	public static final String LOG_FILE_NAME = "ykstorage.log";
 	
