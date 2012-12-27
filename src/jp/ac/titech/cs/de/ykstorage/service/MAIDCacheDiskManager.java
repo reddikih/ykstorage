@@ -209,12 +209,9 @@ public class MAIDCacheDiskManager {
 			result = new Value(value);
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
+			logger.fine("CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
-		}finally {
-//			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-//			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -256,13 +253,10 @@ public class MAIDCacheDiskManager {
 			result = true;
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
+			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
-		}finally {
-//			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-//			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -288,13 +282,10 @@ public class MAIDCacheDiskManager {
 			
 //			capacity -= tmp;
 			capacity.put(devicePath, capacity.get(devicePath) - tmp);
+			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
-		}finally {
-//			sm.setIdleIntime(devicePath, System.currentTimeMillis());
-//			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}

@@ -107,6 +107,7 @@ public class MAIDCacheDiskManagerTest {
 
 	@Test
 	public void mainTest2() {
+		// FIXME Parameter.CAPACITY_OF_CACHEDISKの大きさによって失敗する場合がある
 		assertThat(dm.put(key, value), is(true));
 		assertThat(dm.put(key2, value2), is(true));
 		assertThat(dm.get(key).getValue(), is(value.getValue()));

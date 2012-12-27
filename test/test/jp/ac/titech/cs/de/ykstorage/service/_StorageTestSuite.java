@@ -15,7 +15,7 @@ import test.jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManagerTest;
 	StateManagerTest.class,
 	MAIDStorageManagerTest.class,
 	MAIDCacheDiskManagerTest.class,
-	MAIDDataDiskManagerTest.class,
+	MAIDDataDiskManagerTest.class
 })
 
 public class _StorageTestSuite {}

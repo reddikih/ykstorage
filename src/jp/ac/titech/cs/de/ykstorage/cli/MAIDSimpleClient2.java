@@ -13,9 +13,9 @@ import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 public class MAIDSimpleClient2 {
-	private static final String[] WORKLOAD_PATH = {"C:\\Users\\oguri\\Desktop\\Book1.csv"
-													, "C:\\Users\\oguri\\Desktop\\Book2.csv"
-													, "C:\\Users\\oguri\\Desktop\\Book3.csv"};
+//	private static final String[] WORKLOAD_PATH = {"C:\\Users\\oguri\\Desktop\\Book1.csv"
+//													, "C:\\Users\\oguri\\Desktop\\Book2.csv"
+//													, "C:\\Users\\oguri\\Desktop\\Book3.csv"};
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
@@ -104,13 +104,15 @@ public class MAIDSimpleClient2 {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		MAIDSimpleClient2 sc = new MAIDSimpleClient2();
 		
-		sc.loadWorkload(sc, WORKLOAD_PATH[0]);
+		sc.loadWorkload(sc, args[0]);
 		
-		Thread.sleep(1000);
-		
-		sc.end();
-		MAIDSimpleClient2 sc2 = new MAIDSimpleClient2();
-		sc2.loadWorkload(sc2, WORKLOAD_PATH[1]);
+//		sc.loadWorkload(sc, WORKLOAD_PATH[0]);
+//		
+//		Thread.sleep(1000);
+//		
+//		sc.end();
+//		MAIDSimpleClient2 sc2 = new MAIDSimpleClient2();
+//		sc2.loadWorkload(sc2, WORKLOAD_PATH[1]);
 	}
 
 }

@@ -214,12 +214,12 @@ public class MAIDDataDiskManager {
 
 			bis.close();
 			result = new Value(value);
+			logger.fine("DataDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("DataDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -245,13 +245,13 @@ public class MAIDDataDiskManager {
 
 			bos.close();
 			result = true;
+			logger.fine("DataDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("DataDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -273,13 +273,13 @@ public class MAIDDataDiskManager {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			result = f.delete();
+			logger.fine("DataDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
-			logger.fine("DataDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}

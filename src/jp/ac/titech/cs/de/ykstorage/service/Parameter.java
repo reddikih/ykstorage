@@ -45,6 +45,8 @@ public class Parameter {
 	static {
 		int numOfDisks = 14;
 		int origin = 1;
+//		int numOfDisks = 5;
+//		int origin = 5;
 		String prefix = DATA_DIR + "/disk%d/";
 		DISK_PATHS = new String[numOfDisks];
 		for (int i=0; i < DISK_PATHS.length; i++) {
@@ -58,6 +60,8 @@ public class Parameter {
 	static {
 		int numOfDisks = 10;
 		int origin = 5;
+//		int numOfDisks = 4;
+//		int origin = 6;
 		String prefix = DATA_DIR + "/disk%d/";
 		DATA_DISK_PATHS = new String[numOfDisks];
 		for (int i=0; i < DATA_DISK_PATHS.length; i++) {
@@ -71,6 +75,8 @@ public class Parameter {
 	static {
 		int numOfDisks = 4;
 		int origin = 1;
+//		int numOfDisks = 1;
+//		int origin = 5;
 		String prefix = DATA_DIR + "/disk%d/";
 		CACHE_DISK_PATHS = new String[numOfDisks];
 		for (int i=0; i < CACHE_DISK_PATHS.length; i++) {
@@ -83,6 +89,7 @@ public class Parameter {
 	public static SortedMap<String, String> MOUNT_POINT_PATHS = new TreeMap<String, String>();
 	static {
 		char diskIds[] = {'b','c','d','e','f','g','h','i','j','k','l','m','n','o'};
+//		char diskIds[] = {'f','g','h','i','j'};
 		String prefix = "/dev/sd%s";
 		int i = 0;
 		for (char diskId : diskIds) {
