@@ -23,6 +23,8 @@ public class MAIDCacheDiskManagerTest {
 	static {
 		int numOfDisks = 1;
 		int origin = 1;
+//		int numOfDisks = 1;
+//		int origin = 5;
 		String prefix = Parameter.DATA_DIR + "/disk%d/";
 		CACHE_DISK_PATHS = new String[numOfDisks];
 		for (int i=0; i < CACHE_DISK_PATHS.length; i++) {

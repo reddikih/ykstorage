@@ -33,7 +33,8 @@ public class MAIDSimpleClient2 {
 		CacheMemoryManager cmm = new CacheMemoryManager(capacity, threshold);
 
 		String[] dataDiskPaths = Parameter.DATA_DISK_PATHS;
-		String[] cacheDiskPaths = Parameter.CACHE_DISK_PATHS;
+		String[] cacheDiskPaths = Parameter.CACHE_DISK_PATHS;//XXX
+//		String[] cacheDiskPaths = {"./data/disk5/"};
 		String savePath = Parameter.DATA_DISK_SAVE_FILE_PATH;
 		MAIDDataDiskManager ddm = new MAIDDataDiskManager(
 				dataDiskPaths,
@@ -46,7 +47,8 @@ public class MAIDSimpleClient2 {
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD,
-				Parameter.CAPACITY_OF_CACHEDISK);
+//				10);
+				Parameter.CAPACITY_OF_CACHEDISK);//XXX
 
 		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
 

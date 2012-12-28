@@ -226,10 +226,12 @@ public class MAIDCacheDiskManager {
 		String devicePath = mountPointPaths.get(diskPath);
 		
 		if(valueSize > maxCapacity) {
+			keyFileMap.remove(key);
 			return false;
 		}
 		while(capacity.get(devicePath) + valueSize > maxCapacity) {
 			if(!lru(devicePath)) {
+				keyFileMap.remove(key);
 				return false;
 			}
 		}
@@ -253,7 +255,7 @@ public class MAIDCacheDiskManager {
 			result = true;
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
-			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
+			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath + ", size: " + valueSize + "[B]" + ", usage: " + capacity.get(devicePath));
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
@@ -282,7 +284,7 @@ public class MAIDCacheDiskManager {
 			
 //			capacity -= tmp;
 			capacity.put(devicePath, capacity.get(devicePath) - tmp);
-			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
+			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath + ", size: " + tmp + "[B]" + ", usage: " + capacity.get(devicePath));
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
@@ -299,7 +301,7 @@ public class MAIDCacheDiskManager {
 			String filePath = keyFileMap.get(key);
 			String diskPath = getDiskPath(filePath);
 			if(devicePath.equals(mountPointPaths.get(diskPath))) {
-				logger.fine("CacheDisk [LRU]: " + keyFileMap.get(key));
+				logger.fine("CacheDisk [LRU]: " + keyFileMap.get(key) + ", usage: " + capacity.get(devicePath) + "[B]" + ", max: " + maxCapacity + "[B]");
 				return remove(key);
 			}			
 		}

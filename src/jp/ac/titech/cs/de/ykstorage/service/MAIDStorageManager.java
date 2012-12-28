@@ -8,6 +8,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
 public class MAIDStorageManager {
+	private static final int CACHEMEM = 0;
+	private static final int CACHEMEM_AND_DISK = 1;
+	private static final int DATADISK = 2;
+	private static final long TIMEOUT = 10000;
 
 	private CacheMemoryManager cmm;
 	private MAIDDataDiskManager datadm;
@@ -35,12 +39,14 @@ public class MAIDStorageManager {
 		if (Value.NULL.equals(value)) {
 			value = datadm.get(innerKey);
 		}else {
+			PutThread pt = new PutThread(CACHEMEM, innerKey, value);
+			pt.start();
 			return value.getValue();
 		}
 		
 		// put value to cache disk.
 		if (!Value.NULL.equals(value)) {
-			PutThread pt = new PutThread(false, innerKey, value);
+			PutThread pt = new PutThread(CACHEMEM_AND_DISK, innerKey, value);
 			pt.start();
 		}
 		
@@ -60,21 +66,35 @@ public class MAIDStorageManager {
 			if(hasCapacity(size)) {
 				// LRU replacement on cache memory
 				Set<Map.Entry<Integer, Value>> replaces = cmm.replace(keyNum, value);
-				for (Map.Entry<Integer, Value> replaced : replaces) {
-					// メモリから追い出されたValueはデータディスクに書き込む
-					if (!datadm.put(replaced.getKey(), replaced.getValue())) {
-						cmmResult = false;
-					}
-				}
+//				for (Map.Entry<Integer, Value> replaced : replaces) {
+//					// メモリから追い出されたValueはデータディスクに書き込む
+//					if (!datadm.put(replaced.getKey(), replaced.getValue())) {
+//						cmmResult = false;
+//					}
+//				}
 			}
 		}
 		
 		cachedmResult = cachedm.put(keyNum, value);
 		
-		PutThread pt = new PutThread(true, keyNum, value);
+		PutThread pt = new PutThread(DATADISK, keyNum, value);
 		pt.start();
 		
-		return cmmResult & cachedmResult;
+		if(!(cmmResult & cachedmResult)) {
+			try {
+				pt.join(TIMEOUT);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+			
+			if(pt.isAlive()) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	public void end() {
@@ -97,21 +117,52 @@ public class MAIDStorageManager {
 	}
 	
 	class PutThread extends Thread {
-		private boolean isDatadm;	// ->DiskManager dm;
+		private int type;	// ->DiskManager dm;
 		private int key;
 		private Value value;
 		
-		public PutThread(boolean isDatadm, int key, Value value) {
-			this.isDatadm = isDatadm;
+		public PutThread(int type, int key, Value value) {
+			this.type = type;
 			this.key = key;
 			this.value = value;
 		}
 		
 		public void run() {
-			if(isDatadm) {
-				datadm.put(key, value);
-			}else {
+			switch(type) {
+			case CACHEMEM:
+				// メモリにValueを書き込む
+				if (Value.NULL.equals(cmm.put(key, value))) {
+					if(hasCapacity(value.getValue().length)) {
+						// LRU replacement on cache memory
+						Set<Map.Entry<Integer, Value>> replaces = cmm.replace(key, value);
+//						for (Map.Entry<Integer, Value> replaced : replaces) {
+//							// メモリから追い出されたValueはデータディスクに書き込む
+//							if (!datadm.put(replaced.getKey(), replaced.getValue())) {
+//								cmmResult = false;
+//							}
+//						}
+					}
+				}
+				break;
+			case CACHEMEM_AND_DISK:
+				// メモリにValueを書き込む
+				if (Value.NULL.equals(cmm.put(key, value))) {
+					if(hasCapacity(value.getValue().length)) {
+						// LRU replacement on cache memory
+						Set<Map.Entry<Integer, Value>> replaces = cmm.replace(key, value);
+//						for (Map.Entry<Integer, Value> replaced : replaces) {
+//							// メモリから追い出されたValueはデータディスクに書き込む
+//							if (!datadm.put(replaced.getKey(), replaced.getValue())) {
+//								cmmResult = false;
+//							}
+//						}
+					}
+				}
 				cachedm.put(key, value);
+				break;
+			case DATADISK:
+				datadm.put(key, value);
+				break;
 			}
 		}
 	}
