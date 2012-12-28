@@ -22,7 +22,7 @@ public class SimpleClient {
 		double threshold = Parameter.MEMORY_THRESHOLD;
 		CacheMemoryManager cmm = new CacheMemoryManager(capacity, threshold);
 
-		String[] diskPaths = Parameter.DATA_DISK_PATHS;
+		String[] diskPaths = Parameter.DISK_PATHS;
 		String savePath = Parameter.DATA_DISK_SAVE_FILE_PATH;
 		DiskManager dm = new DiskManager(
 				diskPaths,
@@ -48,6 +48,10 @@ public class SimpleClient {
 
 
 	public static void main(String[] args) throws IOException {
+		int valueSize = 1024 * 1024 * 20;
+		char[] buf = new char[valueSize];
+		String value = String.valueOf(buf);
+		
 		SimpleClient sc = new SimpleClient();
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -64,7 +68,16 @@ public class SimpleClient {
 			if(cmdArray.length == 3 && (cmdArray[0].equalsIgnoreCase("PUT"))) {
 				if(sc.put(cmdArray[1], cmdArray[2])) {
 					System.out.print("[PUT] Key: " + cmdArray[1]);
-					System.out.println(" Value: " + cmdArray[2]);
+					System.out.println(" Value: " + cmdArray[2] + " size: " + cmdArray[2].length() + "[B]");
+				}else {
+					System.out.println("Cannot put");
+				}
+			}
+			
+			if(cmdArray.length == 2 && (cmdArray[0].equalsIgnoreCase("PUT"))) {
+				if(sc.put(cmdArray[1], value)) {
+					System.out.print("[PUT] Key: " + cmdArray[1]);
+					System.out.println(" Value: " + valueSize / 1024 + "[KB]");
 				}else {
 					System.out.println("Cannot put");
 				}
