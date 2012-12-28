@@ -69,6 +69,10 @@ public class MAIDSimpleClient2 {
 	}
 	
 	public void loadWorkload(MAIDSimpleClient2 sc, String filePath) throws IOException, InterruptedException {
+		int valueSize = 1024 * 1024 * 20;
+		char[] buf = new char[valueSize];
+		String value = String.valueOf(buf);
+		
 		File f = new File(filePath);
 		FileReader fr = new FileReader(f);
 		BufferedReader br = new BufferedReader(fr);
@@ -88,7 +92,17 @@ public class MAIDSimpleClient2 {
 			if(cmdArray.length == 4 && (cmdArray[cmdIndex].equalsIgnoreCase("PUT"))) {
 				if(sc.put(cmdArray[keylIndex], cmdArray[valuelIndex])) {
 					System.out.print("[PUT] Key: " + cmdArray[keylIndex]);
-					System.out.println(" Value: " + cmdArray[valuelIndex]);
+					System.out.println(" Value: " + cmdArray[valuelIndex] + " size: " + cmdArray[valuelIndex].length() + "[B]");
+				}else {
+					System.out.println("Cannot put");
+				}
+				interval = Integer.parseInt(cmdArray[intervalIndex]);
+			}
+			
+			if(cmdArray.length == 3 && (cmdArray[cmdIndex].equalsIgnoreCase("PUT"))) {
+				if(sc.put(cmdArray[keylIndex], value)) {
+					System.out.print("[PUT] Key: " + cmdArray[keylIndex]);
+					System.out.println(" Value: " + valueSize / 1024 + "[KB]");
 				}else {
 					System.out.println("Cannot put");
 				}
