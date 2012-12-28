@@ -1,0 +1,6 @@
+put,1000,key1,value1
+get,100,key1,
+put,100,key2,value2
+get,1000,key2,
+put,1000,key1,value3
+get,1000,key1,
