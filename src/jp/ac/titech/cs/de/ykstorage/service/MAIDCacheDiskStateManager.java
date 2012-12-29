@@ -32,25 +32,33 @@ public class MAIDCacheDiskStateManager {
 	private Map<String, Integer> accessCount;
 	
 	private int accessThreshold;
-
-	private int interval = 1000;
+	
+	private int numOfDevices;
+	private int numOfCacheDisks;
+	
+	private long interval;
 	private final Logger logger = StorageLogger.getLogger();
 
 	private StateCheckThread sct;
 	private GetDataThread gdt;
 
 
-	public MAIDCacheDiskStateManager(Collection<String> devicePaths, int accessThreshold) {
-		System.setProperty("java.security.policy","file:./security/StreamSpinner.policy");
+	public MAIDCacheDiskStateManager(Collection<String> devicePaths, int accessThreshold, long interval) {
+		System.setProperty("java.security.policy","file:./security/StreamSpinner.policy");	// XXX
 		
 		this.diskStates = initDiskStates(devicePaths);
+		this.numOfDevices = this.diskStates.size();
 		this.accessCount = initAccessCount(devicePaths);
 		this.wcache = 0.0;
 		this.wdata = new double[devicePaths.size() + 1];// TODO devicePaths.size() + 1???
 		this.spindownIndex = 0;
 		this.accessThreshold = accessThreshold;
+		this.interval = interval;
+		this.numOfCacheDisks = 2;	// TODO Parameter
 		this.sct = new StateCheckThread();
 		this.gdt = new GetDataThread();
+		
+		// TODO どのチャンネルがキャッシュディスクなのかデータディスクなのかの指定
 	}
 
 	private Map<String, DiskState> initDiskStates(Collection<String> devicePaths) {
@@ -180,16 +188,20 @@ public class MAIDCacheDiskStateManager {
 		wdata[spindownIndex] += data;
 	}
 	
-	private synchronized double getWdata() {
-		return wdata[spindownIndex];
+	private synchronized double getWdata(int index) {
+		return wdata[index];
 	}
 	
 	private synchronized void incSpindownIndex() {
-		spindownIndex++;
+		if(spindownIndex < numOfDevices) {
+			spindownIndex++;
+		}
 	}
 	
 	private synchronized void decSpindownIndex() {
-		spindownIndex--;
+		if(spindownIndex > 0) {
+			spindownIndex--;
+		}
 	}
 	
 	private synchronized int getSpindownIndex() {
@@ -208,7 +220,7 @@ public class MAIDCacheDiskStateManager {
 				
 				int index = getSpindownIndex();
 				if(index > 0) {
-					if(wdata[index] - wdata[index - 1] > wcache) {
+					if(getWdata(index) - getWdata(index-1) > wcache) {
 						String tmpDevice = "";
 						for (String devicePath : diskStates.keySet()) {
 							if(DiskState.SPINDOWN.equals(getDiskState(devicePath))) {
@@ -246,6 +258,17 @@ public class MAIDCacheDiskStateManager {
 			} catch(CQException e) {
 				e.printStackTrace();
 			}
+			
+			try {
+				CQRowSet rs2 = new DefaultCQRowSet();
+				rs2.setUrl("rmi://localhost/StreamSpinnerServer");   // StreamSpinnerの稼働するマシン名を指定
+				rs2.setCommand("MASTER Unit1 SELECT avg(Unit1.Power1),avg(Unit1.Power2) FROM Unit1[1000]");   // 問合せのセット
+				CQRowSetListener ls2 = new MyListener2();
+				rs2.addCQRowSetListener(ls2);   // リスナの登録
+				rs2.start();   // 問合せ処理の開始
+			} catch(CQException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		class MyListener implements CQRowSetListener {
@@ -256,10 +279,28 @@ public class MAIDCacheDiskStateManager {
 	    			wdata[index] = 0.0;
 	    			int i = 0;
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
-	    				wdata[index] += rs.getDouble(i + 1);
+	    				addWdata(rs.getDouble(i + 1));
 	    				i++;
 	    			}
-	    			System.out.println(index + ": " + wdata[index]);
+	    			System.out.println(index + ": " + getWdata(getSpindownIndex()));
+	    		} catch (CQException e1) {
+	    			e1.printStackTrace();
+				}
+	        }
+	    }
+		
+		class MyListener2 implements CQRowSetListener {
+	    	public void dataDistributed(CQRowSetEvent e){   // 処理結果の生成通知を受け取るメソッド
+	    		CQRowSet rs = (CQRowSet)(e.getSource());
+	    		try {
+	    			wcache = 0.0;
+	    			int i = 0;
+	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
+	    				wcache += rs.getDouble(i + 1);
+	    				i++;
+	    			}
+	    			wcache = wcache / (double) numOfCacheDisks;
+	    			System.out.println(wcache);
 	    		} catch (CQException e1) {
 	    			e1.printStackTrace();
 				}

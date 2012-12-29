@@ -136,6 +136,7 @@ public class Parameter {
 	
 	public static final boolean PROPOSAL1 = true;
 	public static final int ACCESS_THRESHOLD = 10;
+	public static final long ACCESS_INTERVAL = 10000;
 	
 	public static final boolean PROPOSAL2 = true;
 
