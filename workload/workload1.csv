@@ -8,5 +8,7 @@ put,200,key5,value5
 put,300,key6,value6
 put,400,key7,value7
 get,1000,key1,
-put,1000,key3,
+putl,1000,key3,1212
 get,100,key3,
+putl,100,key4,8192
+get,100,key4,
