@@ -4,5 +4,7 @@ put,100,key2,value2
 get,1000,key2,
 put,1000,key1,value3
 get,1000,key1,
-put,1000,key3,
+putl,1000,key3,1212
 get,100,key3,
+putl,100,key4,8192
+get,100,key4,

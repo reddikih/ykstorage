@@ -55,9 +55,9 @@ public class SimpleClient2 {
 
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		int valueSize = 1024 * 1024 * 20;
-		char[] buf = new char[valueSize];
-		String value = String.valueOf(buf);
+		int bufSize = 1024 * 1024 * 20;
+		char[] buf = new char[bufSize];
+		String bufValue = String.valueOf(buf);
 		
 		SimpleClient2 sc = new SimpleClient2();
 		
@@ -88,10 +88,13 @@ public class SimpleClient2 {
 				interval = Integer.parseInt(cmdArray[intervalIndex]);
 			}
 			
-			if(cmdArray.length == 3 && (cmdArray[cmdIndex].equalsIgnoreCase("PUT"))) {
+			if(cmdArray.length == 4 && (cmdArray[cmdIndex].equalsIgnoreCase("PUTL"))) {
+				int valueSize = Integer.parseInt(cmdArray[valuelIndex]); // [B]
+				String value = bufValue.substring(0, valueSize);
+				
 				if(sc.put(cmdArray[keylIndex], value)) {
-					System.out.print("[PUT] Key: " + cmdArray[keylIndex]);
-					System.out.println(" Value: " + valueSize / 1024 + "[KB]");
+					System.out.print("[PUTL] Key: " + cmdArray[keylIndex]);
+					System.out.println(" Value: " + valueSize + "[B]");
 				}else {
 					System.out.println("Cannot put");
 				}
