@@ -86,6 +86,7 @@ public class MAIDDataDiskManager {
 				if(!f.mkdirs()) {
 					throw new SecurityException("cannot create dir: " + path);
 				}
+				logger.fine("DataDisk [MKDIR]: " + path);
 			}
 		}
 
@@ -217,6 +218,7 @@ public class MAIDDataDiskManager {
 			logger.fine("DataDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
+			logger.warning("failed DataDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
@@ -249,6 +251,7 @@ public class MAIDDataDiskManager {
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
+			logger.warning("failed DataDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
@@ -277,6 +280,7 @@ public class MAIDDataDiskManager {
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
+			logger.warning("failed DataDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);

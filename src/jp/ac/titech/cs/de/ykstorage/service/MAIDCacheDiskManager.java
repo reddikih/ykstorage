@@ -77,6 +77,7 @@ public class MAIDCacheDiskManager {
 				if(!f.mkdirs()) {
 					throw new SecurityException("cannot create dir: " + path);
 				}
+				logger.fine("CacheDisk [MKDIR]: " + path);
 			}
 			String devicePath = mountPointPaths.get(path);
 			capacity.put(devicePath, 0L);
@@ -212,6 +213,7 @@ public class MAIDCacheDiskManager {
 			logger.fine("CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
+			logger.warning("failed CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -259,6 +261,7 @@ public class MAIDCacheDiskManager {
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
+			logger.warning("failed CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -288,6 +291,7 @@ public class MAIDCacheDiskManager {
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
+			logger.warning("failed CacheDIsk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -305,6 +309,7 @@ public class MAIDCacheDiskManager {
 				return remove(key);
 			}			
 		}
+		logger.warning("failed CacheDisk [LRU]: usage: " + capacity.get(devicePath) + "[B]" + ", max: " + maxCapacity + "[B]");
 		return false;
 	}
 }
