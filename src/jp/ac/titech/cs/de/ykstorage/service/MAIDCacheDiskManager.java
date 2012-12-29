@@ -52,6 +52,7 @@ public class MAIDCacheDiskManager {
 //
 		init();
 //		this.sm.start();
+		logger.fine("MAIDCacheDiskManager: Capacity: " + maxCapacity + "[B]");
 	}
 
 	public Value get(int key) {
@@ -257,7 +258,7 @@ public class MAIDCacheDiskManager {
 			result = true;
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
-			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath + ", size: " + valueSize + "[B]" + ", usage: " + capacity.get(devicePath));
+			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath + ", size: " + valueSize + "[B], usage: " + capacity.get(devicePath) + "[B], max: " + maxCapacity);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
@@ -287,7 +288,7 @@ public class MAIDCacheDiskManager {
 			
 //			capacity -= tmp;
 			capacity.put(devicePath, capacity.get(devicePath) - tmp);
-			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath + ", size: " + tmp + "[B]" + ", usage: " + capacity.get(devicePath));
+			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath + ", size: " + tmp + "[B], usage: " + capacity.get(devicePath) + "[B], max: " + maxCapacity);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();

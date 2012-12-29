@@ -121,6 +121,7 @@ public class MAIDSimpleClient2 {
 		}
 		
 		br.close();
+		System.out.println("finished");
 	}
 	
 	public static void main(String[] args) throws IOException, InterruptedException {
