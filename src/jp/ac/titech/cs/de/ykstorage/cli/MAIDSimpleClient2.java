@@ -13,9 +13,6 @@ import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 public class MAIDSimpleClient2 {
-//	private static final String[] WORKLOAD_PATH = {"C:\\Users\\oguri\\Desktop\\Book1.csv"
-//													, "C:\\Users\\oguri\\Desktop\\Book2.csv"
-//													, "C:\\Users\\oguri\\Desktop\\Book3.csv"};
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
@@ -33,8 +30,7 @@ public class MAIDSimpleClient2 {
 		CacheMemoryManager cmm = new CacheMemoryManager(capacity, threshold);
 
 		String[] dataDiskPaths = Parameter.DATA_DISK_PATHS;
-		String[] cacheDiskPaths = Parameter.CACHE_DISK_PATHS;//XXX
-//		String[] cacheDiskPaths = {"./data/disk5/"};
+		String[] cacheDiskPaths = Parameter.CACHE_DISK_PATHS;
 		String savePath = Parameter.DATA_DISK_SAVE_FILE_PATH;
 		MAIDDataDiskManager ddm = new MAIDDataDiskManager(
 				dataDiskPaths,
@@ -47,8 +43,7 @@ public class MAIDSimpleClient2 {
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD,
-//				10);
-				Parameter.CAPACITY_OF_CACHEDISK);//XXX
+				Parameter.CAPACITY_OF_CACHEDISK);
 
 		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
 

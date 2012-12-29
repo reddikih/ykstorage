@@ -19,20 +19,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class MAIDCacheDiskManagerTest {
 	private static final long CAPACITY_OF_CACHEDISK = 30;
-	private static final String[] CACHE_DISK_PATHS;
-	static {
-		int numOfDisks = 1;
-		int origin = 1;
-//		int numOfDisks = 1;
-//		int origin = 5;
-		String prefix = Parameter.DATA_DIR + "/disk%d/";
-		CACHE_DISK_PATHS = new String[numOfDisks];
-		for (int i=0; i < CACHE_DISK_PATHS.length; i++) {
-			CACHE_DISK_PATHS[i] = String.format(prefix, origin + i);
-		}
-		// above code generate data disk paths like follows:
-		//  /ecoim/ykstorage/data/disk1/, /ecoim/ykstorage/data/disk2/, ...
-	};
+	private static final String[] CACHE_DISK_PATHS = {Parameter.CACHE_DISK_PATHS[0]};
 
 	private int key = 1;
 	private int key2 = 123;
