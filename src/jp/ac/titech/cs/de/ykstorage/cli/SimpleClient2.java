@@ -68,13 +68,21 @@ public class SimpleClient2 {
 		String line = "";
 		int interval = 0;
 
+		int i = 0;
 		while((line = br.readLine()) != null) {
 			interval = 0;
 			String[] cmdArray = line.split(",");
 			
+			i++;
+			System.out.print(i + " ");
 			if(cmdArray.length == 3 && (cmdArray[cmdIndex].equalsIgnoreCase("get"))) {
 				System.out.print("[GET] Key: " + cmdArray[keylIndex]);
-				System.out.println(" Value: " + sc.get(cmdArray[keylIndex]));
+				String value = (String) sc.get(cmdArray[keylIndex]);
+				if(value.length() < 20) {
+					System.out.println(" Value: " + value);
+				} else {
+					System.out.println(" Value: " + value.substring(0, 20) + "...");
+				}
 				interval = Integer.parseInt(cmdArray[intervalIndex]);
 			}
 
