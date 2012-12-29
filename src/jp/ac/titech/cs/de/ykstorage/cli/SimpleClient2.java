@@ -113,6 +113,7 @@ public class SimpleClient2 {
 		}
 		
 		br.close();
+		System.out.println("finished");
 	}
 
 }
