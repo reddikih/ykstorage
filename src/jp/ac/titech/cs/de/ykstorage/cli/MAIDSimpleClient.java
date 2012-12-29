@@ -61,9 +61,9 @@ public class MAIDSimpleClient {
 	}
 	
 	public static void main(String[] args) throws IOException, InterruptedException {
-		int valueSize = 1024 * 1024 * 20;
-		char[] buf = new char[valueSize];
-		String value = String.valueOf(buf);
+		int bufSize = 1024 * 1024 * 20;
+		char[] buf = new char[bufSize];
+		String bufValue = String.valueOf(buf);
 		
 		MAIDSimpleClient sc = new MAIDSimpleClient();
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -87,10 +87,13 @@ public class MAIDSimpleClient {
 				}
 			}
 			
-			if(cmdArray.length == 2 && (cmdArray[0].equalsIgnoreCase("PUT"))) {
+			if(cmdArray.length == 3 && (cmdArray[0].equalsIgnoreCase("PUTL"))) {
+				int valueSize = Integer.parseInt(cmdArray[2]); // [B]
+				String value = bufValue.substring(0, valueSize);
+				
 				if(sc.put(cmdArray[1], value)) {
-					System.out.print("[PUT] Key: " + cmdArray[1]);
-					System.out.println(" Value: " + valueSize / 1024 + "[KB]");
+					System.out.print("[PUTL] Key: " + cmdArray[1]);
+					System.out.println(" Value: " + valueSize + "[B]");
 				}else {
 					System.out.println("Cannot put");
 				}
