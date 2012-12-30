@@ -108,54 +108,6 @@ public class MAIDCacheDiskManager {
 		return diskPath;
 	}
 
-//	private void loadHashMap() {
-//		try {
-//			File f = new File(savePath);
-//			if(!f.isFile()) {
-//				return;
-//			}
-//			BufferedReader br = new BufferedReader(new FileReader(f));
-//
-//			String line = "";
-//			while((line = br.readLine()) != null) {
-//				StringTokenizer st = new StringTokenizer(line, ",");
-//
-//				int key = Integer.parseInt(st.nextToken());
-//				String value = st.nextToken();
-//				keyFileMap.put(key, value);
-//			}
-//
-//			br.close();
-//		}catch(FileNotFoundException e) {
-//			e.printStackTrace();
-//		}catch(IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-
-//	private void saveHashMap() {
-//		try {
-//			File f = new File(savePath);
-//			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-//
-//			Iterator<Integer> keys = keyFileMap.keySet().iterator();
-//			while(keys.hasNext()) {
-//				int key = (Integer) keys.next();
-//				String value = keyFileMap.get(key);
-//
-//				bw.write(key + "," + value);
-//				bw.newLine();
-//				bw.flush();
-//			}
-//
-//			bw.close();
-//		}catch(FileNotFoundException e) {
-//			e.printStackTrace();
-//		}catch(IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-
 	// キーに基づいて格納先のディスクを選択
 	private String selectDisk(int key) {
 		String filepath = keyFileMap.get(key);
@@ -176,17 +128,6 @@ public class MAIDCacheDiskManager {
 		}
 		return filepath;
 	}
-
-//	private int getDiskId(String filepath) {
-//		int diskId = -1;
-//		for(int i = 0; i < diskpaths.length; i++) {
-//			diskId = filepath.indexOf(diskpaths[i]);
-//			if(diskId > -1) {
-//				return diskId + 1;
-//			}
-//		}
-//		return -1;
-//	}
 
 	private Value read(int key) {
 		Value result = Value.NULL;
@@ -223,6 +164,13 @@ public class MAIDCacheDiskManager {
 		boolean result = false;
 		long valueSize = value.getValue().length;
 		
+		String prevFilePath = keyFileMap.get(key);
+		long prevValueSize = 0L;
+		if(prevFilePath != null) {	// overwrite
+			File prevf = new File(prevFilePath);
+			prevValueSize = prevf.length();
+		}
+		
 		String filepath = selectDisk(key);
 //		int diskId = getDiskId(filepath);
 		String diskPath = getDiskPath(filepath);
@@ -254,7 +202,8 @@ public class MAIDCacheDiskManager {
 			bos.close();
 			
 //			capacity += valueSize;
-			capacity.put(devicePath, capacity.get(devicePath) + valueSize);
+			capacity.put(devicePath, capacity.get(devicePath) - prevValueSize + valueSize);
+			
 			result = true;
 			
 			keyFileMap.put(key, keyFileMap.remove(key));

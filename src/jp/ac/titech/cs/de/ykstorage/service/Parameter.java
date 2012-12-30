@@ -36,7 +36,7 @@ public class Parameter {
 	/**
 	 * Capacity of cache memory. It's unit is byte.
 	 */
-	public static final long CAPACITY_OF_CACHEDISK = 30;
+	public static final long CAPACITY_OF_CACHEDISK = 64 * 1024;
 //	public static final long CAPACITY_OF_CACHEDISK = 10;
 
 //	public static String DATA_DIR = "/ecoim/ykstorage/data";
@@ -126,11 +126,5 @@ public class Parameter {
 	}
 
 	public static final String LOG_FILE_NAME = "ykstorage.log";
-	
-	
-	public static final boolean PROPOSAL1 = true;
-	public static final int ACCESS_THRESHOLD = 10;
-	
-	public static final boolean PROPOSAL2 = true;
 
 }
