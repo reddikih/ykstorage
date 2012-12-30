@@ -23,7 +23,9 @@ public class MAIDCacheDiskStateManagerTest {
 
 	@Before
 	public void setUpClass() {
-		this.sm = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS.values(), Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL);
+		this.sm = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS.values(), 
+				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL,
+				Parameter.RMI_URL, Parameter.IS_CACHEDISK);
 		this.devicePaths = new String[Parameter.NUMBER_OF_DATA_DISKS];
 		for (int i=0; i < devicePaths.length; i++) {
 			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.DATA_DISK_PATHS[i]);

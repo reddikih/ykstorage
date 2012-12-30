@@ -14,6 +14,19 @@ import org.streamspinner.connection.*;
 
 
 public class MAIDCacheDiskStateManager {
+	private static String[] UNIT_NAMES;
+	static {
+		int maxUnits = 6;
+		int maxDisksPerUnit = 7;
+		UNIT_NAMES = new String[maxUnits * maxDisksPerUnit];
+		String prefix = "Unit1.Power%d";
+		for(int i = 0; i < UNIT_NAMES.length; i++) {
+			UNIT_NAMES[i] = String.format(prefix, i + 1);
+		}
+	}
+	
+	private String rmiUrl;
+	private boolean[] isCacheDisk;
 
 	private double wcache;
 	private double[] wdata;
@@ -31,10 +44,11 @@ public class MAIDCacheDiskStateManager {
 	 */
 	private Map<String, Integer> accessCount;
 	
-	private int accessThreshold;
+	private double accessThreshold;
 	
 	private int numOfDevices;
 	private int numOfCacheDisks;
+	private int numOfDataDisks;
 	
 	private long interval;
 	private final Logger logger = StorageLogger.getLogger();
@@ -43,7 +57,7 @@ public class MAIDCacheDiskStateManager {
 	private GetDataThread gdt;
 
 
-	public MAIDCacheDiskStateManager(Collection<String> devicePaths, int accessThreshold, long interval) {
+	public MAIDCacheDiskStateManager(Collection<String> devicePaths, double accessThreshold, long interval, String rmiUrl, boolean[] isCacheDisk) {
 		System.setProperty("java.security.policy","file:./security/StreamSpinner.policy");	// XXX
 		
 		this.diskStates = initDiskStates(devicePaths);
@@ -54,11 +68,16 @@ public class MAIDCacheDiskStateManager {
 		this.spindownIndex = 0;
 		this.accessThreshold = accessThreshold;
 		this.interval = interval;
-		this.numOfCacheDisks = 2;	// TODO Parameter
+		this.rmiUrl = rmiUrl;
+		this.isCacheDisk = isCacheDisk;
+		
+		this.numOfCacheDisks = 0;
+		for(int i = 0; i < isCacheDisk.length; i++) {
+			if(isCacheDisk[i]) numOfCacheDisks++;
+		}
+		
 		this.sct = new StateCheckThread();
 		this.gdt = new GetDataThread();
-		
-		// TODO どのチャンネルがキャッシュディスクなのかデータディスクなのかの指定
 	}
 
 	private Map<String, DiskState> initDiskStates(Collection<String> devicePaths) {
@@ -72,7 +91,8 @@ public class MAIDCacheDiskStateManager {
 	private Map<String, Integer> initAccessCount(Collection<String> devicePaths) {
 		Map<String, Integer> result = new HashMap<String, Integer>();
 		for (String device : devicePaths) {
-			result.put(device, 0);
+//			result.put(device, 0);
+			result.put(device, (int) accessThreshold + 1);
 		}
 		return result;
 	}
@@ -212,7 +232,7 @@ public class MAIDCacheDiskStateManager {
 		public void run() {
 			while(true) {
 				for (String devicePath : diskStates.keySet()) {
-					if (getAccessCount(devicePath) < accessThreshold) {
+					if ((double)getAccessCount(devicePath) / (double)interval < accessThreshold) {
 						logger.fine("[PROPOSAL1]: spindown" + devicePath);
 						spindown(devicePath);
 					}
@@ -249,7 +269,7 @@ public class MAIDCacheDiskStateManager {
 		public void run() {
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
-				rs.setUrl("rmi://localhost/StreamSpinnerServer");   // StreamSpinnerの稼働するマシン名を指定
+				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定
 				rs.setCommand("MASTER Unit1 SELECT avg(Unit1.Power3),avg(Unit1.Power4) FROM Unit1[1000]");   // 問合せのセット
 				CQRowSetListener ls = new MyListener();
 				rs.addCQRowSetListener(ls);   // リスナの登録
@@ -261,7 +281,7 @@ public class MAIDCacheDiskStateManager {
 			
 			try {
 				CQRowSet rs2 = new DefaultCQRowSet();
-				rs2.setUrl("rmi://localhost/StreamSpinnerServer");   // StreamSpinnerの稼働するマシン名を指定
+				rs2.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定
 				rs2.setCommand("MASTER Unit1 SELECT avg(Unit1.Power1),avg(Unit1.Power2) FROM Unit1[1000]");   // 問合せのセット
 				CQRowSetListener ls2 = new MyListener2();
 				rs2.addCQRowSetListener(ls2);   // リスナの登録

@@ -45,6 +45,7 @@ public class Parameter {
 	private static final int numOfDisks = 14;
 	private static final int origin = 1;
 	private static final int numOfCacheDisks = 5;
+	private static final int numOfDataDisks = numOfDisks - numOfCacheDisks;
 	private static final char diskIds[] = {'b','c','d','e','f','g','h','i','j','k','l','m','n','o',
 										   'p','q','r','s','t','u','v','w','x','y','z'};
 	
@@ -135,7 +136,33 @@ public class Parameter {
 	
 	
 	public static final boolean PROPOSAL1 = true;
-	public static final int ACCESS_THRESHOLD = 10;
+	
+	/**
+	 * StreamSpinnerの稼働するマシン名を指定
+	 */
+	public static final String RMI_URL = "rmi://localhost/StreamSpinnerServer";
+//	public static final String RMI_URL = "rmi://localhost/StreamSpinnerServer";
+	
+	/**
+	 * 各チャンネルがCacheDiskかどうか
+	 */
+	public static boolean[] IS_CACHEDISK;
+	static {
+		IS_CACHEDISK = new boolean[numOfDisks];
+		for(int i = 0; i < IS_CACHEDISK.length; i++) {
+			if(i < numOfCacheDisks) {	// 始めのチャンネルをCacheDiskにしている
+				IS_CACHEDISK[i] = true;
+			} else {
+				IS_CACHEDISK[i] = false;
+			}
+		}
+	}
+	
+	/**
+	 * the number of accesses per second.
+	 */
+	public static final double ACCESS_THRESHOLD = 1.0;
+	
 	public static final long ACCESS_INTERVAL = 10000;
 	
 	public static final boolean PROPOSAL2 = true;
