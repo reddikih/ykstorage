@@ -42,10 +42,10 @@ public class Parameter {
 //	public static String DATA_DIR = "/ecoim/ykstorage/data";
 	public static String DATA_DIR = "./data";
 
-	private static final int numOfDisks = 14;
+	public static final int NUMBER_OF_DISKS = 14;
 	private static final int origin = 1;
-	private static final int numOfCacheDisks = 5;
-	private static final int numOfDataDisks = numOfDisks - numOfCacheDisks;
+	public static final int NUMBER_OF_CACHE_DISKS = 5;
+	public static final int NUMBER_OF_DATA_DISKS = NUMBER_OF_DISKS - NUMBER_OF_CACHE_DISKS;
 	private static final char diskIds[] = {'b','c','d','e','f','g','h','i','j','k','l','m','n','o',
 										   'p','q','r','s','t','u','v','w','x','y','z'};
 	
@@ -54,7 +54,7 @@ public class Parameter {
 //		int numOfDisks = 14;
 //		int origin = 1;
 		String prefix = DATA_DIR + "/disk%d/";
-		DISK_PATHS = new String[numOfDisks];
+		DISK_PATHS = new String[NUMBER_OF_DISKS];
 		for (int i=0; i < DISK_PATHS.length; i++) {
 			DISK_PATHS[i] = String.format(prefix, origin + i);
 		}
@@ -66,8 +66,8 @@ public class Parameter {
 	static {
 //		int numOfDisks = 10;
 //		int origin = 5;
-		int numOfDataDisks = numOfDisks - numOfCacheDisks;
-		int originOfDataDisks = origin + numOfCacheDisks;
+		int numOfDataDisks = NUMBER_OF_DISKS - NUMBER_OF_CACHE_DISKS;
+		int originOfDataDisks = origin + NUMBER_OF_CACHE_DISKS;
 		String prefix = DATA_DIR + "/disk%d/";
 		DATA_DISK_PATHS = new String[numOfDataDisks];
 		for (int i=0; i < DATA_DISK_PATHS.length; i++) {
@@ -82,7 +82,7 @@ public class Parameter {
 //		int numOfDisks = 4;
 //		int origin = 1;
 		String prefix = DATA_DIR + "/disk%d/";
-		CACHE_DISK_PATHS = new String[numOfCacheDisks];
+		CACHE_DISK_PATHS = new String[NUMBER_OF_CACHE_DISKS];
 		for (int i=0; i < CACHE_DISK_PATHS.length; i++) {
 			CACHE_DISK_PATHS[i] = String.format(prefix, origin + i);
 		}
@@ -93,7 +93,7 @@ public class Parameter {
 	public static SortedMap<String, String> MOUNT_POINT_PATHS = new TreeMap<String, String>();
 	static {
 //		char diskIds[] = {'b','c','d','e','f','g','h','i','j','k','l','m','n','o'};
-		char[] ids = new char[numOfDisks];
+		char[] ids = new char[NUMBER_OF_DISKS];
 		for(int i = 0; i < ids.length; i++) {
 			ids[i] = diskIds[i + origin - 1];
 		}
@@ -106,13 +106,6 @@ public class Parameter {
 		// above code generate data disk paths like follows:
 		//  /dev/sdb, /dev/sdc, ...
 	}
-
-	/**
-	 * A number of data disks.
-	 */
-	public static final int NUMBER_OF_DATA_DISKS = DATA_DISK_PATHS.length;
-
-	public static final int NUMBER_OF_CACHE_DISKS = CACHE_DISK_PATHS.length;
 
 	public static final String DATA_DISK_SAVE_FILE_PATH = "./datamap";
 
@@ -148,9 +141,9 @@ public class Parameter {
 	 */
 	public static boolean[] IS_CACHEDISK;
 	static {
-		IS_CACHEDISK = new boolean[numOfDisks];
+		IS_CACHEDISK = new boolean[NUMBER_OF_DISKS];
 		for(int i = 0; i < IS_CACHEDISK.length; i++) {
-			if(i < numOfCacheDisks) {	// 始めのチャンネルをCacheDiskにしている
+			if(i < NUMBER_OF_CACHE_DISKS) {	// 始めのチャンネルをCacheDiskにしている
 				IS_CACHEDISK[i] = true;
 			} else {
 				IS_CACHEDISK[i] = false;
