@@ -49,6 +49,12 @@ public class MAIDCacheDiskStateManager {
 	 */
 	private Map<String, Integer> accessCount;
 	
+	/**
+	 * key: device file path
+	 * value: isReset
+	 */
+	private Map<String, Boolean> diskReset;
+	
 	private double accessThreshold;
 	
 	private int numOfDevices;
@@ -88,6 +94,7 @@ public class MAIDCacheDiskStateManager {
 		this.rmiUrl = rmiUrl;
 		this.isCacheDisk = isCacheDisk;
 		
+		this.diskReset = initDiskReset(devicePaths);
 		this.accessCount = initAccessCount(devicePaths);
 		makeSQLCommand();
 		
@@ -118,6 +125,14 @@ public class MAIDCacheDiskStateManager {
 			String key = itr.next();
 			accessCount.put(key, 0);
 		}
+	}
+	
+	private Map<String, Boolean> initDiskReset(Collection<String> devicePaths) {
+		Map<String, Boolean> result = new HashMap<String, Boolean>();
+		for (String device : devicePaths) {
+			result.put(device, false);
+		}
+		return result;
 	}
 	
 	private void makeSQLCommand() {
@@ -163,6 +178,7 @@ public class MAIDCacheDiskStateManager {
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
 			logger.fine("[SPINUP]: " + devicePath);
+			setDiskReset(devicePath, true);
 			decSpindownIndex();
 			return true;
 		}
@@ -209,7 +225,7 @@ public class MAIDCacheDiskStateManager {
 		return returnCode;
 	}
 
-	public boolean setDiskState(String devicePath, DiskState state) {
+	private boolean setDiskState(String devicePath, DiskState state) {
 		boolean result = true;
 		if(!devicePathCheck(devicePath))
 			result = false;
@@ -225,6 +241,19 @@ public class MAIDCacheDiskStateManager {
 			state = DiskState.NA;
 		}
 		return state;
+	}
+	
+	public boolean setDiskReset(String devicePath, boolean isReset) {
+		boolean result = true;
+		if(!devicePathCheck(devicePath))
+			result = false;
+		this.diskReset.put(devicePath, isReset);
+		return result;
+	}
+
+	public boolean getDiskReset(String devicePath) {
+		if(!devicePathCheck(devicePath)) return false;
+		return diskReset.get(devicePath);
 	}
 
 	public synchronized boolean incAccessCount(String devicePath) {
@@ -273,12 +302,13 @@ public class MAIDCacheDiskStateManager {
 					if (accesses < accessThreshold) {
 						logger.fine("[PROPOSAL1]: spindown " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
 						spindown(devicePath);
+						break;	// 一度に複数台のディスクをspindownさせない
 					}
 				}
 				
 				int index = getSpindownIndex();
 				if(index > 0) {
-					if(getWdata(index) - getWdata(index-1) > wcache) {
+					if((getWdata(index-1) > 0.0) && (getWdata(index) - getWdata(index-1) > wcache)) {
 						String tmpDevice = "";
 						for (String devicePath : diskStates.keySet()) {
 							if(DiskState.SPINDOWN.equals(getDiskState(devicePath))) {
@@ -286,7 +316,7 @@ public class MAIDCacheDiskStateManager {
 								break;
 							}
 						}
-						logger.fine("[PROPOSAL1]: spinup " + tmpDevice + ", prev Wdata: " + getWdata(index) + ", now Wdata: " + getWdata(index-1) + ", Wcache: " + wcache);
+						logger.fine("[PROPOSAL1]: spinup " + tmpDevice + ", prev Wdata: " + getWdata(index-1) + ", now Wdata: " + getWdata(index) + ", Wcache: " + wcache);
 						spinup(tmpDevice);
 					}
 				}

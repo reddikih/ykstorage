@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.Arrays;
 
 import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
@@ -22,6 +23,7 @@ import org.junit.runners.JUnit4;
 public class MAIDStorageManagerTest {
 
 	private MAIDStorageManager sm;
+	private MAIDCacheDiskStateManager cdsm;
 
 	@Before
 	public void setUpClass() {
@@ -29,12 +31,17 @@ public class MAIDStorageManagerTest {
 		double threshold = 1.0;
 		CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
 		
+		this.cdsm = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
+				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
+				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
+		
 		MAIDCacheDiskManager cachedm = new MAIDCacheDiskManager(
 				Parameter.CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD,
-				Parameter.CAPACITY_OF_CACHEDISK);
+				Parameter.CAPACITY_OF_CACHEDISK,
+				cdsm);
 		
 		MAIDDataDiskManager datadm = new MAIDDataDiskManager(
 				Parameter.DATA_DISK_PATHS,
@@ -78,7 +85,8 @@ public class MAIDStorageManagerTest {
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD,
-				Parameter.CAPACITY_OF_CACHEDISK);
+				Parameter.CAPACITY_OF_CACHEDISK,
+				cdsm);
 		
 		MAIDDataDiskManager datadm2 = new MAIDDataDiskManager(
 				Parameter.DATA_DISK_PATHS,

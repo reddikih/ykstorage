@@ -11,17 +11,19 @@ import java.util.LinkedHashMap;
 import java.util.SortedMap;
 import java.util.logging.Logger;
 
+import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class MAIDCacheDiskManager {
 	private Logger logger = StorageLogger.getLogger();
-//	private StateManager sm;
+	private MAIDCacheDiskStateManager sm;
 
 	private String[] diskpaths;
 //	private String savePath;
 	private long maxCapacity;
 	private HashMap<String, Long> capacity = new HashMap<String, Long>();
+	private boolean proposal1;
 	
 	/**
 	 * key: disk path on file system
@@ -43,15 +45,20 @@ public class MAIDCacheDiskManager {
 			String savePath,
 			SortedMap<String, String> mountPointPaths,
 			double spinDownThreshold,
-			long maxCapacity) {
+			long maxCapacity,
+			MAIDCacheDiskStateManager sm) {
 		this.diskpaths = diskpaths;
 //		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
 		this.maxCapacity = maxCapacity;
-//		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
-//
+
 		init();
-//		this.sm.start();
+		
+		this.proposal1 = Parameter.PROPOSAL1;	// TODO Parameter
+		if(proposal1) {
+			this.sm = sm;
+			this.sm.start();
+		}
 		logger.fine("MAIDCacheDiskManager: Capacity: " + maxCapacity + "[B]");
 	}
 
@@ -93,12 +100,43 @@ public class MAIDCacheDiskManager {
 //		return sm.getDiskState(devicePath);
 //	}
 	
-//	public DiskState getDiskState(int key) {
-//		String filePath = keyFileMap.get(key);
-//		String diskPath = getDiskPath(filePath);
-//		String devicePath = mountPointPaths.get(diskPath);
-//		return sm.getDiskState(devicePath);
-//	}
+	private boolean isStandby(int key) {
+		if(getDiskState(key).equals(DiskState.STANDBY)) {
+			return true;
+		} else if(getDiskReset(key)) {
+			// reset
+			String devicePath = getDevicePath(key);
+			
+			Iterator<Integer> itr = keyFileMap.keySet().iterator();
+			while(itr.hasNext()) {
+				int tmpKey = itr.next();
+				if(devicePath.equals(getDevicePath(tmpKey))) {
+					remove(tmpKey);
+				}
+			}
+			
+			sm.setDiskReset(devicePath, false);
+			return true;
+		}
+		return false;
+	}
+	
+	private DiskState getDiskState(int key) {
+		String devicePath = getDevicePath(key);
+		return sm.getDiskState(devicePath);
+	}
+	
+	private boolean getDiskReset(int key) {
+		String devicePath = getDevicePath(key);
+		return sm.getDiskReset(devicePath);
+	}
+	
+	private String getDevicePath(int key) {
+		String filePath = keyFileMap.get(key);
+		String diskPath = getDiskPath(filePath);
+		String devicePath = mountPointPaths.get(diskPath);
+		return devicePath;
+	}
 	
 	private String getDiskPath(String filePath) {
 		String diskPath = "";
@@ -107,54 +145,6 @@ public class MAIDCacheDiskManager {
 		}
 		return diskPath;
 	}
-
-//	private void loadHashMap() {
-//		try {
-//			File f = new File(savePath);
-//			if(!f.isFile()) {
-//				return;
-//			}
-//			BufferedReader br = new BufferedReader(new FileReader(f));
-//
-//			String line = "";
-//			while((line = br.readLine()) != null) {
-//				StringTokenizer st = new StringTokenizer(line, ",");
-//
-//				int key = Integer.parseInt(st.nextToken());
-//				String value = st.nextToken();
-//				keyFileMap.put(key, value);
-//			}
-//
-//			br.close();
-//		}catch(FileNotFoundException e) {
-//			e.printStackTrace();
-//		}catch(IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-
-//	private void saveHashMap() {
-//		try {
-//			File f = new File(savePath);
-//			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-//
-//			Iterator<Integer> keys = keyFileMap.keySet().iterator();
-//			while(keys.hasNext()) {
-//				int key = (Integer) keys.next();
-//				String value = keyFileMap.get(key);
-//
-//				bw.write(key + "," + value);
-//				bw.newLine();
-//				bw.flush();
-//			}
-//
-//			bw.close();
-//		}catch(FileNotFoundException e) {
-//			e.printStackTrace();
-//		}catch(IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
 
 	// キーに基づいて格納先のディスクを選択
 	private String selectDisk(int key) {
@@ -177,23 +167,19 @@ public class MAIDCacheDiskManager {
 		return filepath;
 	}
 
-//	private int getDiskId(String filepath) {
-//		int diskId = -1;
-//		for(int i = 0; i < diskpaths.length; i++) {
-//			diskId = filepath.indexOf(diskpaths[i]);
-//			if(diskId > -1) {
-//				return diskId + 1;
-//			}
-//		}
-//		return -1;
-//	}
-
 	private Value read(int key) {
 		Value result = Value.NULL;
 		
 		String filepath = keyFileMap.get(key);
 		if(filepath == null) {
 			return result;
+		}
+		if(proposal1) {
+			if(isStandby(key)) {
+				return result;
+			} else {
+				sm.incAccessCount(getDevicePath(key));
+			}
 		}
 //		int diskId = getDiskId(filepath);
 		String diskPath = getDiskPath(filepath);
@@ -225,13 +211,31 @@ public class MAIDCacheDiskManager {
 		
 		String filepath = selectDisk(key);
 //		int diskId = getDiskId(filepath);
-		String diskPath = getDiskPath(filepath);
-		String devicePath = mountPointPaths.get(diskPath);
 		
 		if(valueSize > maxCapacity) {
 			keyFileMap.remove(key);
 			return false;
 		}
+		
+		if(proposal1) {
+			for(int i = 0; i < diskpaths.length; i++) {	// TODO diskpaths.length
+				if(isStandby(key)) {
+					keyFileMap.remove(key);
+					filepath = selectDisk(key);
+				} else {
+					sm.incAccessCount(getDevicePath(key));
+					break;
+				}
+				if((i == diskpaths.length - 1) && isStandby(key)) {
+					keyFileMap.remove(key);
+					return false;
+				}
+			}
+		}
+		
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
+		
 		while(capacity.get(devicePath) + valueSize > maxCapacity) {
 			if(!lru(devicePath)) {
 				keyFileMap.remove(key);
@@ -273,6 +277,14 @@ public class MAIDCacheDiskManager {
 		String filepath = keyFileMap.get(key);
 		if(filepath == null) {
 			return result;
+		}
+		
+		if(proposal1) {
+			if(isStandby(key)) {
+				return true;	// TODO return true???
+			} else {
+				sm.incAccessCount(getDevicePath(key));
+			}
 		}
 		
 		keyFileMap.remove(key);
