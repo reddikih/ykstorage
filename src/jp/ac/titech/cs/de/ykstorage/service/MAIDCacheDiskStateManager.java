@@ -335,7 +335,7 @@ public class MAIDCacheDiskStateManager {
 	
 	class GetDataThread extends Thread {
 		public void run() {
-			logger.fine("GetDataThread [START]");
+			logger.fine("CacheDisk GetDataThread [START]");
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
 				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定

@@ -134,7 +134,7 @@ public class Parameter {
 	 * StreamSpinnerの稼働するマシン名を指定
 	 */
 	public static final String RMI_URL = "rmi://localhost/StreamSpinnerServer";
-//	public static final String RMI_URL = "rmi://localhost/StreamSpinnerServer";
+//	public static final String RMI_URL = "rmi://192.168.172.130/StreamSpinnerServer";
 	
 	/**
 	 * 各チャンネルがCacheDiskかどうか
@@ -159,5 +159,7 @@ public class Parameter {
 	public static final long ACCESS_INTERVAL = 10000;
 	
 	public static final boolean PROPOSAL2 = true;
+	
+	public static final long SPINDOWN_INTERVAL = 10000;
 	
 }
