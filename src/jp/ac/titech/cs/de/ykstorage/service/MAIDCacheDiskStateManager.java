@@ -1,10 +1,12 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
@@ -32,6 +34,9 @@ public class MAIDCacheDiskStateManager {
 	private double[] wdata;
 	private int spindownIndex;
 	
+	private String dataCommand;
+	private String cacheCommand;
+	
 	/**
 	 * key: device file path
 	 * value: disk state
@@ -50,6 +55,8 @@ public class MAIDCacheDiskStateManager {
 	private int numOfCacheDisks;
 	private int numOfDataDisks;
 	
+	private ArrayList<String> devicePaths;
+	
 	private long interval;
 	private final Logger logger = StorageLogger.getLogger();
 
@@ -57,12 +64,22 @@ public class MAIDCacheDiskStateManager {
 	private GetDataThread gdt;
 
 
-	public MAIDCacheDiskStateManager(Collection<String> devicePaths, double accessThreshold, long interval, String rmiUrl, boolean[] isCacheDisk) {
+	public MAIDCacheDiskStateManager(SortedMap<String, String> mountPointPaths, String[] cacheDiskPaths,
+			double accessThreshold, long interval, String rmiUrl, boolean[] isCacheDisk,
+			int numOfCacheDisks, int numOfDataDisks) {
+		
 		System.setProperty("java.security.policy","file:./security/StreamSpinner.policy");	// XXX
+		
+		this.devicePaths = new ArrayList<String>();
+		for(String diskpath : cacheDiskPaths) {
+			devicePaths.add(mountPointPaths.get(diskpath));
+		}
 		
 		this.diskStates = initDiskStates(devicePaths);
 		this.numOfDevices = this.diskStates.size();
-		this.accessCount = initAccessCount(devicePaths);
+		this.numOfCacheDisks = numOfCacheDisks;
+		this.numOfDataDisks = numOfDataDisks;
+		
 		this.wcache = 0.0;
 		this.wdata = new double[devicePaths.size() + 1];// TODO devicePaths.size() + 1???
 		this.spindownIndex = 0;
@@ -71,10 +88,8 @@ public class MAIDCacheDiskStateManager {
 		this.rmiUrl = rmiUrl;
 		this.isCacheDisk = isCacheDisk;
 		
-		this.numOfCacheDisks = 0;
-		for(int i = 0; i < isCacheDisk.length; i++) {
-			if(isCacheDisk[i]) numOfCacheDisks++;
-		}
+		this.accessCount = initAccessCount(devicePaths);
+		makeSQLCommand();
 		
 		this.sct = new StateCheckThread();
 		this.gdt = new GetDataThread();
@@ -91,9 +106,9 @@ public class MAIDCacheDiskStateManager {
 	private Map<String, Integer> initAccessCount(Collection<String> devicePaths) {
 		Map<String, Integer> result = new HashMap<String, Integer>();
 		for (String device : devicePaths) {
-//			result.put(device, 0);
-			result.put(device, (int) accessThreshold + 1);
+			result.put(device, (int)(accessThreshold * ((double)interval / 1000.0)) + 1);
 		}
+		logger.fine("accessThreashold: " + accessThreshold + ", interval: " + interval);
 		return result;
 	}
 	
@@ -103,6 +118,28 @@ public class MAIDCacheDiskStateManager {
 			String key = itr.next();
 			accessCount.put(key, 0);
 		}
+	}
+	
+	private void makeSQLCommand() {
+		// e.g.) "MASTER Unit1 SELECT avg(Unit1.Power3),avg(Unit1.Power4) FROM Unit1[1000]"
+		
+		dataCommand = "MASTER Unit1 SELECT ";
+		cacheCommand = "MASTER Unit1 SELECT ";
+		
+		int numOfDisks = numOfCacheDisks + numOfDataDisks;
+		for(int i = 0; i < numOfDisks; i++) {
+			if(isCacheDisk[i]) {
+				cacheCommand = cacheCommand.concat("avg(" + UNIT_NAMES[i] + "),");
+			} else {
+				dataCommand = dataCommand.concat("avg(" + UNIT_NAMES[i] + "),");
+			}
+		}
+		
+		dataCommand = dataCommand.substring(0, dataCommand.length() - 1) + " FROM Unit1[1000]";
+		cacheCommand = cacheCommand.substring(0, cacheCommand.length() - 1) + " FROM Unit1[1000]";
+		
+		logger.fine("MAID CacheDisk State [DataDisk AVG SQL Command]: " + dataCommand);
+		logger.fine("MAID CacheDisk State [CacheDisk AVG SQL Command]: " + cacheCommand);
 	}
 
 	private boolean devicePathCheck(String devicePath) {
@@ -232,8 +269,9 @@ public class MAIDCacheDiskStateManager {
 		public void run() {
 			while(true) {
 				for (String devicePath : diskStates.keySet()) {
-					if ((double)getAccessCount(devicePath) / (double)interval < accessThreshold) {
-						logger.fine("[PROPOSAL1]: spindown" + devicePath);
+					double accesses = (double)getAccessCount(devicePath) / ((double)interval / 1000.0);
+					if (accesses < accessThreshold) {
+						logger.fine("[PROPOSAL1]: spindown " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
 						spindown(devicePath);
 					}
 				}
@@ -248,7 +286,7 @@ public class MAIDCacheDiskStateManager {
 								break;
 							}
 						}
-						logger.fine("[PROPOSAL1]: spinup" + tmpDevice);
+						logger.fine("[PROPOSAL1]: spinup " + tmpDevice + ", prev Wdata: " + getWdata(index) + ", now Wdata: " + getWdata(index-1) + ", Wcache: " + wcache);
 						spinup(tmpDevice);
 					}
 				}
@@ -270,7 +308,7 @@ public class MAIDCacheDiskStateManager {
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
 				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定
-				rs.setCommand("MASTER Unit1 SELECT avg(Unit1.Power3),avg(Unit1.Power4) FROM Unit1[1000]");   // 問合せのセット
+				rs.setCommand(dataCommand);   // 問合せのセット
 				CQRowSetListener ls = new MyListener();
 				rs.addCQRowSetListener(ls);   // リスナの登録
 				rs.start();   // 問合せ処理の開始
@@ -282,7 +320,7 @@ public class MAIDCacheDiskStateManager {
 			try {
 				CQRowSet rs2 = new DefaultCQRowSet();
 				rs2.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定
-				rs2.setCommand("MASTER Unit1 SELECT avg(Unit1.Power1),avg(Unit1.Power2) FROM Unit1[1000]");   // 問合せのセット
+				rs2.setCommand(cacheCommand);   // 問合せのセット
 				CQRowSetListener ls2 = new MyListener2();
 				rs2.addCQRowSetListener(ls2);   // リスナの登録
 				rs2.start();   // 問合せ処理の開始

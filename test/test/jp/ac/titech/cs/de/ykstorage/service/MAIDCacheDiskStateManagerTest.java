@@ -23,12 +23,13 @@ public class MAIDCacheDiskStateManagerTest {
 
 	@Before
 	public void setUpClass() {
-		this.sm = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS.values(), 
-				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL,
-				Parameter.RMI_URL, Parameter.IS_CACHEDISK);
-		this.devicePaths = new String[Parameter.NUMBER_OF_DATA_DISKS];
+		this.sm = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
+				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
+				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
+		
+		this.devicePaths = new String[Parameter.NUMBER_OF_CACHE_DISKS];
 		for (int i=0; i < devicePaths.length; i++) {
-			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.DATA_DISK_PATHS[i]);
+			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.CACHE_DISK_PATHS[i]);
 		}
 	}
 
@@ -37,7 +38,7 @@ public class MAIDCacheDiskStateManagerTest {
 		sm.start();
 		assertThat(sm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(Parameter.ACCESS_INTERVAL + 1000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
