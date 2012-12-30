@@ -209,6 +209,13 @@ public class MAIDCacheDiskManager {
 		boolean result = false;
 		long valueSize = value.getValue().length;
 		
+		String prevFilePath = keyFileMap.get(key);
+		long prevValueSize = 0L;
+		if(prevFilePath != null) {	// overwrite
+			File prevf = new File(prevFilePath);
+			prevValueSize = prevf.length();
+		}
+		
 		String filepath = selectDisk(key);
 //		int diskId = getDiskId(filepath);
 		
@@ -258,7 +265,8 @@ public class MAIDCacheDiskManager {
 			bos.close();
 			
 //			capacity += valueSize;
-			capacity.put(devicePath, capacity.get(devicePath) + valueSize);
+			capacity.put(devicePath, capacity.get(devicePath) - prevValueSize + valueSize);
+			
 			result = true;
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
