@@ -305,6 +305,7 @@ public class MAIDCacheDiskStateManager {
 	
 	class GetDataThread extends Thread {
 		public void run() {
+			logger.fine("GetDataThread [START]");
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
 				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定
@@ -312,7 +313,6 @@ public class MAIDCacheDiskStateManager {
 				CQRowSetListener ls = new MyListener();
 				rs.addCQRowSetListener(ls);   // リスナの登録
 				rs.start();   // 問合せ処理の開始
-				logger.fine("GetDataThread [START]");
 			} catch(CQException e) {
 				e.printStackTrace();
 			}
@@ -335,12 +335,12 @@ public class MAIDCacheDiskStateManager {
 	    		try {
 	    			int index = getSpindownIndex();
 	    			wdata[index] = 0.0;
-	    			int i = 0;
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
-	    				addWdata(rs.getDouble(i + 1));
-	    				i++;
+	    				for(int i = 0; i < numOfDataDisks; i++) {
+	    					addWdata(rs.getDouble(i + 1));
+	    				}
 	    			}
-	    			System.out.println(index + ": " + getWdata(getSpindownIndex()));
+//	    			System.out.println(index + ": " + getWdata(getSpindownIndex()));
 	    		} catch (CQException e1) {
 	    			e1.printStackTrace();
 				}
@@ -352,13 +352,13 @@ public class MAIDCacheDiskStateManager {
 	    		CQRowSet rs = (CQRowSet)(e.getSource());
 	    		try {
 	    			wcache = 0.0;
-	    			int i = 0;
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
-	    				wcache += rs.getDouble(i + 1);
-	    				i++;
+	    				for(int i = 0; i < numOfCacheDisks; i++) {
+	    					wcache += rs.getDouble(i + 1);
+	    				}
 	    			}
 	    			wcache = wcache / (double) numOfCacheDisks;
-	    			System.out.println(wcache);
+//	    			System.out.println(wcache);
 	    		} catch (CQException e1) {
 	    			e1.printStackTrace();
 				}
