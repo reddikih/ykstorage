@@ -299,7 +299,7 @@ public class MAIDCacheDiskStateManager {
 			while(true) {
 				for (String devicePath : diskStates.keySet()) {
 					double accesses = (double)getAccessCount(devicePath) / ((double)interval / 1000.0);
-					if (accesses < accessThreshold) {
+					if (DiskState.IDLE.equals(getDiskState(devicePath)) && accesses < accessThreshold) {
 						logger.fine("[PROPOSAL1]: spindown " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
 						spindown(devicePath);
 						break;	// 一度に複数台のディスクをspindownさせない
