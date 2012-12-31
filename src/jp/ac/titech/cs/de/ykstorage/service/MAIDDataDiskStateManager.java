@@ -620,7 +620,7 @@ public class MAIDDataDiskStateManager {
 	    					i++;
 	    				}
 	    			}
-	    			System.out.println("wcurrent: " + wcurrent);
+//	    			System.out.println("wcurrent: " + wcurrent);
 	    		} catch (CQException e1) {
 	    			e1.printStackTrace();
 				}
