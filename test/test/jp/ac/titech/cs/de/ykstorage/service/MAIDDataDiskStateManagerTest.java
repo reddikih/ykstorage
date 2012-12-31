@@ -11,25 +11,26 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
 
 @RunWith(JUnit4.class)
-public class MAIDCacheDiskStateManagerTest {
-	private MAIDCacheDiskStateManager sm;
+public class MAIDDataDiskStateManagerTest {
+	private MAIDDataDiskStateManager sm;
 	private String devicePaths[];
 
 	@Before
 	public void setUpClass() {
-		this.sm = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
-				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
-				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
+		this.sm = new MAIDDataDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.DATA_DISK_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD, Parameter.SPINDOWN_INTERVAL, Parameter.RMI_URL,
+				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
+				Parameter.ACC);
 		
-		this.devicePaths = new String[Parameter.NUMBER_OF_CACHE_DISKS];
+		this.devicePaths = new String[Parameter.NUMBER_OF_DATA_DISKS];
 		for (int i=0; i < devicePaths.length; i++) {
-			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.CACHE_DISK_PATHS[i]);
+			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.DATA_DISK_PATHS[i]);
 		}
 	}
 
@@ -38,7 +39,7 @@ public class MAIDCacheDiskStateManagerTest {
 		sm.start();
 		assertThat(sm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
 		try {
-			Thread.sleep(Parameter.ACCESS_INTERVAL + 1000);
+			Thread.sleep(Parameter.SPINDOWN_INTERVAL + 1000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -91,7 +92,7 @@ public class MAIDCacheDiskStateManagerTest {
 
 	@After
 	public void teardown() {
-		for(String path : Parameter.CACHE_DISK_PATHS) {
+		for(String path : Parameter.DATA_DISK_PATHS) {
 			File f = new File(path);
 			f.delete();
 		}

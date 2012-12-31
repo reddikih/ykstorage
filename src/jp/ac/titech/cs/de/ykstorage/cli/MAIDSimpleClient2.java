@@ -8,6 +8,7 @@ import java.io.IOException;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
@@ -33,11 +34,18 @@ public class MAIDSimpleClient2 {
 		String[] dataDiskPaths = Parameter.DATA_DISK_PATHS;
 		String[] cacheDiskPaths = Parameter.CACHE_DISK_PATHS;
 		String savePath = Parameter.DATA_DISK_SAVE_FILE_PATH;
+		
+		MAIDDataDiskStateManager ddsm = new MAIDDataDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.DATA_DISK_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD, Parameter.SPINDOWN_INTERVAL, Parameter.RMI_URL,
+				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
+				Parameter.ACC);
+		
 		MAIDDataDiskManager ddm = new MAIDDataDiskManager(
 				dataDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD);
+				Parameter.SPIN_DOWN_THRESHOLD,
+				ddsm);
 		
 		MAIDCacheDiskStateManager sm = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,

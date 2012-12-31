@@ -16,6 +16,8 @@ package org.streamspinner.function;
 
 import java.util.*;
 
+import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+
 public abstract class AggregateFunctions {
 
 	public static List<Long> asList(long[] array){
@@ -85,7 +87,7 @@ public abstract class AggregateFunctions {
 		for(int i = 0; i < array.length; i++){
 			sum += array[i];
 		}
-		return sum * 0.01;
+		return sum / (1000 / Parameter.MEMORYHILOGGER_INTERVAL);
 	}
 	// XXX
 

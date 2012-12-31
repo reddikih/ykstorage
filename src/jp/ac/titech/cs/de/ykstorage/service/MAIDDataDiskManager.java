@@ -24,10 +24,11 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 public class MAIDDataDiskManager {
 	private Logger logger = StorageLogger.getLogger();
-	private StateManager sm;
+	private MAIDDataDiskStateManager sm;
 
 	private String[] diskpaths;
 	private String savePath;
+	private boolean proposal2;
 	
 	/**
 	 * key: disk path on file system
@@ -47,20 +48,27 @@ public class MAIDDataDiskManager {
 			String[] diskpaths,
 			String savePath,
 			SortedMap<String, String> mountPointPaths,
-			double spinDownThreshold) {
+			double spinDownThreshold,
+			MAIDDataDiskStateManager sm) {
 		this.diskpaths = diskpaths;
 		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
 
 //		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
+		
 		ArrayList<String> devices = new ArrayList<String>();
 		for(String diskpath : diskpaths) {
 			devices.add(mountPointPaths.get(diskpath));
 		}
-		this.sm = new StateManager(devices, spinDownThreshold);
+//		this.sm = new StateManager(devices, spinDownThreshold);
 
 		init();
-		this.sm.start();
+		
+		this.proposal2 = Parameter.PROPOSAL1;	// TODO Parameter
+		this.sm = sm;
+		if(proposal2) {
+			this.sm.start();
+		}
 	}
 
 	public Value get(int key) {
@@ -112,6 +120,13 @@ public class MAIDDataDiskManager {
 			diskPath = filePath.substring(0, filePath.lastIndexOf("/") + 1);
 		}
 		return diskPath;
+	}
+	
+	private String getDevicePath(int key) {
+		String filePath = keyFileMap.get(key);
+		String diskPath = getDiskPath(filePath);
+		String devicePath = mountPointPaths.get(diskPath);
+		return devicePath;
 	}
 
 	private void loadHashMap() {
@@ -183,16 +198,13 @@ public class MAIDDataDiskManager {
 		return filepath;
 	}
 
-//	private int getDiskId(String filepath) {
-//		int diskId = -1;
-//		for(int i = 0; i < diskpaths.length; i++) {
-//			diskId = filepath.indexOf(diskpaths[i]);
-//			if(diskId > -1) {
-//				return diskId + 1;
-//			}
-//		}
-//		return -1;
-//	}
+	private boolean isStandby(int key) {
+		return getDiskState(key).equals(DiskState.STANDBY);
+	}
+	
+	private boolean spinup(int key) {
+		return sm.spinup(getDevicePath(key));
+	}
 
 	private Value read(int key) {
 		Value result = Value.NULL;
@@ -201,6 +213,15 @@ public class MAIDDataDiskManager {
 		if(filepath == null) {
 			return result;
 		}
+		
+		if(isStandby(key)) {
+			if(spinup(key)) {
+				logger.fine("DataDisk Manager [SPINUP]: " + getDevicePath(key));
+			} else {
+				logger.fine("failed DataDisk Manager [SPINUP]: " + getDevicePath(key));
+			}
+		}
+		
 //		int diskId = getDiskId(filepath);
 		String diskPath = getDiskPath(filepath);
 		String devicePath = mountPointPaths.get(diskPath);
@@ -231,6 +252,15 @@ public class MAIDDataDiskManager {
 		
 		String filepath = selectDisk(key);
 //		int diskId = getDiskId(filepath);
+		
+		if(isStandby(key)) {
+			if(spinup(key)) {
+				logger.fine("DataDisk Manager [SPINUP]: " + getDevicePath(key));
+			} else {
+				logger.fine("failed DataDisk Manager [SPINUP]: " + getDevicePath(key));
+			}
+		}
+		
 		String diskPath = getDiskPath(filepath);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {	
@@ -265,6 +295,14 @@ public class MAIDDataDiskManager {
 		String filepath = keyFileMap.get(key);
 		if(filepath == null) {
 			return result;
+		}
+		
+		if(isStandby(key)) {
+			if(spinup(key)) {
+				logger.fine("DataDisk Manager [SPINUP]: " + getDevicePath(key));
+			} else {
+				logger.fine("failed DataDisk Manager [SPINUP]: " + getDevicePath(key));
+			}
 		}
 		
 		keyFileMap.remove(key);

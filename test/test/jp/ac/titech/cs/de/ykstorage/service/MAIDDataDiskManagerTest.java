@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 import java.io.File;
 
 import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
@@ -27,15 +28,21 @@ public class MAIDDataDiskManagerTest {
 	private Value value2 = new Value("value2".getBytes());
 	private Value value3 = new Value("value3".getBytes());
 	private MAIDDataDiskManager dm;
+	private MAIDDataDiskStateManager ddsm;
 //	private String devicePaths[];
 
 	@Before
 	public void setUpClass() {
+		this.ddsm = new MAIDDataDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.DATA_DISK_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD, Parameter.SPINDOWN_INTERVAL, Parameter.RMI_URL,
+				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
+				Parameter.ACC);
 		this.dm = new MAIDDataDiskManager(
 				Parameter.DATA_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD
+				Parameter.SPIN_DOWN_THRESHOLD,
+				ddsm
 		);
 	}
 
@@ -60,11 +67,18 @@ public class MAIDDataDiskManagerTest {
 		assertThat(dm.put(key2, value2), is(true));
 		assertThat(dm.put(key3, value3), is(true));
 		dm.end();
+		
+		MAIDDataDiskStateManager ddsm2 = new MAIDDataDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.DATA_DISK_PATHS,
+				Parameter.SPIN_DOWN_THRESHOLD, Parameter.SPINDOWN_INTERVAL, Parameter.RMI_URL,
+				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
+				Parameter.ACC);
+		
 		MAIDDataDiskManager dm2 = new MAIDDataDiskManager(
 								Parameter.DATA_DISK_PATHS,
 								Parameter.DATA_DISK_SAVE_FILE_PATH,
 								Parameter.MOUNT_POINT_PATHS,
-								Parameter.SPIN_DOWN_THRESHOLD);
+								Parameter.SPIN_DOWN_THRESHOLD,
+								ddsm2);
 		assertThat(dm2.get(key).getValue(), is(value.getValue()));
 		assertThat(dm2.get(key2).getValue(), is(value2.getValue()));
 		assertThat(dm2.get(key3).getValue(), is(value3.getValue()));

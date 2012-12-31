@@ -130,6 +130,9 @@ public class Parameter {
 	public static final boolean PROPOSAL1 = true;
 //	public static final boolean PROPOSAL1 = false;
 	
+	public static final boolean PROPOSAL2 = true;
+//	public static final boolean PROPOSAL2 = false;
+	
 	/**
 	 * StreamSpinnerの稼働するマシン名を指定
 	 */
@@ -158,8 +161,10 @@ public class Parameter {
 	
 	public static final long ACCESS_INTERVAL = 10000;
 	
-	public static final boolean PROPOSAL2 = true;
-	
 	public static final long SPINDOWN_INTERVAL = 10000;
+	
+	public static final double ACC = 0.5;
+	
+	public static final long MEMORYHILOGGER_INTERVAL = 10;
 	
 }
