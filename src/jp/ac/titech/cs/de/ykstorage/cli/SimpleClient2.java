@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
@@ -13,6 +14,8 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class SimpleClient2 {
+	private static Logger logger = StorageLogger.getLogger();
+	
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
@@ -29,7 +32,7 @@ public class SimpleClient2 {
 		double threshold = Parameter.MEMORY_THRESHOLD;
 		CacheMemoryManager cmm = new CacheMemoryManager(capacity, threshold);
 
-		String[] diskPaths = Parameter.DATA_DISK_PATHS;
+		String[] diskPaths = Parameter.DISK_PATHS;
 		String savePath = Parameter.DATA_DISK_SAVE_FILE_PATH;
 		DiskManager dm = new DiskManager(
 				diskPaths,
@@ -68,6 +71,7 @@ public class SimpleClient2 {
 		String line = "";
 		int interval = 0;
 
+		logger.fine("MAIDSimpleClient [START]: " + System.currentTimeMillis());
 		int i = 0;
 		while((line = br.readLine()) != null) {
 			interval = 0;
@@ -114,6 +118,7 @@ public class SimpleClient2 {
 		
 		br.close();
 		System.out.println("finished");
+		logger.fine("MAIDSimpleClient [END]: " + System.currentTimeMillis());
 	}
 
 }

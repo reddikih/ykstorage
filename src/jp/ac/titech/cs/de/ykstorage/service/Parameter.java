@@ -127,6 +127,9 @@ public class Parameter {
 
 	public static final String LOG_FILE_NAME = "ykstorage.log";
 	
+	public static final boolean DISKMANAGER_SPINDOWN = true;
+//	public static final boolean DISKMANAGER_SPINDOWN = false;
+	
 	public static final boolean PROPOSAL1 = true;
 //	public static final boolean PROPOSAL1 = false;
 	
