@@ -124,6 +124,7 @@ public class MAIDDataDiskStateManager {
 	private final Logger logger = StorageLogger.getLogger();
 
 	private StateCheckThread sct;
+	private StateCheckThread2 sct2;
 	private GetDataThread gdt;
 
 
@@ -161,6 +162,7 @@ public class MAIDDataDiskStateManager {
 		makeSQLCommand();
 		
 		this.sct = new StateCheckThread();
+		this.sct2 = new StateCheckThread2();
 		this.gdt = new GetDataThread();
 	}
 
@@ -237,6 +239,10 @@ public class MAIDDataDiskStateManager {
 
 	public void start() {
 		sct.start();
+	}
+	
+	public void start2() {
+		sct2.start();
 		gdt.start();
 	}
 
@@ -517,8 +523,29 @@ public class MAIDDataDiskStateManager {
 		if(!devicePathCheck(devicePath)) return false;	// TODO false?
 		return isSpindown.get(devicePath);
 	}
-
+	
 	class StateCheckThread extends Thread {
+		public void run() {
+			while(true) {
+				long now = System.currentTimeMillis();	// TODO long double
+
+				for (String devicePath : diskStates.keySet()) {
+					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
+						(now - getIdleIntime(devicePath)) > spindownThreshold) {
+						spindown(devicePath);
+					}
+				}
+
+				try {
+					sleep(interval);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	class StateCheckThread2 extends Thread {
 		public void run() {
 			while(true) {
 				long now = System.currentTimeMillis();

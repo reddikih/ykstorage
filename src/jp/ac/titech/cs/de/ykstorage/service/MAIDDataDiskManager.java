@@ -67,6 +67,8 @@ public class MAIDDataDiskManager {
 		this.proposal2 = Parameter.PROPOSAL1;	// TODO Parameter
 		this.sm = sm;
 		if(proposal2) {
+			this.sm.start2();
+		} else {
 			this.sm.start();
 		}
 	}

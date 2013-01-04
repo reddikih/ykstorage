@@ -36,7 +36,7 @@ public class MAIDDataDiskStateManagerTest {
 
 	@Test
 	public void startTest() {
-		sm.start();
+		sm.start2();
 		assertThat(sm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
 		try {
 			Thread.sleep(Parameter.SPINDOWN_INTERVAL + 1000);
