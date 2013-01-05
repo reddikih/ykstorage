@@ -194,7 +194,6 @@ public class MAIDCacheDiskStateManager {
 		int syncRet = execCommand(sync);
 		if(syncRet != 0) {
 			setDiskState(devicePath, DiskState.IDLE);
-			incSpindownIndex();
 			return false;
 		}
 		
@@ -202,6 +201,7 @@ public class MAIDCacheDiskStateManager {
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
 			logger.fine("[SPINDOWN]: " + devicePath);
+			incSpindownIndex();
 			return true;
 		}
 		setDiskState(devicePath, DiskState.IDLE);
