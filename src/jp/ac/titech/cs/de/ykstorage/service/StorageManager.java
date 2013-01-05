@@ -46,9 +46,10 @@ public class StorageManager {
 					}
 				}
 			}//else {
-				result = dm.put(keyNum, value);
+//				result = dm.put(keyNum, value);
 			//}
 		}
+		result = dm.put(keyNum, value);
 		return result;
 	}
 
