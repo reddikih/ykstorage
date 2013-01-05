@@ -45,9 +45,9 @@ public class StorageManager {
 						result = false;
 					}
 				}
-			}else {
+			}//else {
 				result = dm.put(keyNum, value);
-			}
+			//}
 		}
 		return result;
 	}
