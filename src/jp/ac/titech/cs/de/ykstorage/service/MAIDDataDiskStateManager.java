@@ -133,6 +133,7 @@ public class MAIDDataDiskStateManager {
 			int numOfCacheDisks, int numOfDataDisks, double acc) {
 		
 		System.setProperty("java.security.policy","file:./security/StreamSpinner.policy");	// XXX
+		System.setProperty("sun.rmi.dgc.ackTimeout", "3000");
 		
 		this.devicePaths = new ArrayList<String>();
 		for(String diskpath : dataDiskPaths) {
