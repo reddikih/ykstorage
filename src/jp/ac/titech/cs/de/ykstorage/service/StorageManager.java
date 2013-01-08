@@ -40,11 +40,12 @@ public class StorageManager {
 			if(hasCapacity(size)) {
 				// LRU replacement on cache memory
 				Set<Map.Entry<Integer, Value>> replaces = cmm.replace(keyNum, value);
-				for (Map.Entry<Integer, Value> replaced : replaces) {
-					if (!dm.put(replaced.getKey(), replaced.getValue())) {
-						result = false;
-					}
-				}
+// write through
+//				for (Map.Entry<Integer, Value> replaced : replaces) {
+//					if (!dm.put(replaced.getKey(), replaced.getValue())) {
+//						result = false;
+//					}
+//				}
 			}//else {
 //				result = dm.put(keyNum, value);
 			//}

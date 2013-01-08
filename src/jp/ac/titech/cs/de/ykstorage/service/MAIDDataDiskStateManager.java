@@ -82,7 +82,7 @@ public class MAIDDataDiskStateManager {
 	
 	/**
 	 * key: device file path
-	 * value: idle time threshold (spin down threshold)
+	 * value: idle time threshold (spin down threshold) (millisecond?)
 	 */
 	private Map<String, Long> tIdle;
 	
@@ -449,20 +449,20 @@ public class MAIDDataDiskStateManager {
 		return tIdle.get(devicePath);
 	}
 	
-	private synchronized boolean addTidle(String devicePath, long time) {
-		boolean result = true;
-		if(!devicePathCheck(devicePath)) {
-			result = false;
-		}
-		
-		long tmp = tIdle.get(devicePath);
-		if(tmp + time < 0) {
-			return false;
-		}
-		tIdle.put(devicePath, tmp + time);
-		logger.fine("addTidle: " + devicePath + ", " + tmp + time);
-		return result;
-	}
+//	private synchronized boolean addTidle(String devicePath, long time) {
+//		boolean result = true;
+//		if(!devicePathCheck(devicePath)) {
+//			result = false;
+//		}
+//		
+//		long tmp = tIdle.get(devicePath);
+//		if(tmp + time < 0) {
+//			return false;
+//		}
+//		tIdle.put(devicePath, tmp + time);
+//		logger.fine("addTidle: " + devicePath + ", " + tmp + time);
+//		return result;
+//	}
 	
 //	private synchronized boolean setTstandby(String devicePath, long data) {
 //		boolean result = true;
@@ -525,6 +525,19 @@ public class MAIDDataDiskStateManager {
 		return isSpindown.get(devicePath);
 	}
 	
+	private void breakEvenTime(String devicePath, long tStandby) {
+		double ws = getWstandby(devicePath);
+		double wi = getWidle(devicePath);
+		double ts = (double)tStandby / 1000.0;
+		double jup = getJspinup(devicePath);
+		double jdown = getJspindown(devicePath);
+		long ti = 0L;
+		
+		ti = (long) ((((ws - wi) * ts + jup + jdown) / wi) * 1000);
+		
+		setTidle(devicePath, ti);
+	}
+	
 	class StateCheckThread extends Thread {
 		public void run() {
 			while(true) {
@@ -552,17 +565,24 @@ public class MAIDDataDiskStateManager {
 				long now = System.currentTimeMillis();
 
 				for (String devicePath : diskStates.keySet()) {
+					
+					// IDLE時間閾値の変更 TODO 初期値を設定する
 					if(getWidle(devicePath) * getTidle(devicePath) * getWstandby(devicePath) * getTstandby(devicePath)
 							* getJspinup(devicePath) * getJspindown(devicePath) != 0.0) {
-						if(getWidle(devicePath) * getTidle(devicePath) > getWstandby(devicePath) * getTstandby(devicePath)
-								+ getJspinup(devicePath) + getJspindown(devicePath)) {
-							addTidle(devicePath, -1000);	// TODO -1000
-							logger.fine("sub [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
-						} else {
-							addTidle(devicePath, 1000);	// TODO +1000
-							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
-						}
+						
+						breakEvenTime(devicePath, getTstandby(devicePath));
+						
+//						if(getWidle(devicePath) * getTidle(devicePath) > getWstandby(devicePath) * getTstandby(devicePath)
+//								+ getJspinup(devicePath) + getJspindown(devicePath)) {
+//							addTidle(devicePath, -1000);	// TODO -1000
+//							logger.fine("sub [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+//						} else {
+//							addTidle(devicePath, 1000);	// TODO +1000
+//							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+//						}
 					}
+					
+					// IDLE時間閾値を超えたディスクをspindownさせる
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
 						(now - getIdleIntime(devicePath)) > getTidle(devicePath)) {
 						spindown(devicePath);
@@ -590,6 +610,7 @@ public class MAIDDataDiskStateManager {
 				rs.start();   // 問合せ処理の開始
 			} catch(CQException e) {
 				e.printStackTrace();
+				System.exit(1);
 			}
 			
 			try {
@@ -601,6 +622,7 @@ public class MAIDDataDiskStateManager {
 				rs2.start();   // 問合せ処理の開始
 			} catch(CQException e) {
 				e.printStackTrace();
+				System.exit(1);
 			}
 		}
 		
@@ -621,6 +643,7 @@ public class MAIDDataDiskStateManager {
 	    			}
 	    		} catch (CQException e1) {
 	    			e1.printStackTrace();
+	    			System.exit(1);
 				}
 			}
 		}
@@ -651,6 +674,7 @@ public class MAIDDataDiskStateManager {
 //	    			System.out.println("wcurrent: " + wcurrent);
 	    		} catch (CQException e1) {
 	    			e1.printStackTrace();
+	    			System.exit(1);
 				}
 			}
 		}

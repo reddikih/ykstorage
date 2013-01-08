@@ -346,6 +346,7 @@ public class MAIDCacheDiskStateManager {
 				rs.start();   // 問合せ処理の開始
 			} catch(CQException e) {
 				e.printStackTrace();
+				System.exit(1);
 			}
 			
 			try {
@@ -357,6 +358,7 @@ public class MAIDCacheDiskStateManager {
 				rs2.start();   // 問合せ処理の開始
 			} catch(CQException e) {
 				e.printStackTrace();
+				System.exit(1);
 			}
 		}
 		
@@ -374,6 +376,7 @@ public class MAIDCacheDiskStateManager {
 //	    			System.out.println(index + ": " + getWdata(getSpindownIndex()));
 	    		} catch (CQException e1) {
 	    			e1.printStackTrace();
+	    			System.exit(1);
 				}
 	        }
 	    }
@@ -392,6 +395,7 @@ public class MAIDCacheDiskStateManager {
 //	    			System.out.println(wcache);
 	    		} catch (CQException e1) {
 	    			e1.printStackTrace();
+	    			System.exit(1);
 				}
 	        }
 	    }
