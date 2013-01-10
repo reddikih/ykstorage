@@ -104,11 +104,12 @@ public class MAIDDataDiskStateManager {
 	 */
 	private Map<String, Boolean> isSpindown;
 	
-	private double initWidle = 0.0;
-	private double initWstandby = 0.0;
-	private double initJspinup = 0.0;
-	private double initJspindown = 0.0;
+	private double initWidle = 6.8;//0.0;
+	private double initWstandby = 0.9;//0.0;
+	private double initJspinup = 450.0;//0.0;
+	private double initJspindown = 35.0;//0.0;
 	private long initTstandby = 0L;
+	private int alpha = 2;
 
 	private long interval;
 	private String rmiUrl;
@@ -449,20 +450,20 @@ public class MAIDDataDiskStateManager {
 		return tIdle.get(devicePath);
 	}
 	
-//	private synchronized boolean addTidle(String devicePath, long time) {
-//		boolean result = true;
-//		if(!devicePathCheck(devicePath)) {
-//			result = false;
-//		}
-//		
-//		long tmp = tIdle.get(devicePath);
-//		if(tmp + time < 0) {
-//			return false;
-//		}
-//		tIdle.put(devicePath, tmp + time);
-//		logger.fine("addTidle: " + devicePath + ", " + tmp + time);
-//		return result;
-//	}
+	private synchronized boolean addTidle(String devicePath, long time) {
+		boolean result = true;
+		if(!devicePathCheck(devicePath)) {
+			result = false;
+		}
+		
+		long tmp = tIdle.get(devicePath);
+		if(tmp + time < 0) {
+			return false;
+		}
+		tIdle.put(devicePath, tmp + time);
+		logger.fine("addTidle: " + devicePath + ", " + tmp + time);
+		return result;
+	}
 	
 //	private synchronized boolean setTstandby(String devicePath, long data) {
 //		boolean result = true;
@@ -570,16 +571,18 @@ public class MAIDDataDiskStateManager {
 					if(getWidle(devicePath) * getTidle(devicePath) * getWstandby(devicePath) * getTstandby(devicePath)
 							* getJspinup(devicePath) * getJspindown(devicePath) != 0.0) {
 						
-						breakEvenTime(devicePath, getTstandby(devicePath));
+//						breakEvenTime(devicePath, getTstandby(devicePath));
 						
-//						if(getWidle(devicePath) * getTidle(devicePath) > getWstandby(devicePath) * getTstandby(devicePath)
-//								+ getJspinup(devicePath) + getJspindown(devicePath)) {
-//							addTidle(devicePath, -1000);	// TODO -1000
-//							logger.fine("sub [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
-//						} else {
-//							addTidle(devicePath, 1000);	// TODO +1000
-//							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
-//						}
+						if(getWidle(devicePath) * getTstandby(devicePath) > getWstandby(devicePath) * getTstandby(devicePath)
+								+ getJspinup(devicePath) + getJspindown(devicePath)) {
+							//addTidle(devicePath, -1000);	// TODO -1000
+							setTidle(devicePath, getTidle(devicePath)/alpha);
+							logger.fine("sub [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+						} else {
+							//addTidle(devicePath, 1000);	// TODO +1000
+							setTidle(devicePath, getTidle(devicePath)*alpha);
+							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+						}
 					}
 					
 					// IDLE時間閾値を超えたディスクをspindownさせる
