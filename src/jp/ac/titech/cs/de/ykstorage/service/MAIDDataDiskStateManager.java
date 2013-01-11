@@ -109,7 +109,9 @@ public class MAIDDataDiskStateManager {
 	private double initJspinup = 450.0;//0.0;
 	private double initJspindown = 35.0;//0.0;
 	private long initTstandby = 0L;
-	private int alpha = 2;
+	
+	// add millisecond
+	private long alpha = 10000;	// TODO Parameter
 
 	private long interval;
 	private String rmiUrl;
@@ -458,10 +460,13 @@ public class MAIDDataDiskStateManager {
 		
 		long tmp = tIdle.get(devicePath);
 		if(tmp + time < 0) {
-			return false;
+			tIdle.put(devicePath, 0L);
+			logger.fine("addTidle: " + devicePath + ", " + 0);
+		} else {
+			tIdle.put(devicePath, tmp + time);
+			logger.fine("addTidle: " + devicePath + ", " + tmp + time + ", add: " + time);
 		}
-		tIdle.put(devicePath, tmp + time);
-		logger.fine("addTidle: " + devicePath + ", " + tmp + time);
+		
 		return result;
 	}
 	
@@ -573,15 +578,27 @@ public class MAIDDataDiskStateManager {
 						
 //						breakEvenTime(devicePath, getTstandby(devicePath));
 						
-						if(getWidle(devicePath) * getTstandby(devicePath) > getWstandby(devicePath) * getTstandby(devicePath)
-								+ getJspinup(devicePath) + getJspindown(devicePath)) {
-							//addTidle(devicePath, -1000);	// TODO -1000
-							setTidle(devicePath, getTidle(devicePath)/alpha);
-							logger.fine("sub [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
-						} else {
-							//addTidle(devicePath, 1000);	// TODO +1000
-							setTidle(devicePath, getTidle(devicePath)*alpha);
-							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+//						if(getWidle(devicePath) * getTstandby(devicePath) > getWstandby(devicePath) * getTstandby(devicePath)
+//								+ getJspinup(devicePath) + getJspindown(devicePath)) {
+//							//addTidle(devicePath, -1000);	// TODO -1000
+//							setTidle(devicePath, getTidle(devicePath)/alpha);
+//							logger.fine("sub [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+//						} else {
+//							//addTidle(devicePath, 1000);	// TODO +1000
+//							setTidle(devicePath, getTidle(devicePath)*alpha);
+//							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+//						}
+						
+						if(getWidle(devicePath) * (getTstandby(devicePath) + alpha) > 
+								getWstandby(devicePath) * (getTstandby(devicePath) + alpha)
+									+ getJspinup(devicePath) + getJspindown(devicePath)) {
+							addTidle(devicePath, -alpha);
+							logger.fine("sub [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+						} else if(getWidle(devicePath) * (getTstandby(devicePath) - alpha) < 
+						getWstandby(devicePath) * (getTstandby(devicePath) - alpha)
+						+ getJspinup(devicePath) + getJspindown(devicePath)) {
+							addTidle(devicePath, alpha);
+							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 					}
 					
