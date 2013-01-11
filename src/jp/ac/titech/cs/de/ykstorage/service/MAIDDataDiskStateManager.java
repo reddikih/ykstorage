@@ -589,14 +589,18 @@ public class MAIDDataDiskStateManager {
 //							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 //						}
 						
-						if(getWidle(devicePath) * (getTstandby(devicePath) + alpha) > 
-								getWstandby(devicePath) * (getTstandby(devicePath) + alpha)
-									+ getJspinup(devicePath) + getJspindown(devicePath)) {
+						double wi = getWidle(devicePath);
+						double ws = getWstandby(devicePath);
+						long ts = getTstandby(devicePath);
+						long ti = getTidle(devicePath);
+						double ju = getJspinup(devicePath);
+						double jd = getJspindown(devicePath);
+						logger.fine("[PROPOSAL2]: wIdle: " + wi + ", tIdle: " + ti + ", wStandby: " + ws + ", tStandby: " + ts + ", jSpinup: " + ju + ", jSpindown: " + jd);
+						if(wi * (ts + alpha) > ws * (ts + alpha) + ju + jd) {
 							addTidle(devicePath, -alpha);
 							logger.fine("sub [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
-						} else if(getWidle(devicePath) * (getTstandby(devicePath) - alpha) < 
-						getWstandby(devicePath) * (getTstandby(devicePath) - alpha)
-						+ getJspinup(devicePath) + getJspindown(devicePath)) {
+						}
+						if(wi * (ts - alpha) < ws * (ts - alpha) + ju + jd) {
 							addTidle(devicePath, alpha);
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
