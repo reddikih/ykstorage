@@ -25,9 +25,20 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 public class MAIDDataDiskManager {
 	private Logger logger = StorageLogger.getLogger();
 	private MAIDDataDiskStateManager sm;
-
+	
+	/**
+	 * e.g. /ecoim/ykstorage/data/disk1/
+	 */
 	private String[] diskpaths;
+	
+	/**
+	 * このファイルが存在する限り必ずロード処理が行われる
+	 */
 	private String savePath;
+	
+	/**
+	 * proposal2 is true when manager changes the idle time threshold.
+	 */
 	private boolean proposal2;
 	
 	/**
@@ -42,7 +53,10 @@ public class MAIDDataDiskManager {
 	 */
 	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
 	
-	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
+	/**
+	 * ラウンドロビンでディスクの選択時に使用
+	 */
+	private int diskIndex = 0;
 
 	public MAIDDataDiskManager(
 			String[] diskpaths,
@@ -56,6 +70,7 @@ public class MAIDDataDiskManager {
 
 //		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
 		
+		// TODO いらない??
 		ArrayList<String> devices = new ArrayList<String>();
 		for(String diskpath : diskpaths) {
 			devices.add(mountPointPaths.get(diskpath));
@@ -224,7 +239,6 @@ public class MAIDDataDiskManager {
 			}
 		}
 		
-//		int diskId = getDiskId(filepath);
 		String diskPath = getDiskPath(filepath);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {
@@ -253,7 +267,6 @@ public class MAIDDataDiskManager {
 		boolean result = false;
 		
 		String filepath = selectDisk(key);
-//		int diskId = getDiskId(filepath);
 		
 		if(isStandby(key)) {
 			if(spinup(key)) {
@@ -308,8 +321,7 @@ public class MAIDDataDiskManager {
 		}
 		
 		keyFileMap.remove(key);
-//		int diskId = getDiskId(filepath);
-		//String devicePath = mountPointPaths.get(selectDisk(key));
+		
 		String diskPath = getDiskPath(filepath);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {

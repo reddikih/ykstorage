@@ -29,9 +29,20 @@ public class MAIDCacheDiskStateManager {
 	
 	private String rmiUrl;
 	private boolean[] isCacheDisk;
-
+	
+	/**
+	 * the average watt of cache disks
+	 */
 	private double wcache;
+	
+	/**
+	 * the sum of the watt of data disks
+	 */
 	private double[] wdata;
+	
+	/**
+	 * the number of spin downed cache disk
+	 */
 	private int spindownIndex;
 	
 	private String dataCommand;
@@ -63,6 +74,9 @@ public class MAIDCacheDiskStateManager {
 	
 	private ArrayList<String> devicePaths;
 	
+	/**
+	 * the interval of checking disk state for proposal1
+	 */
 	private long interval;
 	private final Logger logger = StorageLogger.getLogger();
 
@@ -299,6 +313,7 @@ public class MAIDCacheDiskStateManager {
 		public void run() {
 			while(true) {
 				for (String devicePath : diskStates.keySet()) {
+					// XXX 消費電力を用いてもいいかもしれない
 					double accesses = (double)getAccessCount(devicePath) / ((double)interval / 1000.0);
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) && accesses < accessThreshold && getSpindownIndex() < numOfCacheDisks - 1) {
 						logger.fine("[PROPOSAL1]: spindown " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
@@ -309,16 +324,17 @@ public class MAIDCacheDiskStateManager {
 				
 				int index = getSpindownIndex();
 				if(index > 0) {
+					// TODO 正しく動作するか確認
 					if((getWdata(index-1) > 0.0) && (getWdata(index) - getWdata(index-1) > wcache)) {
-						String tmpDevice = "";
+						String spinupDevice = "";
 						for (String devicePath : diskStates.keySet()) {
 							if(DiskState.SPINDOWN.equals(getDiskState(devicePath))) {
-								tmpDevice = devicePath;
+								spinupDevice = devicePath;
 								break;
 							}
 						}
-						logger.fine("[PROPOSAL1]: spinup " + tmpDevice + ", prev Wdata: " + getWdata(index-1) + ", now Wdata: " + getWdata(index) + ", Wcache: " + wcache);
-						spinup(tmpDevice);
+						logger.fine("[PROPOSAL1]: spinup " + spinupDevice + ", prev Wdata: " + getWdata(index-1) + ", now Wdata: " + getWdata(index) + ", Wcache: " + wcache);
+						spinup(spinupDevice);
 					}
 				}
 
@@ -366,6 +382,7 @@ public class MAIDCacheDiskStateManager {
 	    	public void dataDistributed(CQRowSetEvent e){   // 処理結果の生成通知を受け取るメソッド
 	    		CQRowSet rs = (CQRowSet)(e.getSource());
 	    		try {
+	    			// TODO spindown/up中のディスクがある時は合計しないで前の合計値にする
 	    			int index = getSpindownIndex();
 	    			wdata[index] = 0.0;
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
@@ -385,6 +402,7 @@ public class MAIDCacheDiskStateManager {
 	    	public void dataDistributed(CQRowSetEvent e){   // 処理結果の生成通知を受け取るメソッド
 	    		CQRowSet rs = (CQRowSet)(e.getSource());
 	    		try {
+	    			// TODO spindownしているcache diskは合計しない
 	    			wcache = 0.0;
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
 	    				for(int i = 0; i < numOfCacheDisks; i++) {

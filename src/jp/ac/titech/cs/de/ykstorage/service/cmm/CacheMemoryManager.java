@@ -149,9 +149,9 @@ public class CacheMemoryManager {
 				int newPosition = memBuffer.position();
 				memBuffer.put(byteVal);
 				header.setPosition(newPosition);
-				logger.fine(String.format(
-						"migrated. fromPos: %d, toPos: %d, size: %d",
-						oldPosition, newPosition, header.getSize()));
+//				logger.fine(String.format(
+//						"migrated. fromPos: %d, toPos: %d, size: %d",
+//						oldPosition, newPosition, header.getSize()));
 				isFirst = false;
 				continue;
 			}
@@ -163,9 +163,9 @@ public class CacheMemoryManager {
 			memBuffer.position(currentPosition);
 			memBuffer.put(byteVal);
 			header.setPosition(currentPosition);
-			logger.fine(String.format(
-					"migrated. fromPos: %d, toPos: %d, size: %d",
-					oldPosition, currentPosition, header.getSize()));
+//			logger.fine(String.format(
+//					"migrated. fromPos: %d, toPos: %d, size: %d",
+//					oldPosition, currentPosition, header.getSize()));
 		}
 	}
 	

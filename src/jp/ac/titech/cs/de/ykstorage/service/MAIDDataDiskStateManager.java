@@ -39,13 +39,13 @@ public class MAIDDataDiskStateManager {
 
 	/**
 	 * key: device file path
-	 * value: start time of idle state
+	 * value: start time of idle state TODO millisecond??
 	 */
 	private Map<String, Long> idleIntimes;
 	
 	/**
 	 * key: device file path
-	 * value: start time of standby state
+	 * value: start time of standby state TODO millisecond??
 	 */
 	private Map<String, Long> standbyIntimes;
 	
@@ -88,7 +88,7 @@ public class MAIDDataDiskStateManager {
 	
 	/**
 	 * key: device file path
-	 * value: standby time
+	 * value: standby time TODO millisecond??
 	 */
 	private Map<String, Long> tStandby;
 	
@@ -110,10 +110,14 @@ public class MAIDDataDiskStateManager {
 	private double initJspindown = 35.0;//0.0;
 	private long initTstandby = 0L;
 	
-	// add millisecond
+	// add millisecond for proposal2
 	private long alpha = 10000;	// TODO Parameter
-
+	
+	/**
+	 * the interval of checking disk state for proposal1
+	 */
 	private long interval;
+	
 	private String rmiUrl;
 	private boolean[] isCacheDisk;
 	private int numOfCacheDisks;
@@ -121,6 +125,7 @@ public class MAIDDataDiskStateManager {
 	private double acc;
 	
 	private ArrayList<String> devicePaths;
+	
 	private String avgCommand;
 	private String inteCommand;
 	
@@ -552,6 +557,7 @@ public class MAIDDataDiskStateManager {
 				for (String devicePath : diskStates.keySet()) {
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
 						(now - getIdleIntime(devicePath)) > spindownThreshold) {
+						// TODO アイドル時間をログに出力
 						spindown(devicePath);
 					}
 				}
@@ -609,6 +615,7 @@ public class MAIDDataDiskStateManager {
 					// IDLE時間閾値を超えたディスクをspindownさせる
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
 						(now - getIdleIntime(devicePath)) > getTidle(devicePath)) {
+						// TODO アイドル時間をログに出力
 						spindown(devicePath);
 					}
 				}
@@ -656,6 +663,7 @@ public class MAIDDataDiskStateManager {
 	    		try {
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
 	    				int i = 0;
+	    				// spinup/down中はセットしない && 上限・下限を設ける
 	    				for (String devicePath : diskStates.keySet()) {
 	    					if(DiskState.IDLE.equals(getDiskState(devicePath))) {
 	    						setWidle(devicePath, rs.getDouble(i + 1));

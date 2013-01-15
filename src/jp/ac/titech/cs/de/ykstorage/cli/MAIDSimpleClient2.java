@@ -154,6 +154,7 @@ public class MAIDSimpleClient2 {
 //		sc.end();
 //		MAIDSimpleClient2 sc2 = new MAIDSimpleClient2();
 //		sc2.loadWorkload(sc2, WORKLOAD_PATH[1]);
+		System.exit(0);
 	}
 
 }
