@@ -91,6 +91,9 @@ public class MAIDSimpleClient2 {
 		BufferedReader br = new BufferedReader(fr);
 		String line = "";
 		int interval = 0;
+		
+		long startTime = 0L;
+		long endTime = 0L;
 
 		logger.fine("MAIDSimpleClient [START]: " + System.currentTimeMillis());
 		int i = 0;
@@ -100,6 +103,7 @@ public class MAIDSimpleClient2 {
 			
 			i++;
 			System.out.print(i + " ");
+			startTime = System.currentTimeMillis();
 			if(cmdArray.length == 3 && (cmdArray[cmdIndex].equalsIgnoreCase("get"))) {
 				System.out.print("[GET] Key: " + cmdArray[keylIndex]);
 				String value = (String) sc.get(cmdArray[keylIndex]);
@@ -133,6 +137,9 @@ public class MAIDSimpleClient2 {
 				}
 				interval = Integer.parseInt(cmdArray[intervalIndex]);
 			}
+			
+			endTime = System.currentTimeMillis();
+			logger.fine("[Access] now: " + endTime + ", response time: " + (endTime - startTime));
 			
 			Thread.sleep(interval);
 		}

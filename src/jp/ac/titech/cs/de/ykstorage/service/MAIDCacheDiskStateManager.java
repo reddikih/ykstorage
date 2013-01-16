@@ -27,6 +27,8 @@ public class MAIDCacheDiskStateManager {
 		}
 	}
 	
+	private double minWidle = 4.0;
+	
 	private String rmiUrl;
 	private boolean[] isCacheDisk;
 	
@@ -285,8 +287,17 @@ public class MAIDCacheDiskStateManager {
 		return accessCount.get(devicePath);
 	}
 	
-	private synchronized void addWdata(double data) {
-		wdata[spindownIndex] += data;
+//	private synchronized void addWdata(double data) {
+//		wdata[spindownIndex] += data;
+//	}
+	
+	private synchronized void avgWdata(int index, double data) {
+		if(wdata[index] == 0) {
+			wdata[index] += data;
+		} else {
+			wdata[index] += data;
+			wdata[index] /= 2.0;
+		}
 	}
 	
 	private synchronized double getWdata(int index) {
@@ -315,8 +326,9 @@ public class MAIDCacheDiskStateManager {
 				for (String devicePath : diskStates.keySet()) {
 					// XXX 消費電力を用いてもいいかもしれない
 					double accesses = (double)getAccessCount(devicePath) / ((double)interval / 1000.0);
+					logger.fine("[PROPOSAL1]: " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) && accesses < accessThreshold && getSpindownIndex() < numOfCacheDisks - 1) {
-						logger.fine("[PROPOSAL1]: spindown " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
+						logger.fine("[PROPOSAL1]: spindown " + devicePath);
 						spindown(devicePath);
 						break;	// 一度に複数台のディスクをspindownさせない
 					}
@@ -325,6 +337,7 @@ public class MAIDCacheDiskStateManager {
 				int index = getSpindownIndex();
 				if(index > 0) {
 					// TODO 正しく動作するか確認
+					logger.fine("[PROPOSAL1]: prev Wdata: " + getWdata(index-1) + ", now Wdata: " + getWdata(index) + ", Wcache: " + wcache);
 					if((getWdata(index-1) > 0.0) && (getWdata(index) - getWdata(index-1) > wcache)) {
 						String spinupDevice = "";
 						for (String devicePath : diskStates.keySet()) {
@@ -333,7 +346,7 @@ public class MAIDCacheDiskStateManager {
 								break;
 							}
 						}
-						logger.fine("[PROPOSAL1]: spinup " + spinupDevice + ", prev Wdata: " + getWdata(index-1) + ", now Wdata: " + getWdata(index) + ", Wcache: " + wcache);
+						logger.fine("[PROPOSAL1]: spinup " + spinupDevice);
 						spinup(spinupDevice);
 					}
 				}
@@ -379,44 +392,49 @@ public class MAIDCacheDiskStateManager {
 		}
 		
 		class MyListener implements CQRowSetListener {
-	    	public void dataDistributed(CQRowSetEvent e){   // 処理結果の生成通知を受け取るメソッド
-	    		CQRowSet rs = (CQRowSet)(e.getSource());
-	    		try {
-	    			// TODO spindown/up中のディスクがある時は合計しないで前の合計値にする
-	    			int index = getSpindownIndex();
-	    			wdata[index] = 0.0;
-	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
-	    				for(int i = 0; i < numOfDataDisks; i++) {
-	    					addWdata(rs.getDouble(i + 1));
-	    				}
-	    			}
-//	    			System.out.println(index + ": " + getWdata(getSpindownIndex()));
-	    		} catch (CQException e1) {
-	    			e1.printStackTrace();
-	    			System.exit(1);
+			public void dataDistributed(CQRowSetEvent e){   // 処理結果の生成通知を受け取るメソッド
+				CQRowSet rs = (CQRowSet)(e.getSource());
+				try {
+					double wtmp = 0.0;
+					int index = getSpindownIndex();
+					//wdata[index] = 0.0;	// XXX 瞬間から平均にする
+					while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
+						for(int i = 0; i < numOfDataDisks; i++) {
+							//addWdata(rs.getDouble(i + 1));
+							wtmp += rs.getDouble(i + 1);
+						}
+					}
+					avgWdata(index, wtmp);
+//					System.out.println(index + ": " + getWdata(getSpindownIndex()));
+				} catch (CQException e1) {
+					e1.printStackTrace();
+					System.exit(1);
 				}
-	        }
-	    }
+			}
+		}
 		
 		class MyListener2 implements CQRowSetListener {
-	    	public void dataDistributed(CQRowSetEvent e){   // 処理結果の生成通知を受け取るメソッド
-	    		CQRowSet rs = (CQRowSet)(e.getSource());
-	    		try {
-	    			// TODO spindownしているcache diskは合計しない
-	    			wcache = 0.0;
-	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
-	    				for(int i = 0; i < numOfCacheDisks; i++) {
-	    					wcache += rs.getDouble(i + 1);
-	    				}
-	    			}
-	    			wcache = wcache / (double) numOfCacheDisks;
-//	    			System.out.println(wcache);
-	    		} catch (CQException e1) {
-	    			e1.printStackTrace();
-	    			System.exit(1);
+			public void dataDistributed(CQRowSetEvent e){   // 処理結果の生成通知を受け取るメソッド
+				CQRowSet rs = (CQRowSet)(e.getSource());
+				try {
+					double wtmp = 0.0;
+					wcache = 0.0;
+					while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
+						for(int i = 0; i < numOfCacheDisks; i++) {
+							wtmp = rs.getDouble(i + 1);
+							if(wtmp > minWidle) {	// XXX spindownしているcache diskは合計しない
+								wcache += wtmp;
+							}
+						}
+					}
+					wcache = wcache / (double) (numOfCacheDisks - getSpindownIndex());
+//					System.out.println(wcache);
+				} catch (CQException e1) {
+					e1.printStackTrace();
+					System.exit(1);
 				}
-	        }
-	    }
+			}
+		}
 	}
-
+	
 }
