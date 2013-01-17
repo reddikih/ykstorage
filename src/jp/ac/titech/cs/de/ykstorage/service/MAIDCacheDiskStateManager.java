@@ -27,7 +27,7 @@ public class MAIDCacheDiskStateManager {
 		}
 	}
 	
-	private double minWidle = 4.0;
+	private double minWidle = 4.5;
 	
 	private String rmiUrl;
 	private boolean[] isCacheDisk;

@@ -110,8 +110,15 @@ public class MAIDDataDiskStateManager {
 	private double initJspindown = 35.0;//0.0;
 	private long initTstandby = 0L;
 	
+	private double minWspinup = 11.2;
+	private double maxWidle = 7.6;
+	private double minWidle = 4.5;
+	private double maxWstandby = 1.0;
+	
+	private boolean minWup = false;
+	
 	// add millisecond for proposal2
-	private long alpha = 10000;	// TODO Parameter
+	private long alpha = 10000;	// TODO Parameter. break even time
 	
 	/**
 	 * the interval of checking disk state for proposal1
@@ -536,18 +543,18 @@ public class MAIDDataDiskStateManager {
 		return isSpindown.get(devicePath);
 	}
 	
-	private void breakEvenTime(String devicePath, long tStandby) {
-		double ws = getWstandby(devicePath);
-		double wi = getWidle(devicePath);
-		double ts = (double)tStandby / 1000.0;
-		double jup = getJspinup(devicePath);
-		double jdown = getJspindown(devicePath);
-		long ti = 0L;
-		
-		ti = (long) ((((ws - wi) * ts + jup + jdown) / wi) * 1000);
-		
-		setTidle(devicePath, ti);
-	}
+//	private void breakEvenTime(String devicePath, long tStandby) {
+//		double ws = getWstandby(devicePath);
+//		double wi = getWidle(devicePath);
+//		double ts = (double)tStandby / 1000.0;
+//		double jup = getJspinup(devicePath);
+//		double jdown = getJspindown(devicePath);
+//		long ti = 0L;
+//		
+//		ti = (long) ((((ws - wi) * ts + jup + jdown) / wi) * 1000);
+//		
+//		setTidle(devicePath, ti);
+//	}
 	
 	class StateCheckThread extends Thread {
 		public void run() {
@@ -663,12 +670,14 @@ public class MAIDDataDiskStateManager {
 	    		try {
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
 	    				int i = 0;
-	    				// spinup/down中はセットしない && 上限・下限を設ける
+	    				double wtmp = 0.0;
+	    				// TODO spinup/down中はセットしない
 	    				for (String devicePath : diskStates.keySet()) {
-	    					if(DiskState.IDLE.equals(getDiskState(devicePath))) {
-	    						setWidle(devicePath, rs.getDouble(i + 1));
-	    					}else if(DiskState.STANDBY.equals(getDiskState(devicePath))) {
-	    						setWstandby(devicePath, rs.getDouble(i + 1));
+	    					wtmp = rs.getDouble(i + 1);
+	    					if(DiskState.IDLE.equals(getDiskState(devicePath)) && (minWidle < wtmp) && (wtmp < maxWidle)) {
+	    						setWidle(devicePath, wtmp);
+	    					}else if(DiskState.STANDBY.equals(getDiskState(devicePath)) && (wtmp < maxWstandby)) {
+	    						setWstandby(devicePath, wtmp);
 	    					}
 	    					i++;
 	    				}
@@ -687,7 +696,12 @@ public class MAIDDataDiskStateManager {
 	    			double wcurrent = 0.0;
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
 	    				int i = 0;
+	    				
 	    				wcurrent = rs.getDouble(i + 1);
+	    				if(!minWup) {
+	    					minWup = (wcurrent > minWspinup)? true: false;
+	    				}
+	    				
 	    				for (String devicePath : diskStates.keySet()) {
 	    					if(getIsSpinup(devicePath)) {
 	    						addJspinup(devicePath, rs.getDouble(i + 1));
@@ -696,6 +710,7 @@ public class MAIDDataDiskStateManager {
 	    					}
 	    					if(wcurrent < getWidle(devicePath) + acc) {
 	    						setIsSpinup(devicePath, false);
+	    						minWup = false;
 	    					}
 	    					if(wcurrent < getWstandby(devicePath) + acc) {
 	    						setIsSpindown(devicePath, false);
