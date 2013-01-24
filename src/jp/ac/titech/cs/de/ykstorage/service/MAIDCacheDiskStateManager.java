@@ -341,7 +341,7 @@ public class MAIDCacheDiskStateManager {
 					if((getWdata(index-1) > 0.0) && (getWdata(index) - getWdata(index-1) > wcache)) {
 						String spinupDevice = "";
 						for (String devicePath : diskStates.keySet()) {
-							if(DiskState.SPINDOWN.equals(getDiskState(devicePath))) {
+							if(DiskState.STANDBY.equals(getDiskState(devicePath))) {
 								spinupDevice = devicePath;
 								break;
 							}
