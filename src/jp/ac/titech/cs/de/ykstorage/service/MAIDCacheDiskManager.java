@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.logging.Logger;
 
@@ -54,8 +55,8 @@ public class MAIDCacheDiskManager {
 	 */
 //	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
 //	private LinkedHashMap<Integer, String> keyFileMap = new LinkedHashMap<Integer, String>();
-	private LinkedHashMap<Integer, String> keyFileMap = 
-			(LinkedHashMap<Integer, String>) Collections.synchronizedMap(new LinkedHashMap<Integer, String>());
+	private Map<Integer, String> keyFileMap = 
+			Collections.synchronizedMap(new LinkedHashMap<Integer, String>());
 	
 	/**
 	 * ラウンドロビンでディスクの選択時に使用
