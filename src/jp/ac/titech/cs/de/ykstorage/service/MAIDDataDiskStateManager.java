@@ -586,8 +586,15 @@ public class MAIDDataDiskStateManager {
 				for (String devicePath : diskStates.keySet()) {
 					
 					// IDLE時間閾値の変更 TODO 初期値を設定する
-					if(getWidle(devicePath) * getTidle(devicePath) * getWstandby(devicePath) * getTstandby(devicePath)
-							* getJspinup(devicePath) * getJspindown(devicePath) != 0.0) {
+					double wi = getWidle(devicePath);
+					double ws = getWstandby(devicePath);
+					long ts = getTstandby(devicePath);
+					long ti = getTidle(devicePath);
+					double ju = getJspinup(devicePath);
+					double jd = getJspindown(devicePath);
+//					if(getWidle(devicePath) * getTidle(devicePath) * getWstandby(devicePath) * getTstandby(devicePath)
+//							* getJspinup(devicePath) * getJspindown(devicePath) != 0.0) {
+					if(wi * ws * (double) ts * ju * jd != 0.0) {
 						
 //						breakEvenTime(devicePath, getTstandby(devicePath));
 						
@@ -602,12 +609,6 @@ public class MAIDDataDiskStateManager {
 //							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 //						}
 						
-						double wi = getWidle(devicePath);
-						double ws = getWstandby(devicePath);
-						long ts = getTstandby(devicePath);
-						long ti = getTidle(devicePath);
-						double ju = getJspinup(devicePath);
-						double jd = getJspindown(devicePath);
 						logger.fine("[PROPOSAL2]: wIdle: " + wi + ", tIdle: " + ti + ", wStandby: " + ws + ", tStandby: " + ts + ", jSpinup: " + ju + ", jSpindown: " + jd);
 						if(wi * (ts + alpha) > ws * (ts + alpha) + ju + jd) {
 							addTidle(devicePath, -alpha);
@@ -617,6 +618,8 @@ public class MAIDDataDiskStateManager {
 							addTidle(devicePath, alpha);
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
+					} else {
+						logger.fine("[PROPOSAL2]: ts: " + ts);
 					}
 					
 					// IDLE時間閾値を超えたディスクをspindownさせる
