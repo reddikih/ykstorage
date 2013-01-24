@@ -298,6 +298,7 @@ public class MAIDCacheDiskStateManager {
 			wdata[index] += data;
 			wdata[index] /= 2.0;
 		}
+		logger.fine("avgWdata: index: " + index + ", wtmp: " + data);
 	}
 	
 	private synchronized double getWdata(int index) {
