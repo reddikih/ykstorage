@@ -5,6 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -52,7 +53,9 @@ public class MAIDCacheDiskManager {
 	 * Using LinkedHashMap for LRU algorithm
 	 */
 //	private HashMap<Integer, String> keyFileMap = new HashMap<Integer, String>();
-	private LinkedHashMap<Integer, String> keyFileMap = new LinkedHashMap<Integer, String>();
+//	private LinkedHashMap<Integer, String> keyFileMap = new LinkedHashMap<Integer, String>();
+	private LinkedHashMap<Integer, String> keyFileMap = 
+			(LinkedHashMap<Integer, String>) Collections.synchronizedMap(new LinkedHashMap<Integer, String>());
 	
 	/**
 	 * ラウンドロビンでディスクの選択時に使用
