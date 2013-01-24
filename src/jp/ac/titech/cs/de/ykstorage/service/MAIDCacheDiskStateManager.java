@@ -277,6 +277,7 @@ public class MAIDCacheDiskStateManager {
 		boolean result = true;
 		if(!devicePathCheck(devicePath)) {
 			result = false;
+			return result;
 		}
 		logger.fine("incAccessCount: " + devicePath);
 		accessCount.put(devicePath, accessCount.get(devicePath) + 1);
