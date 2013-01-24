@@ -5,6 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -125,13 +126,30 @@ public class MAIDCacheDiskManager {
 			String devicePath = getDevicePath(key);
 			sm.setDiskReset(devicePath, false);
 			
+//			synchronized (keyFileMap) {
+//				Iterator<Integer> itr = keyFileMap.keySet().iterator();
+//				while(itr.hasNext()) {
+//					int tmpKey = itr.next();
+//					if(devicePath.equals(getDevicePath(tmpKey))) {
+//						remove(tmpKey);
+//					}
+//				}
+//			}
+			
+			ArrayList<Integer> removeKeyArray = new ArrayList<Integer>();
 			synchronized (keyFileMap) {
 				Iterator<Integer> itr = keyFileMap.keySet().iterator();
 				while(itr.hasNext()) {
 					int tmpKey = itr.next();
-					if(devicePath.equals(getDevicePath(tmpKey))) {
-						remove(tmpKey);
-					}
+					removeKeyArray.add(tmpKey);
+				}
+			}
+			
+			int arraySize = removeKeyArray.size();
+			for(int i = 0; i < arraySize; i++) {
+				int tmpKey = removeKeyArray.get(i);
+				if(devicePath.equals(getDevicePath(tmpKey))) {
+					remove(tmpKey);
 				}
 			}
 			
