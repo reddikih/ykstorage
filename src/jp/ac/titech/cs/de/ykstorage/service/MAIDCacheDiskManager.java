@@ -124,11 +124,14 @@ public class MAIDCacheDiskManager {
 		} else if(getDiskReset(key)) {
 			String devicePath = getDevicePath(key);
 			sm.setDiskReset(devicePath, false);
-			Iterator<Integer> itr = keyFileMap.keySet().iterator();
-			while(itr.hasNext()) {
-				int tmpKey = itr.next();
-				if(devicePath.equals(getDevicePath(tmpKey))) {
-					remove(tmpKey);
+			
+			synchronized (keyFileMap) {
+				Iterator<Integer> itr = keyFileMap.keySet().iterator();
+				while(itr.hasNext()) {
+					int tmpKey = itr.next();
+					if(devicePath.equals(getDevicePath(tmpKey))) {
+						remove(tmpKey);
+					}
 				}
 			}
 			
