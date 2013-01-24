@@ -119,6 +119,7 @@ public class MAIDCacheDiskManager {
 			return true;
 		} else if(getDiskReset(key)) {
 			String devicePath = getDevicePath(key);
+			sm.setDiskReset(devicePath, false);
 			Iterator<Integer> itr = keyFileMap.keySet().iterator();
 			while(itr.hasNext()) {
 				int tmpKey = itr.next();
@@ -127,8 +128,9 @@ public class MAIDCacheDiskManager {
 				}
 			}
 			
-			sm.setDiskReset(devicePath, false);
-			return true;
+//			sm.setDiskReset(devicePath, false);
+//			return true;
+			return false;
 		}
 		return false;
 	}
