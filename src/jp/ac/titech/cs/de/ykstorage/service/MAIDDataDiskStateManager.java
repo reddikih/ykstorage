@@ -620,7 +620,7 @@ public class MAIDDataDiskStateManager {
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 					} else {
-						logger.fine("not [PROPOSAL2]: ts: " + ts + ", " + devicePath);
+						logger.fine("not [PROPOSAL2]: ts: " + ts + ", ti: " + ti + ", ju: " + ju + ", jd: " + jd);
 					}
 					
 					// IDLE時間閾値を超えたディスクをspindownさせる
