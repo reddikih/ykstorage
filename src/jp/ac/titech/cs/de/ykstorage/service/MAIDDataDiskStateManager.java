@@ -712,11 +712,14 @@ public class MAIDDataDiskStateManager {
 	    				int i = 0;
 	    				
 	    				wcurrent = rs.getDouble(i + 1);
-	    				if(!minWup) {
-	    					minWup = (wcurrent > minWspinup)? true: false;
-	    				}
+//	    				if(!minWup) {
+//	    					minWup = (wcurrent > minWspinup)? true: false;
+//	    				}
 	    				
 	    				for (String devicePath : diskStates.keySet()) {
+	    					if(!minWup) {
+		    					minWup = (wcurrent > minWspinup)? true: false;
+		    				}
 	    					if(getIsSpinup(devicePath)) {
 	    						addJspinup(devicePath, rs.getDouble(i + 1));
 	    					}
