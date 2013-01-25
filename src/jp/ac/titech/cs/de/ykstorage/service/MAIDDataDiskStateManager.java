@@ -273,7 +273,7 @@ public class MAIDDataDiskStateManager {
 			long currentTime = System.currentTimeMillis();
 			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
 			setIsSpinup(devicePath, true);
-//			initJspinup();
+			initJspinup();
 			return true;
 		}
 		setDiskState(devicePath, DiskState.STANDBY);
@@ -299,7 +299,7 @@ public class MAIDDataDiskStateManager {
 			setStandbyIntime(devicePath, currentTime);
 //			setTidle(devicePath, currentTime - getIdleIntime(devicePath));	// XXX setはいらない??? setIdleInTimeは欲しい???
 			setIsSpindown(devicePath, true);
-//			initJspindown();
+			initJspindown();
 			return true;
 		}
 		setDiskState(devicePath, DiskState.IDLE);
@@ -632,9 +632,6 @@ public class MAIDDataDiskStateManager {
 					}
 				}
 				
-				initJspindown();
-				initJspinup();
-
 				try {
 					sleep(interval);
 				} catch (InterruptedException e) {
@@ -713,7 +710,8 @@ public class MAIDDataDiskStateManager {
 	    				for (String devicePath : diskStates.keySet()) {
 	    					if(getIsSpinup(devicePath)) {
 	    						addJspinup(devicePath, rs.getDouble(i + 1));
-	    					}else if(getIsSpindown(devicePath)) {
+	    					}
+	    					if(getIsSpindown(devicePath)) {
 	    						addJspindown(devicePath, rs.getDouble(i + 1));
 	    					}
 	    					if(wcurrent < getWidle(devicePath) + acc) {
