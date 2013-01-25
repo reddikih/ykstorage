@@ -297,7 +297,7 @@ public class MAIDDataDiskStateManager {
 			logger.fine("[SPINDOWN]: " + devicePath);
 			long currentTime = System.currentTimeMillis();
 			setStandbyIntime(devicePath, currentTime);
-			setTidle(devicePath, currentTime - getIdleIntime(devicePath));
+//			setTidle(devicePath, currentTime - getIdleIntime(devicePath));	// XXX setはいらない??? setIdleInTimeは欲しい???
 			setIsSpindown(devicePath, true);
 			initJspindown();
 			return true;
@@ -588,7 +588,8 @@ public class MAIDDataDiskStateManager {
 					// IDLE時間閾値の変更 TODO 初期値を設定する
 					double wi = getWidle(devicePath);
 					double ws = getWstandby(devicePath);
-					long ts = getTstandby(devicePath);
+//					long ts = getTstandby(devicePath);
+					double ts = (double) getTstandby(devicePath) / 1000.0;
 					long ti = getTidle(devicePath);
 					double ju = getJspinup(devicePath);
 					double jd = getJspindown(devicePath);
@@ -618,8 +619,6 @@ public class MAIDDataDiskStateManager {
 							addTidle(devicePath, alpha);
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
-					} else {
-						logger.fine("[PROPOSAL2]: ts: " + ts);
 					}
 					
 					// IDLE時間閾値を超えたディスクをspindownさせる
