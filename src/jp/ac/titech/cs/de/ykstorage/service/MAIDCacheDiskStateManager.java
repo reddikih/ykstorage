@@ -140,8 +140,8 @@ public class MAIDCacheDiskStateManager {
 		Iterator<String> itr = accessCount.keySet().iterator();
 		while(itr.hasNext()) {
 			String key = itr.next();
-//			accessCount.put(key, 0);
-			accessCount.put(key, (int)(accessThreshold * ((double)interval / 1000.0)) + 1);
+			accessCount.put(key, 0);
+//			accessCount.put(key, (int)(accessThreshold * ((double)interval / 1000.0)) + 1);
 		}
 	}
 	
