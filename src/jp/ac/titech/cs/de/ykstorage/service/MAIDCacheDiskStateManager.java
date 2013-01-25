@@ -140,7 +140,8 @@ public class MAIDCacheDiskStateManager {
 		Iterator<String> itr = accessCount.keySet().iterator();
 		while(itr.hasNext()) {
 			String key = itr.next();
-			accessCount.put(key, 0);
+//			accessCount.put(key, 0);
+			accessCount.put(key, (int)(accessThreshold * ((double)interval / 1000.0)) + 1);
 		}
 	}
 	
@@ -293,6 +294,10 @@ public class MAIDCacheDiskStateManager {
 //		wdata[spindownIndex] += data;
 //	}
 	
+	private synchronized void initWdata(int index) {
+		wdata[index] = 0.0;
+	}
+	
 	private synchronized void avgWdata(int index, double data) {
 		if(wdata[index] == 0) {
 			wdata[index] += data;
@@ -353,6 +358,7 @@ public class MAIDCacheDiskStateManager {
 						}
 						logger.fine("[PROPOSAL1]: spinup " + spinupDevice);
 						spinup(spinupDevice);
+						initWdata(index);
 					}
 				}
 
