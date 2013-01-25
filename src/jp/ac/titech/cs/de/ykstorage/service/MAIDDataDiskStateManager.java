@@ -595,7 +595,7 @@ public class MAIDDataDiskStateManager {
 					double jd = getJspindown(devicePath);
 //					if(getWidle(devicePath) * getTidle(devicePath) * getWstandby(devicePath) * getTstandby(devicePath)
 //							* getJspinup(devicePath) * getJspindown(devicePath) != 0.0) {
-					if(wi * ws * (double) ts * ju * jd != 0.0) {
+					if(wi * ws * ts * ju * jd != 0.0) {
 						
 //						breakEvenTime(devicePath, getTstandby(devicePath));
 						
@@ -619,6 +619,8 @@ public class MAIDDataDiskStateManager {
 							addTidle(devicePath, alpha);
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
+					} else {
+						logger.fine("not [PROPOSAL2]: ts: " + ts + ", " + devicePath);
 					}
 					
 					// IDLE時間閾値を超えたディスクをspindownさせる
