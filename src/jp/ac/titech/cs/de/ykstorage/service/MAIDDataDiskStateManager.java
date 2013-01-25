@@ -117,6 +117,9 @@ public class MAIDDataDiskStateManager {
 	
 	private boolean minWup = false;
 	
+	private int spindownCount = 0;
+	private int spinupCount = 0;
+	
 	// add millisecond for proposal2
 	private long alpha = 10000;	// TODO Parameter. break even time
 	
@@ -269,7 +272,8 @@ public class MAIDDataDiskStateManager {
 		String[] cmdarray = {"ls", devicePath};
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
-			logger.fine("[SPINUP]: " + devicePath);
+			spinupCount++;
+			logger.fine("[SPINUP]: " + devicePath + "count: " + spinupCount);
 			long currentTime = System.currentTimeMillis();
 			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
 			setIsSpinup(devicePath, true);
@@ -294,7 +298,8 @@ public class MAIDDataDiskStateManager {
 		String[] hdparm = {"hdparm", "-y", devicePath};
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
-			logger.fine("[SPINDOWN]: " + devicePath);
+			spindownCount++;
+			logger.fine("[SPINDOWN]: " + devicePath + "count: " + spindownCount);
 			long currentTime = System.currentTimeMillis();
 			setStandbyIntime(devicePath, currentTime);
 //			setTidle(devicePath, currentTime - getIdleIntime(devicePath));	// XXX setはいらない??? setIdleInTimeは欲しい???
@@ -478,7 +483,7 @@ public class MAIDDataDiskStateManager {
 			logger.fine("addTidle: " + devicePath + ", " + 0);
 		} else {
 			tIdle.put(devicePath, tmp + time);
-			logger.fine("addTidle: " + devicePath + ", " + tmp + time + ", add: " + time);
+			logger.fine("addTidle: " + devicePath + ", " + tmp  + " + " + time);
 		}
 		
 		return result;
@@ -622,9 +627,10 @@ public class MAIDDataDiskStateManager {
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 						
-					} else {
-						logger.fine("not [PROPOSAL2]: ts: " + ts + ", ti: " + ti + ", ju: " + ju + ", jd: " + jd);
-					}
+					} 
+//					else {
+//						logger.fine("not [PROPOSAL2]: ts: " + ts + ", ti: " + ti + ", ju: " + ju + ", jd: " + jd);
+//					}
 					
 					// IDLE時間閾値を超えたディスクをspindownさせる
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&

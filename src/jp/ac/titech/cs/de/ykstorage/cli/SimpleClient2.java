@@ -21,6 +21,8 @@ public class SimpleClient2 {
 	private static final int keylIndex = 2;
 	private static final int valuelIndex = 3;
 	
+	static private double responseTime = 0.0;
+	
 	private StorageManager sm;
 
 	public SimpleClient2() {
@@ -55,7 +57,17 @@ public class SimpleClient2 {
 		String value = new String(byteVal);
 		return value;
 	}
-
+	
+	static public void response(long startTime, long endTime) {
+		if(responseTime == 0.0) {
+			responseTime = endTime - startTime;
+		} else {
+			responseTime += endTime - startTime;
+			responseTime /= 2.0;
+		}
+		
+		logger.fine("[Access] now: " + endTime + ", response time: " + responseTime);
+	}
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		int bufSize = 1024 * 1024 * 20;
@@ -118,7 +130,8 @@ public class SimpleClient2 {
 			}
 			
 			endTime = System.currentTimeMillis();
-			logger.fine("[Access] now: " + endTime + ", response time: " + (endTime - startTime));
+			
+			response(startTime, endTime);
 			
 			Thread.sleep(interval);
 		}

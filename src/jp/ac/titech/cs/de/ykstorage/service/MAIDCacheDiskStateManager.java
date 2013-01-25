@@ -330,7 +330,9 @@ public class MAIDCacheDiskStateManager {
 					// XXX 消費電力を用いてもいいかもしれない
 					double accesses = (double)getAccessCount(devicePath) / ((double)interval / 1000.0);
 					logger.fine("[PROPOSAL1]: " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
-					if (DiskState.IDLE.equals(getDiskState(devicePath)) && accesses < accessThreshold && getSpindownIndex() < numOfCacheDisks - 1) {
+					int index = getSpindownIndex();
+					if (DiskState.IDLE.equals(getDiskState(devicePath)) && accesses < accessThreshold
+							&& index < numOfCacheDisks - 1 && getWdata(index) != 0.0) {
 						logger.fine("[PROPOSAL1]: spindown " + devicePath);
 						spindown(devicePath);
 						break;	// 一度に複数台のディスクをspindownさせない
