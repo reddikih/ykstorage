@@ -620,8 +620,6 @@ public class MAIDDataDiskStateManager {
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 						
-						initJspindown();
-						initJspinup();
 					} else {
 						logger.fine("not [PROPOSAL2]: ts: " + ts + ", ti: " + ti + ", ju: " + ju + ", jd: " + jd);
 					}
@@ -633,6 +631,9 @@ public class MAIDDataDiskStateManager {
 						spindown(devicePath);
 					}
 				}
+				
+				initJspindown();
+				initJspinup();
 
 				try {
 					sleep(interval);
