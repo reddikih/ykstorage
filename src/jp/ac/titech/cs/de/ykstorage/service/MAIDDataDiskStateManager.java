@@ -273,7 +273,7 @@ public class MAIDDataDiskStateManager {
 			long currentTime = System.currentTimeMillis();
 			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
 			setIsSpinup(devicePath, true);
-			initJspinup();
+			initJspinup(devicePath);
 			return true;
 		}
 		setDiskState(devicePath, DiskState.STANDBY);
@@ -299,7 +299,7 @@ public class MAIDDataDiskStateManager {
 			setStandbyIntime(devicePath, currentTime);
 //			setTidle(devicePath, currentTime - getIdleIntime(devicePath));	// XXX setはいらない??? setIdleInTimeは欲しい???
 			setIsSpindown(devicePath, true);
-			initJspindown();
+			initJspindown(devicePath);
 			return true;
 		}
 		setDiskState(devicePath, DiskState.IDLE);
@@ -418,12 +418,13 @@ public class MAIDDataDiskStateManager {
 		return jSpinup.get(devicePath);
 	}
 	
-	private synchronized void initJspinup() {
-		Iterator<String> itr = jSpinup.keySet().iterator();
-		while(itr.hasNext()) {
-			String key = itr.next();
-			jSpinup.put(key, 0.0);
-		}
+	private synchronized void initJspinup(String devicePath) {
+//		Iterator<String> itr = jSpinup.keySet().iterator();
+//		while(itr.hasNext()) {
+//			String key = itr.next();
+//			jSpinup.put(key, 0.0);
+//		}
+		jSpinup.put(devicePath, 0.0);
 	}
 	
 	private synchronized boolean addJspindown(String devicePath, double data) {
@@ -441,12 +442,13 @@ public class MAIDDataDiskStateManager {
 		return jSpindown.get(devicePath);
 	}
 	
-	private synchronized void initJspindown() {
-		Iterator<String> itr = jSpindown.keySet().iterator();
-		while(itr.hasNext()) {
-			String key = itr.next();
-			jSpindown.put(key, 0.0);
-		}
+	private synchronized void initJspindown(String devicePath) {
+//		Iterator<String> itr = jSpindown.keySet().iterator();
+//		while(itr.hasNext()) {
+//			String key = itr.next();
+//			jSpindown.put(key, 0.0);
+//		}
+		jSpindown.put(devicePath, 0.0);
 	}
 	
 	private synchronized boolean setTidle(String devicePath, long time) {
