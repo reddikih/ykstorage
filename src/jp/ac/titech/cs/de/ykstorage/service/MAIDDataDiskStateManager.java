@@ -273,7 +273,7 @@ public class MAIDDataDiskStateManager {
 			long currentTime = System.currentTimeMillis();
 			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
 			setIsSpinup(devicePath, true);
-			initJspinup();
+//			initJspinup();
 			return true;
 		}
 		setDiskState(devicePath, DiskState.STANDBY);
@@ -299,7 +299,7 @@ public class MAIDDataDiskStateManager {
 			setStandbyIntime(devicePath, currentTime);
 //			setTidle(devicePath, currentTime - getIdleIntime(devicePath));	// XXX setはいらない??? setIdleInTimeは欲しい???
 			setIsSpindown(devicePath, true);
-			initJspindown();
+//			initJspindown();
 			return true;
 		}
 		setDiskState(devicePath, DiskState.IDLE);
@@ -619,6 +619,9 @@ public class MAIDDataDiskStateManager {
 							addTidle(devicePath, alpha);
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
+						
+						initJspindown();
+						initJspinup();
 					} else {
 						logger.fine("not [PROPOSAL2]: ts: " + ts + ", ti: " + ti + ", ju: " + ju + ", jd: " + jd);
 					}
