@@ -368,7 +368,7 @@ public class MAIDDataDiskStateManager {
 			result = false;
 		}
 		standbyIntimes.put(devicePath, time);
-		logger.fine("setStandbyIntime: " + devicePath + ", " + time);
+//		logger.fine("setStandbyIntime: " + devicePath + ", " + time);
 		return result;
 	}
 
@@ -384,7 +384,7 @@ public class MAIDDataDiskStateManager {
 			result = false;
 		}
 		wIdle.put(devicePath, data);
-		logger.fine("setWidle: " + devicePath + ", " + data);
+//		logger.fine("setWidle: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -399,7 +399,7 @@ public class MAIDDataDiskStateManager {
 			result = false;
 		}
 		wStandby.put(devicePath, data);
-		logger.fine("setWstandby: " + devicePath + ", " + data);
+//		logger.fine("setWstandby: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -414,7 +414,7 @@ public class MAIDDataDiskStateManager {
 			result = false;
 		}
 		jSpinup.put(devicePath, jSpinup.get(devicePath) + data);
-		logger.fine("addJspinup: " + devicePath + ", " + data);
+//		logger.fine("addJspinup: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -438,7 +438,7 @@ public class MAIDDataDiskStateManager {
 			result = false;
 		}
 		jSpindown.put(devicePath, jSpindown.get(devicePath) + data);
-		logger.fine("addJspindown: " + devicePath + ", " + data);
+//		logger.fine("addJspindown: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -462,7 +462,7 @@ public class MAIDDataDiskStateManager {
 			result = false;
 		}
 		tIdle.put(devicePath, time);
-		logger.fine("setTidle: " + devicePath + ", " + time);
+//		logger.fine("setTidle: " + devicePath + ", " + time);
 		return result;
 	}
 	
@@ -512,10 +512,10 @@ public class MAIDDataDiskStateManager {
 		long tmp = getTstandby(devicePath);
 		if(tmp == 0L) {
 			tStandby.put(devicePath, time + tmp);
-			logger.fine("avgTstandby: " + devicePath + ", " + time + tmp);
+//			logger.fine("avgTstandby: " + devicePath + ", " + time + tmp);
 		} else {
 			tStandby.put(devicePath, (time + tmp) / 2);
-			logger.fine("avgTstandby: " + devicePath + ", " + ((time + tmp) / 2));
+//			logger.fine("avgTstandby: " + devicePath + ", " + ((time + tmp) / 2));
 		}
 		return result;
 	}
@@ -526,7 +526,7 @@ public class MAIDDataDiskStateManager {
 			result = false;
 		}
 		isSpinup.put(devicePath, data);
-		logger.fine("setIsSpinup: " + devicePath + ", " + data);
+//		logger.fine("setIsSpinup: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -541,7 +541,7 @@ public class MAIDDataDiskStateManager {
 			result = false;
 		}
 		isSpindown.put(devicePath, data);
-		logger.fine("setIsSpindown: " + devicePath + ", " + data);
+//		logger.fine("setIsSpindown: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -723,7 +723,7 @@ public class MAIDDataDiskStateManager {
 	    					if(getIsSpindown(devicePath)) {
 	    						addJspindown(devicePath, rs.getDouble(i + 1));
 	    					}
-	    					if(((minWup) && (wcurrent < getWidle(devicePath) + acc)) || (getJspinup(devicePath) > 450.0)) {
+	    					if(((minWup) && (wcurrent < getWidle(devicePath) + acc + 0.4)) || (getJspinup(devicePath) > 450.0)) {
 	    						setIsSpinup(devicePath, false);
 	    						minWup = false;
 	    					}
