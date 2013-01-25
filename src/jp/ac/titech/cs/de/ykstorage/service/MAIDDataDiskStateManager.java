@@ -711,14 +711,14 @@ public class MAIDDataDiskStateManager {
 	    			while( rs.next() ){   // JDBCライクなカーソル処理により，１行ずつ処理結果を取得
 	    				int i = 0;
 	    				
-	    				wcurrent = rs.getDouble(i + 1);
+//	    				wcurrent = rs.getDouble(i + 1);
 //	    				if(!minWup) {
 //	    					minWup = (wcurrent > minWspinup)? true: false;
 //	    				}
 	    				
 	    				for (String devicePath : diskStates.keySet()) {
 	    					if(!minWup) {
-		    					minWup = (wcurrent > minWspinup)? true: false;
+		    					minWup = (rs.getDouble(i + 1) > minWspinup)? true: false;
 		    				}
 	    					if(getIsSpinup(devicePath)) {
 	    						addJspinup(devicePath, rs.getDouble(i + 1));
