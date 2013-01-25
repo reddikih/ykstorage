@@ -714,11 +714,11 @@ public class MAIDDataDiskStateManager {
 	    					if(getIsSpindown(devicePath)) {
 	    						addJspindown(devicePath, rs.getDouble(i + 1));
 	    					}
-	    					if(wcurrent < getWidle(devicePath) + acc) {
+	    					if(((minWup) && (wcurrent < getWidle(devicePath) + acc)) || (getJspinup(devicePath) > 450.0)) {
 	    						setIsSpinup(devicePath, false);
 	    						minWup = false;
 	    					}
-	    					if(wcurrent < getWstandby(devicePath) + acc) {
+	    					if((wcurrent < getWstandby(devicePath) + acc) || (getJspindown(devicePath) > 35.0)) {
 	    						setIsSpindown(devicePath, false);
 	    					}
 	    					i++;
