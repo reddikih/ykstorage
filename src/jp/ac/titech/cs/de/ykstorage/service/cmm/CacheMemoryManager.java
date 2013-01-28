@@ -103,20 +103,26 @@ public class CacheMemoryManager {
 			MemoryHeader deletedHeader = headerTable.remove(key);
 			int lrukey = lruKeys.remove(deletedHeader.getAccessedTime());
 			logger.fine(String.format("delete from cache memory. key id: %d lrukey: %d", key, lrukey));
-			logger.fine("deleted key: " + lruKeys.get(deletedHeader.getAccessedTime()) + "[ns]");
 			
-			if(lruKeys.firstEntry() != null) {
-			logger.fine("firstEntry key: " + lruKeys.firstEntry().getValue() + "[ns]");
-			if(key == lruKeys.firstEntry().getValue()) {
-				lruKeys.pollFirstEntry();
-				logger.fine("poll firstEntry key: " + lruKeys.firstEntry().getValue() + "[ns]");
+			if(lruKeys.containsValue(lrukey)) {
+				logger.fine("miss delete lrukey: " + lrukey);
+				System.exit(1);
 			}
 			
-			while(Value.NULL.equals(get(lruKeys.firstEntry().getValue()))) {
-				lruKeys.pollFirstEntry();
-				logger.fine("null poll firstEntry key: " + lruKeys.firstEntry().getValue() + "[ns]");
-			}
-			}
+//			if(lruKeys.firstEntry() != null) {
+//			logger.fine("firstEntry key: " + lruKeys.firstEntry().getValue() + "[ns]");
+//			if(key == lruKeys.firstEntry().getValue()) {
+//				lruKeys.pollFirstEntry();
+//				logger.fine("poll firstEntry key: " + lruKeys.firstEntry().getValue() + "[ns]");
+//			}
+//			
+//			while(Value.NULL.equals(get(lruKeys.firstEntry().getValue()))) {
+//				lruKeys.pollFirstEntry();
+//				logger.fine("null poll firstEntry key: " + lruKeys.firstEntry().getValue() + "[ns]");
+//			}
+//			}
+		} else {
+			logger.fine(key + " is null");
 		}
 		return deleted;
 	}
