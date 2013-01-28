@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.Value;
@@ -43,6 +44,7 @@ public class CacheMemoryManager {
 
 		this.memBuffer = ByteBuffer.allocateDirect(max);
 		this.headerTable = new HashMap<Integer, MemoryHeader>();
+//		this.headerTable = new ConcurrentHashMap<Integer, MemoryHeader>();
 		this.lruKeys = new TreeMap<Long, Integer>();
 	}
 
@@ -136,6 +138,8 @@ public class CacheMemoryManager {
 
 	public void compaction() {
 		boolean isFirst = true;
+		synchronized (headerTable) {
+			
 		if(headerTable.isEmpty()) {
 			memBuffer.rewind();
 		}
@@ -166,6 +170,7 @@ public class CacheMemoryManager {
 //			logger.fine(String.format(
 //					"migrated. fromPos: %d, toPos: %d, size: %d",
 //					oldPosition, currentPosition, header.getSize()));
+		}
 		}
 	}
 	
