@@ -35,6 +35,8 @@ public class MAIDStorageManager {
 		
 		if (Value.NULL.equals(value)) {
 			value = cachedm.get(innerKey);
+		} else {
+			return value.getValue();
 		}
 		
 		if (Value.NULL.equals(value)) {
