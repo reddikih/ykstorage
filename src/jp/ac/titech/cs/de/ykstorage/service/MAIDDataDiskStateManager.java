@@ -275,7 +275,8 @@ public class MAIDDataDiskStateManager {
 			spinupCount++;
 			logger.fine("[SPINUP]: " + devicePath + "count: " + spinupCount);
 			long currentTime = System.currentTimeMillis();
-			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
+//			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
+			setTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
 			setIsSpinup(devicePath, true);
 			initJspinup(devicePath);
 			return true;
@@ -489,14 +490,14 @@ public class MAIDDataDiskStateManager {
 		return result;
 	}
 	
-//	private synchronized boolean setTstandby(String devicePath, long data) {
-//		boolean result = true;
-//		if(!devicePathCheck(devicePath)) {
-//			result = false;
-//		}
-//		tStandby.put(devicePath, data);
-//		return result;
-//	}
+	private synchronized boolean setTstandby(String devicePath, long data) {
+		boolean result = true;
+		if(!devicePathCheck(devicePath)) {
+			result = false;
+		}
+		tStandby.put(devicePath, data);
+		return result;
+	}
 	
 	private synchronized long getTstandby(String devicePath) {
 		if(!devicePathCheck(devicePath)) return -1L;
@@ -628,6 +629,8 @@ public class MAIDDataDiskStateManager {
 							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 						
+						// 初期化
+						setTstandby(devicePath, 0L);
 					} 
 //					else {
 //						logger.fine("not [PROPOSAL2]: ts: " + ts + ", ti: " + ti + ", ju: " + ju + ", jd: " + jd);
@@ -639,6 +642,7 @@ public class MAIDDataDiskStateManager {
 						// TODO アイドル時間をログに出力
 						spindown(devicePath);
 					}
+					
 				}
 				
 				try {
