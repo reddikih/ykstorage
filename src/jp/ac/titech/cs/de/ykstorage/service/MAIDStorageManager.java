@@ -55,6 +55,15 @@ public class MAIDStorageManager {
 		// put value to cache disk.
 		if (!Value.NULL.equals(value)) {
 //			PutThread pt = new PutThread(CACHEMEM_AND_DISK, innerKey, value);
+			
+			// メモリにValueを書き込む
+			if (Value.NULL.equals(cmm.put(innerKey, value))) {
+				if(hasCapacity(value.getValue().length)) {
+					// LRU replacement on cache memory
+					Set<Map.Entry<Integer, Value>> replaces = cmm.replace(innerKey, value);
+				}
+			}
+			
 			PutThread pt = new PutThread(CACHEDISK, innerKey, value);
 			pt.start();
 		}

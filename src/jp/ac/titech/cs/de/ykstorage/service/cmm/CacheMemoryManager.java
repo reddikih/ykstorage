@@ -121,6 +121,7 @@ public class CacheMemoryManager {
 				if (!Value.NULL.equals(deleted))
 					replacedMap.put(replacedKey, deleted);
 			} else {
+				logger.fine("replace put: usage: " + usage + ", require: " + requireSize);
 				put(key, value);
 				break;
 			}
