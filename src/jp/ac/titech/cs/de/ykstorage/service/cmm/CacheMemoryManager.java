@@ -157,7 +157,15 @@ public class CacheMemoryManager {
 
 	private void updateLRUInfo(int key) {
 		MemoryHeader header = headerTable.get(key);
-		lruKeys.remove(header.getAccessedTime());
+		
+		if(lruKeys.containsKey(header.getAccessedTime())) {
+			int lrukey = lruKeys.remove(header.getAccessedTime());
+			if(lrukey != key) {
+				logger.fine("update LRU miss: key: " + key + ", lrukey: " + lrukey);
+				System.exit(1);
+			}
+		}
+		
 		long thisTime = System.nanoTime();
 		header.setAccessedTime(thisTime);
 		lruKeys.put(thisTime, key);
