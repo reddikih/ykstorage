@@ -105,6 +105,10 @@ public class CacheMemoryManager {
 			logger.fine(String.format("delete from cache memory. key id: %d lrukey: %d", key, lrukey));
 			logger.fine("deleted key: " + lruKeys.get(deletedHeader.getAccessedTime()) + "[ns]");
 			logger.fine("firstEntry key: " + lruKeys.firstEntry().getValue() + "[ns]");
+			if(key == lruKeys.firstEntry().getValue()) {
+				lruKeys.pollFirstEntry();
+				logger.fine("poll firstEntry key: " + lruKeys.firstEntry().getValue() + "[ns]");
+			}
 		}
 		return deleted;
 	}
