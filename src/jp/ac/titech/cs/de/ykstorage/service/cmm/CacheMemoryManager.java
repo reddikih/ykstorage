@@ -59,8 +59,16 @@ public class CacheMemoryManager {
 		}
 
 		long thisTime = System.nanoTime();
-		MemoryHeader header =
-			new MemoryHeader(memBuffer.position(), requireSize, thisTime);
+		
+		MemoryHeader header;
+		if(headerTable.containsKey(key)) {
+			MemoryHeader tmp = headerTable.get(key);
+			header = new MemoryHeader(memBuffer.position(), requireSize, tmp.getAccessedTime());
+		} else {
+			header = new MemoryHeader(memBuffer.position(), requireSize, thisTime);
+		}
+		
+		
 		headerTable.put(key, header);
 		memBuffer.put(value.getValue());
 
