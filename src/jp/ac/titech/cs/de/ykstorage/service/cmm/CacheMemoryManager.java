@@ -117,6 +117,7 @@ public class CacheMemoryManager {
 				Map.Entry<Long, Integer> lruKey = lruKeys.firstEntry();
 				assert lruKey != null;
 				int replacedKey = lruKey.getValue();
+				logger.fine("replace: replacedKey: " + replacedKey);
 				Value deleted = delete(replacedKey);
 				if (!Value.NULL.equals(deleted))
 					replacedMap.put(replacedKey, deleted);
