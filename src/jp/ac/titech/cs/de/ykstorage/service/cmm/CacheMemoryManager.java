@@ -104,8 +104,13 @@ public class CacheMemoryManager {
 			int lrukey = lruKeys.remove(deletedHeader.getAccessedTime());
 			logger.fine(String.format("delete from cache memory. key id: %d lrukey: %d", key, lrukey));
 			
+			
+			if(lruKeys.containsKey(deletedHeader.getAccessedTime())) {
+				logger.fine("containsKey miss delete lrukey: " + lrukey);
+				System.exit(1);
+			}
 			if(lruKeys.containsValue(lrukey)) {
-				logger.fine("miss delete lrukey: " + lrukey);
+				logger.fine("containsValue miss delete lrukey: " + lrukey);
 				System.exit(1);
 			}
 			
