@@ -717,19 +717,20 @@ public class MAIDDataDiskStateManager {
 //	    				}
 	    				
 	    				for (String devicePath : diskStates.keySet()) {
+	    					wcurrent = rs.getDouble(i + 1);
 	    					if(!minWup) {
 //		    					minWup = (rs.getDouble(i + 1) > minWspinup)? true: false;
-		    					minWup = (rs.getDouble(i + 1) > maxWidle)? true: false;
+		    					minWup = (wcurrent > maxWidle)? true: false;
 		    				}
 	    					if(getIsSpinup(devicePath)) {
-	    						addJspinup(devicePath, rs.getDouble(i + 1));
+	    						addJspinup(devicePath, wcurrent);
 	    					}
 	    					if(getIsSpindown(devicePath)) {
-	    						addJspindown(devicePath, rs.getDouble(i + 1));
+	    						addJspindown(devicePath, wcurrent);
 	    					}
 	    					
 	    					if(getJspinup(devicePath) > 200.0) {
-	    						logger.fine("over: wcurrent: " + wcurrent + "wIdle: " + getWidle(devicePath) + "minWup: " + minWup);
+	    						logger.fine("over: wcurrent: " + wcurrent + ", wIdle: " + getWidle(devicePath) + ", minWup: " + minWup);
 	    					}
 	    					
 	    					if(((minWup) && (wcurrent < getWidle(devicePath) + acc + 0.4)) || (getJspinup(devicePath) > 450.0)) {
