@@ -65,7 +65,7 @@ public class CacheMemoryManager {
 		memBuffer.put(value.getValue());
 
 		// update access time for LRU
-		updateLRUInfo(key);
+		updateLRUInfo(key, thisTime);
 
 		logger.fine(String.format(
 				"put on cache memory. key id: %d, val pos: %d, size: %d, time: %d",
@@ -88,7 +88,8 @@ public class CacheMemoryManager {
 		Value value = new Value(byteVal);
 
 		// update access time for LRU
-		updateLRUInfo(key);
+		long thisTime = System.nanoTime();
+		updateLRUInfo(key, thisTime);
 
 		long accessedTime = headerTable.get(key).getAccessedTime();
 		logger.fine(String.format("get from cache memory. key id: %d, time: %d",
@@ -104,6 +105,10 @@ public class CacheMemoryManager {
 			int lrukey = lruKeys.remove(deletedHeader.getAccessedTime());
 			logger.fine(String.format("delete from cache memory. key id: %d lrukey: %d", key, lrukey));
 			
+			if(lrukey != key) {
+				logger.fine("delete miss: key: " + key + ", lrukey: " + lrukey);
+				System.exit(1);
+			}
 			
 			if(lruKeys.containsKey(deletedHeader.getAccessedTime())) {
 				logger.fine("containsKey miss delete lrukey: " + lrukey);
@@ -155,7 +160,7 @@ public class CacheMemoryManager {
 		return replacedMap.entrySet();
 	}
 
-	private void updateLRUInfo(int key) {
+	private void updateLRUInfo(int key, long thisTime) {
 		MemoryHeader header = headerTable.get(key);
 		
 		if(lruKeys.containsKey(header.getAccessedTime())) {
@@ -166,7 +171,7 @@ public class CacheMemoryManager {
 			}
 		}
 		
-		long thisTime = System.nanoTime();
+//		long thisTime = System.nanoTime();
 		header.setAccessedTime(thisTime);
 		lruKeys.put(thisTime, key);
 	}
