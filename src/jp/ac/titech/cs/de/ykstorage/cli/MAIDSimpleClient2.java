@@ -21,7 +21,7 @@ public class MAIDSimpleClient2 {
 	private static final int keylIndex = 2;
 	private static final int valuelIndex = 3;
 	
-	private double responseTime = 0.0;
+	private long responseTime = 0L;
 	
 	private MAIDStorageManager sm;
 	private Logger logger = StorageLogger.getLogger();
@@ -142,19 +142,14 @@ public class MAIDSimpleClient2 {
 			
 			endTime = System.currentTimeMillis();
 			
-			if(responseTime == 0.0) {
-				responseTime = endTime - startTime;
-			} else {
-				responseTime += endTime - startTime;
-				responseTime /= 2.0;
-			}
-			
-			logger.fine("[Access] now: " + endTime + ", response avg time(millisecond): " + responseTime);
+			responseTime += endTime - startTime;
 			
 			Thread.sleep(interval);
 		}
 		
+		logger.fine("[Access] response time(millisecond): " + responseTime);
 		br.close();
+		
 		System.out.println("finished");
 		logger.fine("MAIDSimpleClient [END]: " + System.currentTimeMillis());
 	}

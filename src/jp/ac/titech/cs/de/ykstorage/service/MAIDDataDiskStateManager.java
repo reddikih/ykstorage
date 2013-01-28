@@ -718,7 +718,8 @@ public class MAIDDataDiskStateManager {
 	    				
 	    				for (String devicePath : diskStates.keySet()) {
 	    					if(!minWup) {
-		    					minWup = (rs.getDouble(i + 1) > minWspinup)? true: false;
+//		    					minWup = (rs.getDouble(i + 1) > minWspinup)? true: false;
+		    					minWup = (rs.getDouble(i + 1) > maxWidle)? true: false;
 		    				}
 	    					if(getIsSpinup(devicePath)) {
 	    						addJspinup(devicePath, rs.getDouble(i + 1));
@@ -726,6 +727,11 @@ public class MAIDDataDiskStateManager {
 	    					if(getIsSpindown(devicePath)) {
 	    						addJspindown(devicePath, rs.getDouble(i + 1));
 	    					}
+	    					
+	    					if(getJspinup(devicePath) > 200.0) {
+	    						logger.fine("over: wcurrent: " + wcurrent + "wIdle: " + getWidle(devicePath) + "minWup: " + minWup);
+	    					}
+	    					
 	    					if(((minWup) && (wcurrent < getWidle(devicePath) + acc + 0.4)) || (getJspinup(devicePath) > 450.0)) {
 	    						setIsSpinup(devicePath, false);
 	    						minWup = false;
