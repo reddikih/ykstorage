@@ -10,7 +10,8 @@ import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 public class MAIDStorageManager {
 	private static final int CACHEMEM = 0;
 	private static final int CACHEMEM_AND_DISK = 1;
-	private static final int DATADISK = 2;
+	private static final int CACHEDISK = 2;
+	private static final int DATADISK = 3;
 	private static final long TIMEOUT = 10000;
 
 	private CacheMemoryManager cmm;
@@ -39,14 +40,22 @@ public class MAIDStorageManager {
 		if (Value.NULL.equals(value)) {
 			value = datadm.get(innerKey);
 		}else {
-			PutThread pt = new PutThread(CACHEMEM, innerKey, value);
-			pt.start();
+//			PutThread pt = new PutThread(CACHEMEM, innerKey, value);
+//			pt.start();
+			// メモリにValueを書き込む
+			if (Value.NULL.equals(cmm.put(innerKey, value))) {
+				if(hasCapacity(value.getValue().length)) {
+					// LRU replacement on cache memory
+					Set<Map.Entry<Integer, Value>> replaces = cmm.replace(innerKey, value);
+				}
+			}
 			return value.getValue();
 		}
 		
 		// put value to cache disk.
 		if (!Value.NULL.equals(value)) {
-			PutThread pt = new PutThread(CACHEMEM_AND_DISK, innerKey, value);
+//			PutThread pt = new PutThread(CACHEMEM_AND_DISK, innerKey, value);
+			PutThread pt = new PutThread(CACHEDISK, innerKey, value);
 			pt.start();
 		}
 		
@@ -158,6 +167,9 @@ public class MAIDStorageManager {
 //						}
 					}
 				}
+				cachedm.put(key, value);
+				break;
+			case CACHEDISK:
 				cachedm.put(key, value);
 				break;
 			case DATADISK:
