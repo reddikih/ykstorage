@@ -101,8 +101,8 @@ public class CacheMemoryManager {
 		Value deleted = get(key);
 		if (!Value.NULL.equals(deleted)) {
 			MemoryHeader deletedHeader = headerTable.remove(key);
-			lruKeys.remove(deletedHeader.getAccessedTime());
-			logger.fine(String.format("delete from cache memory. key id: %d", key));
+			int lrukey = lruKeys.remove(deletedHeader.getAccessedTime());
+			logger.fine(String.format("delete from cache memory. key id: %d lrukey: %d", key, lrukey));
 		}
 		return deleted;
 	}
@@ -140,8 +140,7 @@ public class CacheMemoryManager {
 
 	public void compaction() {
 		boolean isFirst = true;
-		synchronized (headerTable) {
-			
+
 		if(headerTable.isEmpty()) {
 			memBuffer.rewind();
 		}
@@ -172,7 +171,6 @@ public class CacheMemoryManager {
 //			logger.fine(String.format(
 //					"migrated. fromPos: %d, toPos: %d, size: %d",
 //					oldPosition, currentPosition, header.getSize()));
-		}
 		}
 	}
 	
