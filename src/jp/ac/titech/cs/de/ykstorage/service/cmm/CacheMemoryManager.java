@@ -101,11 +101,9 @@ public class CacheMemoryManager {
 		Value deleted = get(key);
 		if (!Value.NULL.equals(deleted)) {
 			MemoryHeader deletedHeader = headerTable.remove(key);
-			synchronized (lruKeys) {
 			int lrukey = lruKeys.remove(deletedHeader.getAccessedTime());
-			
 			logger.fine(String.format("delete from cache memory. key id: %d lrukey: %d", key, lrukey));
-			}
+			logger.fine("deleted key: " + lruKeys.get(deletedHeader.getAccessedTime()) + "[ns]");
 		}
 		return deleted;
 	}
@@ -117,7 +115,6 @@ public class CacheMemoryManager {
 			int usage = memBuffer.capacity() - memBuffer.remaining();
 			int requireSize = value.getValue().length;
 			if (this.limit < usage + requireSize) {
-				synchronized (lruKeys) {
 				Map.Entry<Long, Integer> lruKey = lruKeys.firstEntry();
 				assert lruKey != null;
 				int replacedKey = lruKey.getValue();
@@ -125,7 +122,6 @@ public class CacheMemoryManager {
 				Value deleted = delete(replacedKey);
 				if (!Value.NULL.equals(deleted))
 					replacedMap.put(replacedKey, deleted);
-				}
 			} else {
 				logger.fine("replace put: usage: " + usage + ", require: " + requireSize);
 				put(key, value);
