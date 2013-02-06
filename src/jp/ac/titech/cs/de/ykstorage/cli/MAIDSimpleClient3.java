@@ -163,6 +163,9 @@ public class MAIDSimpleClient3 {
 		
 		sc.end();
 		
+		MAIDSimpleClient3 sc2 = new MAIDSimpleClient3();
+		sc2.loadWorkload(sc2, args[1]);
+		
 //		sc.loadWorkload(sc, WORKLOAD_PATH[0]);
 //		
 //		Thread.sleep(1000);
