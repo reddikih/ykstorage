@@ -2,9 +2,9 @@ package jp.ac.titech.cs.de.ykstorage.service.cmm;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.Value;
@@ -23,53 +23,70 @@ public class CacheMemoryManager {
 	 * key: data key
 	 * value: MemoryHeader object
 	 */
-	private Map<Integer, MemoryHeader> headerTable;
-
+	private LinkedHashMap<Integer, MemoryHeader> headerTable;
+	
 	/**
-	 * This map folds access time information for the LRU algorithm
-	 * key: last accessed time of the value (nanosecond)
-	 * value: data key
+	 * key: data key
+	 * value: deleted value
 	 */
-	private TreeMap<Long, Integer> lruKeys;
+	public Map<Integer, Value> deletedMap;
 
-	public CacheMemoryManager(int max, double threshold) {
+	public CacheMemoryManager(long max, double threshold) {
 		if (threshold < 0 || threshold > 1.0)
 			throw new IllegalArgumentException("threshold must be in range 0 to 1.0.");
+		if (max < 0 || max > Integer.MAX_VALUE)
+			throw new IllegalArgumentException("max must be in range 0 to Integer.MAX_VALUE.");
 
-		this.max = max;
+		this.max = (int)max;
 		this.limit = (int)Math.floor(max * threshold);
+		this.memBuffer = ByteBuffer.allocateDirect(this.max);
+		
 		logger.fine(String.format("cache memory max capacity : %d[Bytes]", this.max));
 		logger.fine(String.format("cache memory threshold    : %d[Bytes]", this.limit));
-
-		this.memBuffer = ByteBuffer.allocateDirect(max);
-		this.headerTable = new HashMap<Integer, MemoryHeader>();
-		this.lruKeys = new TreeMap<Long, Integer>();
+		
+		this.headerTable = new LinkedHashMap<Integer, MemoryHeader>();
+		this.deletedMap = new HashMap<Integer, Value>();
 	}
 
 	public Value put(int key, Value value) {
 		int usage = memBuffer.capacity() - memBuffer.remaining();
 		int requireSize = value.getValue().length;
-		if (this.limit < usage + requireSize) {
-			logger.fine(String.format(
-					"cache memory overflow. key id: %d, require size: %d[B], available: %d[B]",
-					key, requireSize, memBuffer.remaining()));
+		
+		assert(usage==memBuffer.position());
+		
+		if(this.limit < requireSize) {
 			return Value.NULL;
 		}
-
+		
+		while(this.limit < usage + requireSize) {
+			boolean result = lru();
+			assert(result!=false);
+			usage = memBuffer.capacity() - memBuffer.remaining();
+		}
+		
 		long thisTime = System.nanoTime();
 		MemoryHeader header =
-			new MemoryHeader(memBuffer.position(), requireSize, thisTime);
+			new MemoryHeader(memBuffer.position(), requireSize);
 		headerTable.put(key, header);
 		memBuffer.put(value.getValue());
-
-		// update access time for LRU
-		updateLRUInfo(key);
 
 		logger.fine(String.format(
 				"put on cache memory. key id: %d, val pos: %d, size: %d, time: %d",
 				key, header.getPosition(), requireSize, thisTime));
 
 		return value;
+	}
+	
+	private boolean lru() {
+		Value value = Value.NULL;
+		Iterator<Integer> itr = headerTable.keySet().iterator();
+		
+		if(itr.hasNext()) {
+			int key = itr.next();
+			value = delete(key);
+		}
+		
+		return !Value.NULL.equals(value);
 	}
 
 	public Value get(int key) {
@@ -84,13 +101,11 @@ public class CacheMemoryManager {
 		memBuffer.position(currentPos);
 
 		Value value = new Value(byteVal);
-
-		// update access time for LRU
-		updateLRUInfo(key);
-
-		long accessedTime = headerTable.get(key).getAccessedTime();
+		
+		long thisTime = System.nanoTime();
+		headerTable.put(key, headerTable.remove(key));
 		logger.fine(String.format("get from cache memory. key id: %d, time: %d",
-									key, accessedTime));
+									key, thisTime));
 
 		return value;
 	}
@@ -98,94 +113,56 @@ public class CacheMemoryManager {
 	public Value delete(int key) {
 		Value deleted = get(key);
 		if (!Value.NULL.equals(deleted)) {
-			MemoryHeader deletedHeader = headerTable.remove(key);
-			lruKeys.remove(deletedHeader.getAccessedTime());
+			headerTable.remove(key);
+			
 			logger.fine(String.format("delete from cache memory. key id: %d", key));
-		}
-		return deleted;
-	}
-
-	public Set<Map.Entry<Integer,Value>> replace(int key, Value value) {
-		Map<Integer, Value> replacedMap = new HashMap<Integer, Value>();
-		while (true) {
-			compaction();
-			int usage = memBuffer.capacity() - memBuffer.remaining();
-			int requireSize = value.getValue().length;
-			if (this.limit < usage + requireSize) {
-				Map.Entry<Long, Integer> lruKey = lruKeys.firstEntry();
-				assert lruKey != null;
-				int replacedKey = lruKey.getValue();
-				Value deleted = delete(replacedKey);
-				if (!Value.NULL.equals(deleted))
-					replacedMap.put(replacedKey, deleted);
-			} else {
-				put(key, value);
-				break;
+			
+			boolean isFirst = true;
+			if(headerTable.isEmpty()) {
+				memBuffer.rewind();
 			}
-		}
-		return replacedMap.entrySet();
-	}
-
-	private void updateLRUInfo(int key) {
-		MemoryHeader header = headerTable.get(key);
-		lruKeys.remove(header.getAccessedTime());
-		long thisTime = System.nanoTime();
-		header.setAccessedTime(thisTime);
-		lruKeys.put(thisTime, key);
-	}
-
-	public void compaction() {
-		boolean isFirst = true;
-		if(headerTable.isEmpty()) {
-			memBuffer.rewind();
-		}
-		for (MemoryHeader header : headerTable.values()) {
-			if (isFirst) {
+			for (MemoryHeader header : headerTable.values()) {
+				if (isFirst) {
+					int oldPosition = header.getPosition();
+					byte[] byteVal = new byte[header.getSize()];
+					memBuffer.position(oldPosition);
+					memBuffer.get(byteVal, 0, header.getSize());
+					memBuffer.rewind();
+					int newPosition = memBuffer.position();
+					memBuffer.put(byteVal);
+					header.setPosition(newPosition);
+//					logger.fine(String.format(
+//							"migrated. fromPos: %d, toPos: %d, size: %d",
+//							oldPosition, newPosition, header.getSize()));
+					isFirst = false;
+					continue;
+				}
+				int currentPosition = memBuffer.position();
 				int oldPosition = header.getPosition();
 				byte[] byteVal = new byte[header.getSize()];
 				memBuffer.position(oldPosition);
 				memBuffer.get(byteVal, 0, header.getSize());
-				memBuffer.rewind();
-				int newPosition = memBuffer.position();
+				memBuffer.position(currentPosition);
 				memBuffer.put(byteVal);
-				header.setPosition(newPosition);
-				logger.fine(String.format(
-						"migrated. fromPos: %d, toPos: %d, size: %d",
-						oldPosition, newPosition, header.getSize()));
-				isFirst = false;
-				continue;
+				header.setPosition(currentPosition);
+//				logger.fine(String.format(
+//						"migrated. fromPos: %d, toPos: %d, size: %d",
+//						oldPosition, currentPosition, header.getSize()));
 			}
-			int currentPosition = memBuffer.position();
-			int oldPosition = header.getPosition();
-			byte[] byteVal = new byte[header.getSize()];
-			memBuffer.position(oldPosition);
-			memBuffer.get(byteVal, 0, header.getSize());
-			memBuffer.position(currentPosition);
-			memBuffer.put(byteVal);
-			header.setPosition(currentPosition);
-			logger.fine(String.format(
-					"migrated. fromPos: %d, toPos: %d, size: %d",
-					oldPosition, currentPosition, header.getSize()));
+			
+			deletedMap.put(key, deleted);
 		}
-	}
-	
-	public boolean hasCapacity(int size) {
-		if((this.max == 0) || (this.max < size)) {
-			return false;
-		}
-		return true;
+		return deleted;
 	}
 
 	class MemoryHeader {
 
 		private int position;
 		private int size;
-		private long accessedTime;
 
-		public MemoryHeader(int position, int size, long accessedTime) {
+		public MemoryHeader(int position, int size) {
 			this.position = position;
 			this.size = size;
-			this.accessedTime = accessedTime;
 		}
 
 		public int getPosition() {
@@ -202,14 +179,6 @@ public class CacheMemoryManager {
 
 		public void setSize(int size) {
 			this.size = size;
-		}
-
-		public long getAccessedTime() {
-			return accessedTime;
-		}
-
-		public void setAccessedTime(long accessedTime) {
-			this.accessedTime = accessedTime;
 		}
 	}
 }
