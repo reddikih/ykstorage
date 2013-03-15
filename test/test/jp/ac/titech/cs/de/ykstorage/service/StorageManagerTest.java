@@ -3,102 +3,132 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
-import java.io.File;
-import java.util.Arrays;
-
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.experimental.runners.Enclosed;
 
-@RunWith(JUnit4.class)
+@RunWith(Enclosed.class)
 public class StorageManagerTest {
+	
+	static String key1 = "key1";
+	static byte[] value1 = new byte[]{1,2,3};
+	static String key2 = "key2";
+	static byte[] value2 = new byte[]{4,5,6};
+	static String key3 = "key3";
+	static byte[] value3 = new byte[]{7,8,9,10,11,12};
+	static String key4 = "key4";
+	static byte[] value4 = new byte[]{1,2,3,4,5,6,7,8,9,10,11,12};
+	
+	public static class Memory0Byte {
+		StorageManager sm;
+		
+		@Before
+		public void setUp() {
+			long cmmMax = 0L;
+			double threshold = 0.0;
+			CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
+			
+			DiskManager dm = new DiskManager(
+					Parameter.DATA_DISK_PATHS,
+					Parameter.DATA_DISK_SAVE_FILE_PATH,
+					Parameter.MOUNT_POINT_PATHS,
+					Parameter.SPIN_DOWN_THRESHOLD);
 
-	private StorageManager sm;
-
-	@Before
-	public void setUpClass() {
-		int cmmMax = 10;
-		double threshold = 1.0;
-		CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
-
-		DiskManager dm = new DiskManager(
-				Parameter.DATA_DISK_PATHS,
-				Parameter.DATA_DISK_SAVE_FILE_PATH,
-				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD);
-
-		this.sm = new StorageManager(cmm, dm);
+			this.sm = new StorageManager(cmm, dm);
+		}
+		
+		@Test
+		public void putTest() {
+			boolean actual = sm.put(key1, value1);
+			assertThat(actual, is(true));
+		}
+		
+		@Test
+		public void getTest() {
+			sm.put(key1, value1);
+			
+			byte[] actual = sm.get(key1);
+			assertThat(actual, is(value1));
+		}
 	}
+	
+	public static class Memory10Byte {
+		StorageManager sm;
+		
+		@Before
+		public void setUp() {
+			long cmmMax = 10L;
+			double threshold = 0.0;
+			CacheMemoryManager cmm = new CacheMemoryManager(cmmMax, threshold);
+			
+			DiskManager dm = new DiskManager(
+					Parameter.DATA_DISK_PATHS,
+					Parameter.DATA_DISK_SAVE_FILE_PATH,
+					Parameter.MOUNT_POINT_PATHS,
+					Parameter.SPIN_DOWN_THRESHOLD);
 
-	@Test
-	public void testPutAndGetOnCacheMemory() {
-		String key1 = "key1";
-		String key2 = "key2";
-		byte[] value1 = {1,2,3};
-		byte[] value2 = {4,5,6};
-		sm.put(key1, value1);
-		sm.put(key2, value2);
-		assertTrue(Arrays.equals(value1, sm.get(key1)));
-		assertTrue(Arrays.equals(value2, sm.get(key2)));
-
+			this.sm = new StorageManager(cmm, dm);
+		}
+		
+		@Test
+		public void putTest() {
+			boolean actual = sm.put(key1, value1);
+			assertThat(actual, is(true));
+			
+			actual = sm.put(key2, value2);
+			assertThat(actual, is(true));
+		}
+		
+		@Test
+		public void getTest() {
+			sm.put(key1, value1);
+			sm.put(key2, value2);
+			
+			byte[] actual = sm.get(key1);
+			assertThat(actual, is(value1));
+			
+			actual = sm.get(key2);
+			assertThat(actual, is(value2));
+		}
+		
 		// Write key3 to cache memeory due to LRU algorithm.
 		// In this case, replaced key is key1.
 		// TODO We should check the key1 was replaced.
-		String key3 = "key3";
-		byte[] value3 = {7,8,9,10,11};
-		assertThat(sm.put(key3, value3), is(true));
-		assertThat((Arrays.equals(value3, sm.get(key3))), is(true));
-		assertThat((Arrays.equals(value2, sm.get(key2))), is(true));
-		assertThat((Arrays.equals(value1, sm.get(key1))), is(true));
-	}
-	
-	@Test
-	public void zeroCapacityTest() {
-		int cmmMax = 0;
-		double threshold = 1.0;
-		CacheMemoryManager cmm2 = new CacheMemoryManager(cmmMax, threshold);
-
-		DiskManager dm2 = new DiskManager(
-				Parameter.DATA_DISK_PATHS,
-				Parameter.DATA_DISK_SAVE_FILE_PATH,
-				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD);
-
-		StorageManager sm2 = new StorageManager(cmm2, dm2);
+		@Test
+		public void lruOnMemoryTest() {
+			sm.put(key1, value1);
+			sm.put(key2, value2);
+			sm.put(key3, value3);
+			
+			byte[] actual = sm.get(key1);
+			assertThat(actual, is(value1));
+			
+			actual = sm.get(key2);
+			assertThat(actual, is(value2));
+			
+			actual = sm.get(key3);
+			assertThat(actual, is(value3));
+		}
 		
-		String key1 = "key1";
-		byte[] value1 = {1,2,3};
+		@Test
+		public void largeSizePutTest() {
+			boolean actual = sm.put(key4, value4);
+			assertThat(actual, is(true));
+		}
 		
-		assertThat(sm2.put(key1, value1), is(true));
-		assertThat(sm2.get(key1), is(value1));
-	}
-	
-	@Test
-	public void largeSizeTest() {
-		String key1 = "key1";
-		String key2 = "key2";
-		byte[] value1 = {1,2,3};
-		byte[] value2 = {1,2,3,4,5,6,7,8,9,0};
-		
-		assertThat(sm.put(key1, value1), is(true));
-		assertThat(sm.put(key2, value2), is(true));
-		assertThat(sm.get(key1), is(value1));
-		assertThat(sm.get(key2), is(value2));
-	}
-
-	@After
-	public void teardown() {
-		for(String path : Parameter.DATA_DISK_PATHS) {
-			File f = new File(path);
-			f.delete();
+		@Test
+		public void largeSizeGetTest() {
+			sm.put(key4, value4);
+			
+			byte[] actual = sm.get(key4);
+			assertThat(actual, is(value4));
 		}
 	}
-
+	
 }
