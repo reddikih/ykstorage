@@ -3,14 +3,11 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.io.File;
-
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
-import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,9 +32,9 @@ public class DiskManagerTest {
 		public void setUp() {
 			this.dm = new DiskManager(
 					Parameter.DATA_DISK_PATHS,
-					Parameter.DATA_DISK_SAVE_FILE_PATH,
 					Parameter.MOUNT_POINT_PATHS,
-					Parameter.SPIN_DOWN_THRESHOLD);
+					Parameter.SPIN_DOWN_THRESHOLD,
+					false);
 		}
 		
 		@Test
@@ -63,9 +60,9 @@ public class DiskManagerTest {
 		public void setUp() {
 			this.dm = new DiskManager(
 					Parameter.DATA_DISK_PATHS,
-					Parameter.DATA_DISK_SAVE_FILE_PATH,
 					Parameter.MOUNT_POINT_PATHS,
-					Parameter.SPIN_DOWN_THRESHOLD);
+					Parameter.SPIN_DOWN_THRESHOLD,
+					false);
 		}
 		
 		@Test
@@ -110,9 +107,9 @@ public class DiskManagerTest {
 		public void setUp() {
 			this.dm = new DiskManager(
 					Parameter.DATA_DISK_PATHS,
-					Parameter.DATA_DISK_SAVE_FILE_PATH,
 					Parameter.MOUNT_POINT_PATHS,
-					Parameter.SPIN_DOWN_THRESHOLD);
+					Parameter.SPIN_DOWN_THRESHOLD,
+					false);
 		}
 		
 		@Test
@@ -138,9 +135,9 @@ public class DiskManagerTest {
 		public void setUp() {
 			this.dm = new DiskManager(
 					Parameter.DATA_DISK_PATHS,
-					Parameter.DATA_DISK_SAVE_FILE_PATH,
 					Parameter.MOUNT_POINT_PATHS,
-					Parameter.SPIN_DOWN_THRESHOLD);
+					Parameter.SPIN_DOWN_THRESHOLD,
+					true);
 			
 			dm.put(key, value);
 			dm.put(key2, value2);
@@ -157,18 +154,12 @@ public class DiskManagerTest {
 			dm.end();
 			DiskManager dm2 = new DiskManager(
 					Parameter.DATA_DISK_PATHS,
-					Parameter.DATA_DISK_SAVE_FILE_PATH,
 					Parameter.MOUNT_POINT_PATHS,
-					Parameter.SPIN_DOWN_THRESHOLD);
+					Parameter.SPIN_DOWN_THRESHOLD,
+					true);
 			
 			Value actual = dm2.get(key);
 			assertThat(actual, is(value));
-		}
-		
-		@After
-		public void teardown() {
-			File f = new File(Parameter.DATA_DISK_SAVE_FILE_PATH);
-			f.delete();
 		}
 	}
 	
@@ -179,9 +170,9 @@ public class DiskManagerTest {
 		public void setUp() {
 			this.dm = new DiskManager(
 					Parameter.DATA_DISK_PATHS,
-					Parameter.DATA_DISK_SAVE_FILE_PATH,
 					Parameter.MOUNT_POINT_PATHS,
-					Parameter.SPIN_DOWN_THRESHOLD);
+					Parameter.SPIN_DOWN_THRESHOLD,
+					false);
 		}
 		
 		@Test

@@ -15,10 +15,10 @@ import java.util.TreeMap;
 public class Parameter {
 
 	/**
-	 * Debug flag
+	 * whether to persist data
 	 */
-	public static final boolean DEBUG = true;
-
+	public static final boolean PERSISTENCE = false;
+	
 	/**
 	 * Capacity of cache memory. It's unit is byte.
 	 */
@@ -100,8 +100,6 @@ public class Parameter {
 		// above code generate data disk paths like follows:
 		//  /dev/sdb, /dev/sdc, ...
 	}
-
-	public static final String DATA_DISK_SAVE_FILE_PATH = "./datamap";
 
 	/**
 	 * Logger name of this system.

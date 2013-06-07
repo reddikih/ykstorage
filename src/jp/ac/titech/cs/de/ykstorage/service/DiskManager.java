@@ -22,13 +22,17 @@ import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
+// TODO MAIDDataDiskManagerの修正を適用する
+
 public class DiskManager {
+	private static final String SAVE_FILE_PATH = "file.map";
+	
 	private Logger logger = StorageLogger.getLogger();
 	private StateManager sm;
-
-	private String[] diskpaths;
-	private String savePath;
+	private String[] dataDiskPaths;
+	private boolean persistence;
 	
+	// TODO dataDiskDevicesに変更
 	/**
 	 * key: disk path on file system
 	 * value: device file path
@@ -43,21 +47,23 @@ public class DiskManager {
 	
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 
+	// TODO savePathを削除
 	public DiskManager(
 			String[] diskpaths,
-			String savePath,
 			SortedMap<String, String> mountPointPaths,
-			double spinDownThreshold) {
-		this.diskpaths = diskpaths;
-		this.savePath = savePath;
+			double spinDownThreshold,
+			boolean persistence) {
+		
+		this.dataDiskPaths = diskpaths;
 		this.mountPointPaths = mountPointPaths;
+		this.persistence = persistence;
 
 //		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
-		ArrayList<String> devices = new ArrayList<String>();
+		ArrayList<String> dataDiskDevices = new ArrayList<String>();
 		for(String diskpath : diskpaths) {
-			devices.add(mountPointPaths.get(diskpath));
+			dataDiskDevices.add(mountPointPaths.get(diskpath));
 		}
-		this.sm = new StateManager(devices, spinDownThreshold);
+		this.sm = new StateManager(dataDiskDevices, spinDownThreshold);
 
 		init();
 		this.sm.start();
@@ -75,12 +81,13 @@ public class DiskManager {
 		return remove(key);
 	}
 
+	// TODO ワークロード終了時に必ず呼び出す
 	public void end() {
 		saveHashMap();
 	}
 
 	private void init() {
-		for (String path : diskpaths) {
+		for (String path : dataDiskPaths) {
 			File f = new File(path);
 			if(!f.exists() || !f.isDirectory()) {
 				if(!f.mkdirs()) {
@@ -89,10 +96,13 @@ public class DiskManager {
 				logger.fine("[MKDIR]: " + path);
 			}
 		}
-
+		
 		loadHashMap();
 	}
 
+	// TODO getDiskState() 
+	// MAIDか提案手法で利用する?
+	// 引数がdevicePathの方はいらなそう
 	public DiskState getDiskState(String devicePath) {
 		//String devicePath = mountPointPaths.get(diskPath);
 		//return sm.getDiskState(devicePath);
@@ -116,8 +126,8 @@ public class DiskManager {
 
 	private void loadHashMap() {
 		try {
-			File f = new File(savePath);
-			if(!f.isFile()) {
+			File f = new File(SAVE_FILE_PATH);
+			if(!f.isFile() || !persistence) {
 				return;
 			}
 			BufferedReader br = new BufferedReader(new FileReader(f));
@@ -141,7 +151,10 @@ public class DiskManager {
 
 	private void saveHashMap() {
 		try {
-			File f = new File(savePath);
+			File f = new File(SAVE_FILE_PATH);
+			if(!persistence) {
+				f.deleteOnExit();
+			}
 			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
 
 			Iterator<Integer> keys = keyFileMap.keySet().iterator();
@@ -175,9 +188,9 @@ public class DiskManager {
 	}
 
 	private String roundRobin(int key) {
-		String filepath = diskpaths[diskIndex] + key;
+		String filepath = dataDiskPaths[diskIndex] + key;
 		diskIndex++;
-		if(diskIndex > diskpaths.length - 1) {
+		if(diskIndex > dataDiskPaths.length - 1) {
 			diskIndex = 0;
 		}
 		return filepath;
@@ -192,6 +205,14 @@ public class DiskManager {
 //			}
 //		}
 //		return -1;
+//	}
+	
+//	private boolean isStandby(int key) {
+//		return getDiskState(key).equals(DiskState.STANDBY);
+//	}
+//
+//	private boolean spinup(int key) {
+//		return sm.spinup(getDevicePath(key));
 //	}
 
 	private Value read(int key) {
@@ -236,7 +257,7 @@ public class DiskManager {
 		try {	
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
-			if(Parameter.DEBUG) {
+			if(!persistence) {
 				f.deleteOnExit();
 			}
 			FileOutputStream fos = new FileOutputStream(f);

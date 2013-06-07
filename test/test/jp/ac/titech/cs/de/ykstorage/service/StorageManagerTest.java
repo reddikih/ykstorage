@@ -42,9 +42,9 @@ public class StorageManagerTest {
 			
 			DiskManager dm = new DiskManager(
 					Parameter.DATA_DISK_PATHS,
-					Parameter.DATA_DISK_SAVE_FILE_PATH,
 					Parameter.MOUNT_POINT_PATHS,
-					Parameter.SPIN_DOWN_THRESHOLD);
+					Parameter.SPIN_DOWN_THRESHOLD,
+					Parameter.PERSISTENCE);
 
 			this.sm = new StorageManager(cmm, dm);
 		}
@@ -75,9 +75,9 @@ public class StorageManagerTest {
 			
 			DiskManager dm = new DiskManager(
 					Parameter.DATA_DISK_PATHS,
-					Parameter.DATA_DISK_SAVE_FILE_PATH,
 					Parameter.MOUNT_POINT_PATHS,
-					Parameter.SPIN_DOWN_THRESHOLD);
+					Parameter.SPIN_DOWN_THRESHOLD,
+					Parameter.PERSISTENCE);
 
 			this.sm = new StorageManager(cmm, dm);
 		}

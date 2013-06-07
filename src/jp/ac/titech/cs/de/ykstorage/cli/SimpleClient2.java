@@ -30,12 +30,11 @@ public class SimpleClient2 {
 		CacheMemoryManager cmm = new CacheMemoryManager(capacity, threshold);
 
 		String[] diskPaths = Parameter.DATA_DISK_PATHS;
-		String savePath = Parameter.DATA_DISK_SAVE_FILE_PATH;
 		DiskManager dm = new DiskManager(
 				diskPaths,
-				savePath,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD);
+				Parameter.SPIN_DOWN_THRESHOLD,
+				Parameter.PERSISTENCE);
 
 		this.sm = new StorageManager(cmm, dm);
 
