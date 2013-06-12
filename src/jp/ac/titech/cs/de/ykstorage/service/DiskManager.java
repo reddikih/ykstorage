@@ -47,7 +47,6 @@ public class DiskManager {
 	
 	private int diskIndex = 0;	// ラウンドロビンでディスクの選択時に使用
 
-	// TODO savePathを削除
 	public DiskManager(
 			String[] diskpaths,
 			SortedMap<String, String> mountPointPaths,
@@ -58,7 +57,6 @@ public class DiskManager {
 		this.mountPointPaths = mountPointPaths;
 		this.persistence = persistence;
 
-//		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
 		ArrayList<String> dataDiskDevices = new ArrayList<String>();
 		for(String diskpath : diskpaths) {
 			dataDiskDevices.add(mountPointPaths.get(diskpath));
@@ -104,8 +102,6 @@ public class DiskManager {
 	// MAIDか提案手法で利用する?
 	// 引数がdevicePathの方はいらなそう
 	public DiskState getDiskState(String devicePath) {
-		//String devicePath = mountPointPaths.get(diskPath);
-		//return sm.getDiskState(devicePath);
 		return sm.getDiskState(devicePath);
 	}
 	
@@ -175,7 +171,6 @@ public class DiskManager {
 		}
 	}
 
-	// キーに基づいて格納先のディスクを選択
 	private String selectDisk(int key) {
 		String filepath = keyFileMap.get(key);
 		if(filepath != null) {
@@ -196,25 +191,6 @@ public class DiskManager {
 		return filepath;
 	}
 
-//	private int getDiskId(String filepath) {
-//		int diskId = -1;
-//		for(int i = 0; i < diskpaths.length; i++) {
-//			diskId = filepath.indexOf(diskpaths[i]);
-//			if(diskId > -1) {
-//				return diskId + 1;
-//			}
-//		}
-//		return -1;
-//	}
-	
-//	private boolean isStandby(int key) {
-//		return getDiskState(key).equals(DiskState.STANDBY);
-//	}
-//
-//	private boolean spinup(int key) {
-//		return sm.spinup(getDevicePath(key));
-//	}
-
 	private Value read(int key) {
 		Value result = Value.NULL;
 		
@@ -222,7 +198,6 @@ public class DiskManager {
 		if(filepath == null) {
 			return result;
 		}
-//		int diskId = getDiskId(filepath);
 		String diskPath = getDiskPath(filepath);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {
@@ -251,7 +226,6 @@ public class DiskManager {
 		boolean result = false;
 		
 		String filepath = selectDisk(key);
-//		int diskId = getDiskId(filepath);
 		String diskPath = getDiskPath(filepath);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {	
@@ -289,8 +263,6 @@ public class DiskManager {
 		}
 		
 		keyFileMap.remove(key);
-//		int diskId = getDiskId(filepath);
-		//String devicePath = mountPointPaths.get(selectDisk(key));
 		String diskPath = getDiskPath(filepath);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {
