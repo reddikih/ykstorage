@@ -99,14 +99,14 @@ public class DiskManager {
 	}
 	
 	public DiskState getDiskState(int key) {
-		String filePath = keyFileMap.get(key);
-		String diskPath = getDiskPath(filePath);
+		String diskPath = getDiskPath(key);
 		String devicePath = mountPointPaths.get(diskPath);
 		return sm.getDiskState(devicePath);
 	}
 	
-	private String getDiskPath(String filePath) {
+	private String getDiskPath(int key) {
 		String diskPath = "";
+		String filePath = keyFileMap.get(key);
 		if(filePath != null) {
 			diskPath = filePath.substring(0, filePath.lastIndexOf("/") + 1);
 		}
@@ -191,7 +191,7 @@ public class DiskManager {
 		if(filepath == null) {
 			return result;
 		}
-		String diskPath = getDiskPath(filepath);
+		String diskPath = getDiskPath(key);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
@@ -219,7 +219,7 @@ public class DiskManager {
 		boolean result = false;
 		
 		String filepath = selectDisk(key);
-		String diskPath = getDiskPath(filepath);
+		String diskPath = getDiskPath(key);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {	
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
@@ -256,7 +256,7 @@ public class DiskManager {
 		}
 		
 		keyFileMap.remove(key);
-		String diskPath = getDiskPath(filepath);
+		String diskPath = getDiskPath(key);
 		String devicePath = mountPointPaths.get(diskPath);
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
