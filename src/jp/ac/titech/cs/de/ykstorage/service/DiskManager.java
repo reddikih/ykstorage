@@ -99,8 +99,7 @@ public class DiskManager {
 	}
 	
 	public DiskState getDiskState(int key) {
-		String diskPath = getDiskPath(key);
-		String devicePath = mountPointPaths.get(diskPath);
+		String devicePath = getDevicePath(key);
 		return sm.getDiskState(devicePath);
 	}
 	
