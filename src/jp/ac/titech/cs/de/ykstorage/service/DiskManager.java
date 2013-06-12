@@ -97,13 +97,6 @@ public class DiskManager {
 		
 		loadHashMap();
 	}
-
-	// TODO getDiskState() 
-	// MAIDか提案手法で利用する?
-	// 引数がdevicePathの方はいらなそう
-	public DiskState getDiskState(String devicePath) {
-		return sm.getDiskState(devicePath);
-	}
 	
 	public DiskState getDiskState(int key) {
 		String filePath = keyFileMap.get(key);
