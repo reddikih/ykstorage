@@ -22,8 +22,6 @@ import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
-// TODO MAIDDataDiskManagerの修正を適用する
-
 public class DiskManager {
 	private static final String SAVE_FILE_PATH = "file.map";
 	
@@ -32,7 +30,6 @@ public class DiskManager {
 	private String[] dataDiskPaths;
 	private boolean persistence;
 	
-	// TODO dataDiskDevicesに変更
 	/**
 	 * key: disk path on file system
 	 * value: device file path
@@ -79,7 +76,6 @@ public class DiskManager {
 		return remove(key);
 	}
 
-	// TODO ワークロード終了時に必ず呼び出す
 	public void end() {
 		saveHashMap();
 	}
