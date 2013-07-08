@@ -8,6 +8,7 @@ import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
+import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -160,6 +161,19 @@ public class DiskManagerTest {
 			
 			Value actual = dm2.get(key);
 			assertThat(actual, is(value));
+		}
+		
+		@After
+		public void tearDown() {
+			this.dm = new DiskManager(
+					Parameter.DATA_DISK_PATHS,
+					Parameter.MOUNT_POINT_PATHS,
+					Parameter.SPIN_DOWN_THRESHOLD,
+					false);
+			
+			dm.put(key, value);
+			dm.put(key2, value2);
+			dm.put(key3, value3);
 		}
 	}
 	
