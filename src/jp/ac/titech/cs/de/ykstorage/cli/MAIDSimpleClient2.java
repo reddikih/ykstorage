@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
@@ -14,6 +14,8 @@ import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MAIDSimpleClient2 {
 	private static final int cmdIndex = 0;
@@ -21,10 +23,12 @@ public class MAIDSimpleClient2 {
 	private static final int keylIndex = 2;
 	private static final int valuelIndex = 3;
 	
-	private long responseTime = 0L;
+	private long totalResponseTime = 0L;
+    private long totalRequestCount = 0L;
 	
 	private MAIDStorageManager sm;
-	private Logger logger = StorageLogger.getLogger();
+//	private Logger logger = StorageLogger.getLogger();
+    private Logger logger = LoggerFactory.getLogger(MAIDSimpleClient2.class);
 
 	public MAIDSimpleClient2() {
 		init();
@@ -91,13 +95,13 @@ public class MAIDSimpleClient2 {
 		File f = new File(filePath);
 		FileReader fr = new FileReader(f);
 		BufferedReader br = new BufferedReader(fr);
-		String line = "";
-		int interval = 0;
+		String line;
+		int interval;
 		
-		long startTime = 0L;
-		long endTime = 0L;
+		long startTime;
+		long endTime;
 
-		logger.fine("MAIDSimpleClient [START]: " + System.currentTimeMillis());
+		logger.trace("MAIDSimpleClient [START]: {}", System.currentTimeMillis());
 		int i = 0;
 		while((line = br.readLine()) != null) {
 			interval = 0;
@@ -105,7 +109,7 @@ public class MAIDSimpleClient2 {
 			
 			i++;
 			System.out.print(i + " ");
-			startTime = System.currentTimeMillis();
+			startTime = System.nanoTime();
 			if(cmdArray.length == 3 && (cmdArray[cmdIndex].equalsIgnoreCase("get"))) {
 				System.out.print("[GET] Key: " + cmdArray[keylIndex]);
 				String value = (String) sc.get(cmdArray[keylIndex]);
@@ -140,18 +144,22 @@ public class MAIDSimpleClient2 {
 				interval = Integer.parseInt(cmdArray[intervalIndex]);
 			}
 			
-			endTime = System.currentTimeMillis();
+			endTime = System.nanoTime();
+
+            logger.trace("{} key:{} response:{}[s]", cmdArray[cmdIndex], cmdArray[keylIndex], ((double)(endTime - startTime)) / 1000000000);
 			
-			responseTime += endTime - startTime;
-			
+			totalResponseTime += endTime - startTime;
+            totalRequestCount++;
 			Thread.sleep(interval);
 		}
 		
-		logger.fine("[Access] response time(millisecond): " + responseTime);
 		br.close();
-		
+
 		System.out.println("finished");
-		logger.fine("MAIDSimpleClient [END]: " + System.currentTimeMillis());
+
+        logger.trace("[Access] response time(millisecond): {}", totalResponseTime);
+        logger.trace("[Access] average response time {}[s]", ((double)totalResponseTime / totalRequestCount) / 1000000000);
+		logger.trace("MAIDSimpleClient [END]: {}", System.currentTimeMillis());
 	}
 	
 	public static void main(String[] args) throws IOException, InterruptedException {

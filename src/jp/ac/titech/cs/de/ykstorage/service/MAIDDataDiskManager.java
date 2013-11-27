@@ -16,14 +16,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
-import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class MAIDDataDiskManager {
-	private Logger logger = StorageLogger.getLogger();
+    private final static Logger logger = LoggerFactory.getLogger(MAIDDataDiskManager.class);
 	private MAIDDataDiskStateManager sm;
 	
 	/**
@@ -111,7 +111,7 @@ public class MAIDDataDiskManager {
 				if(!f.mkdirs()) {
 					throw new SecurityException("cannot create dir: " + path);
 				}
-				logger.fine("DataDisk [MKDIR]: " + path);
+				logger.debug("DataDisk [MKDIR]: {}", path);
 			}
 		}
 
@@ -233,9 +233,9 @@ public class MAIDDataDiskManager {
 		
 		if(isStandby(key)) {
 			if(spinup(key)) {
-				logger.fine("DataDisk Manager [SPINUP]: " + getDevicePath(key));
+				logger.trace("DataDisk Manager [SPINUP]: {}", getDevicePath(key));
 			} else {
-				logger.fine("failed DataDisk Manager [SPINUP]: " + getDevicePath(key));
+				logger.trace("failed DataDisk Manager [SPINUP]: {}", getDevicePath(key));
 			}
 		}
 		
@@ -252,10 +252,10 @@ public class MAIDDataDiskManager {
 
 			bis.close();
 			result = new Value(value);
-			logger.fine("DataDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("DataDisk [GET]: {}, {}, {}", key, filepath, devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
-			logger.warning("failed DataDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed DataDisk [GET]: {}, {}, {}", key, filepath, devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
@@ -270,9 +270,9 @@ public class MAIDDataDiskManager {
 		
 		if(isStandby(key)) {
 			if(spinup(key)) {
-				logger.fine("DataDisk Manager [SPINUP]: " + getDevicePath(key));
+				logger.debug("DataDisk Manager [SPINUP]: {}", getDevicePath(key));
 			} else {
-				logger.fine("failed DataDisk Manager [SPINUP]: " + getDevicePath(key));
+				logger.debug("failed DataDisk Manager [SPINUP]: {}", getDevicePath(key));
 			}
 		}
 		
@@ -292,11 +292,11 @@ public class MAIDDataDiskManager {
 
 			bos.close();
 			result = true;
-			logger.fine("DataDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("DataDisk [PUT]: {}, {}, {}", key, filepath, devicePath);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
-			logger.warning("failed DataDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed DataDisk [PUT]: {}, {}, {}", key, filepath, devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
@@ -314,9 +314,9 @@ public class MAIDDataDiskManager {
 		
 		if(isStandby(key)) {
 			if(spinup(key)) {
-				logger.fine("DataDisk Manager [SPINUP]: " + getDevicePath(key));
+				logger.debug("ataDisk Manager [SPINUP]: {}", getDevicePath(key));
 			} else {
-				logger.fine("failed DataDisk Manager [SPINUP]: " + getDevicePath(key));
+				logger.debug("failed DataDisk Manager [SPINUP]: {}", getDevicePath(key));
 			}
 		}
 		
@@ -328,11 +328,11 @@ public class MAIDDataDiskManager {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			result = f.delete();
-			logger.fine("DataDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("DataDisk [DELETE]: {}, {}, {}", key, filepath, devicePath);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
-			logger.warning("failed DataDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed DataDisk [DELETE]: {}, {}, {}", key, filepath, devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
