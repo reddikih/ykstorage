@@ -281,6 +281,7 @@ public class MAIDDataDiskStateManager {
 			return true;
 		}
 		setDiskState(devicePath, DiskState.STANDBY);
+        logger.trace("Couldn't spin up: {} count: {}", devicePath, spinupCount);
 		return false;
 	}
 
@@ -308,6 +309,7 @@ public class MAIDDataDiskStateManager {
 			return true;
 		}
 		setDiskState(devicePath, DiskState.IDLE);
+        logger.trace("Couldn't spin down: {} count: {}", devicePath, spindownCount);
 		return false;
 	}
 
