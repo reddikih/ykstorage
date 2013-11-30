@@ -232,6 +232,7 @@ public class MAIDDataDiskManager {
 		}
 		
 		if(isStandby(key)) {
+            logger.info("{} is sleeping", getDevicePath(key));
 			if(spinup(key)) {
 				logger.trace("DataDisk Manager [SPINUP]: {}", getDevicePath(key));
 			} else {
@@ -269,6 +270,7 @@ public class MAIDDataDiskManager {
 		String filepath = selectDisk(key);
 		
 		if(isStandby(key)) {
+            logger.info("{} is sleeping", getDevicePath(key));
 			if(spinup(key)) {
 				logger.debug("DataDisk Manager [SPINUP]: {}", getDevicePath(key));
 			} else {
