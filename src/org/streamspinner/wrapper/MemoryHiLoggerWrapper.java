@@ -21,24 +21,24 @@ import org.streamspinner.query.ORNode;
 
 public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 
-	public static String PARAMETER_HOSTNAME = "hostname";	// MemoryHiLogger‚ÌIPƒAƒhƒŒƒX
-	public static String PARAMETER_PORT = "port";	// MemoryHiLogger‚Ìƒ|[ƒg”Ô†
-	public static String PARAMETER_INTERVAL = "interval";	// ƒƒ‚ƒŠƒnƒCƒƒK[‚Ì‘ª’èŠÔŠu(10, 50, 100ms)
+	public static String PARAMETER_HOSTNAME = "hostname";	// MemoryHiLoggerã®IPã‚¢ãƒ‰ãƒ¬ã‚¹
+	public static String PARAMETER_PORT = "port";	// MemoryHiLoggerã®ãƒãƒ¼ãƒˆç•ªå·
+	public static String PARAMETER_INTERVAL = "interval";	// ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ­ã‚¬ãƒ¼ã®æ¸¬å®šé–“éš”(10, 50, 100ms)
 	
-	public static final int INTERVAL2 = 1000;	// ƒf[ƒ^‚Ìæ“¾ŠÔŠu(TODO) ’x‰„‚ğ­‚È‚­‚·‚é‚æ‚¤‚É“®“I‚Éİ’è
-	public static final int DATANUM = 100;	// (FIXME) xml‚Ìƒpƒ‰ƒ[ƒ^‚©‚ç“®“I‚ÉB50‚Ì20B10‚Ì100
+	public static final int INTERVAL2 = 1000;	// ãƒ‡ãƒ¼ã‚¿ã®å–å¾—é–“éš”(TODO) é…å»¶ã‚’å°‘ãªãã™ã‚‹ã‚ˆã†ã«å‹•çš„ã«è¨­å®š
+	public static final int DATANUM = 100;	// (FIXME) xmlã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‹ã‚‰å‹•çš„ã«ã€‚50ã®æ™‚20ã€‚10ã®æ™‚100
 	
-	// Œv‘ª‚·‚éƒ`ƒƒƒ“ƒlƒ‹”Aƒ†ƒjƒbƒg”
-	// •ÏX‚·‚éê‡‚ÍƒƒK[ƒ†[ƒeƒBƒŠƒeƒB‚Åƒƒ‚ƒŠƒnƒCƒƒK[‚ğÄİ’è‚·‚é•K—v‚ª‚ ‚é
-	// ƒ†ƒjƒbƒg–ˆ‚É•ÊX‚Ìƒ`ƒƒƒ“ƒlƒ‹”‚ğİ’è‚Å‚«‚È‚¢
-	static final int MAX_CH = 14;	// Å‘å14ch
-	static final int MAX_UNIT = 6;	// Å‘å6unit
+	// è¨ˆæ¸¬ã™ã‚‹ãƒãƒ£ãƒ³ãƒãƒ«æ•°ã€ãƒ¦ãƒ‹ãƒƒãƒˆæ•°
+	// å¤‰æ›´ã™ã‚‹å ´åˆã¯ãƒ­ã‚¬ãƒ¼ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ã§ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ­ã‚¬ãƒ¼ã‚’å†è¨­å®šã™ã‚‹å¿…è¦ãŒã‚ã‚‹
+	// ãƒ¦ãƒ‹ãƒƒãƒˆæ¯ã«åˆ¥ã€…ã®ãƒãƒ£ãƒ³ãƒãƒ«æ•°ã‚’è¨­å®šã§ããªã„
+	static final int MAX_CH = 14;	// æœ€å¤§14ch
+	static final int MAX_UNIT = 6;	// æœ€å¤§6unit
 	
 	private String[] table = null;
 	private String hostname = null;
 	private int port = 0;
 	private long interval = 0;
-	private int datanum = 1;	// 1‰ñ‚Ìæ“¾ƒf[ƒ^”BÅ‘å255(0xff)
+	private int datanum = 1;	// 1å›ã®å–å¾—ãƒ‡ãƒ¼ã‚¿æ•°ã€‚æœ€å¤§255(0xff)
 	private Schema schema = null;
 	private ArrayList<Schema> schemaList = new ArrayList<Schema>();
 	private Thread monitor = null;
@@ -52,17 +52,17 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 	
 	private long getDataNum = 0;
 	
-	private ArrayList<ArrayList> volt = new ArrayList<ArrayList>();	// æ“¾‚µ‚½“dˆ³
-	private ArrayList<ArrayList> power = new ArrayList<ArrayList>();	// “dˆ³‚©‚çŒvZ‚µ‚½Á”ï“d—Í
+	private ArrayList<ArrayList> volt = new ArrayList<ArrayList>();	// å–å¾—ã—ãŸé›»åœ§
+	private ArrayList<ArrayList> power = new ArrayList<ArrayList>();	// é›»åœ§ã‹ã‚‰è¨ˆç®—ã—ãŸæ¶ˆè²»é›»åŠ›
 	
-	private byte[] req;	// ƒf[ƒ^—v‹ƒRƒ}ƒ“ƒh
-	private byte[] raw;	// “dˆ³‚Ì¶ƒf[ƒ^
+	private byte[] req;	// ãƒ‡ãƒ¼ã‚¿è¦æ±‚ã‚³ãƒãƒ³ãƒ‰
+	private byte[] raw;	// é›»åœ§ã®ç”Ÿãƒ‡ãƒ¼ã‚¿
 
 	
 	public MemoryHiLoggerWrapper(String name) throws StreamSpinnerException {
 		super(name);
 		
-		// ƒXƒL[ƒ}‚Ìì¬
+		// ã‚¹ã‚­ãƒ¼ãƒã®ä½œæˆ
 		table = new String[MAX_UNIT];
 		for(int i = 0; i < MAX_UNIT; i++) {
 			table[i] = "Unit" + (i + 1);
@@ -71,10 +71,10 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 		}
 		
 		for(int unit = 0; unit < MAX_UNIT; unit++) {
-//			String[] attrs = new String[MAX_CH / 2 + 1];//TODO attrs‚ÌƒTƒCƒY‚ğunit”*7iƒfƒBƒXƒN”j‘å‚«‚­
-//			String[] types = new String[MAX_CH / 2 + 1];//ã‚Æ“¯—l
-			String[] attrs = new String[(MAX_CH / 2) * MAX_UNIT + 1];//attrs‚ÌƒTƒCƒY‚ğunit”*7iƒfƒBƒXƒN”j‘å‚«‚­
-			String[] types = new String[(MAX_CH / 2) * MAX_UNIT + 1];//ã‚Æ“¯—l
+//			String[] attrs = new String[MAX_CH / 2 + 1];//TODO attrsã®ã‚µã‚¤ã‚ºã‚’unitæ•°*7ï¼ˆãƒ‡ã‚£ã‚¹ã‚¯æ•°ï¼‰å¤§ãã
+//			String[] types = new String[MAX_CH / 2 + 1];//ä¸Šã¨åŒæ§˜
+			String[] attrs = new String[(MAX_CH / 2) * MAX_UNIT + 1];//attrsã®ã‚µã‚¤ã‚ºã‚’unitæ•°*7ï¼ˆãƒ‡ã‚£ã‚¹ã‚¯æ•°ï¼‰å¤§ãã
+			String[] types = new String[(MAX_CH / 2) * MAX_UNIT + 1];//ä¸Šã¨åŒæ§˜
 			attrs[0] = table[unit] + ".Timestamp";
 			types[0] = DataTypes.LONG;
 			for(int i = 1; i < attrs.length; i++) {
@@ -86,11 +86,11 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 		}
 	}
 
-	// ƒXƒŒƒbƒhƒXƒ^[ƒg
+	// ã‚¹ãƒ¬ãƒƒãƒ‰ã‚¹ã‚¿ãƒ¼ãƒˆæ™‚
 	public void run() {
 		Thread current = Thread.currentThread();
 		
-		// Ú‘±ŠJn
+		// æ¥ç¶šé–‹å§‹
 		while(monitor != null && monitor.equals(current) && connecting == false) {
 			try {
 				startConnection();
@@ -105,28 +105,28 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 			}
 		}
 		
-		// ƒ^ƒvƒ‹’Ç‰Á
+		// ã‚¿ãƒ—ãƒ«è¿½åŠ 
 		while(monitor != null && monitor.equals(current) && connecting == true) {
 			try {
 				long executiontime = System.currentTimeMillis();
 				long before = executiontime;
-				byte[] rec = command(req);	// ƒf[ƒ^—v‹ƒRƒ}ƒ“ƒh
+				byte[] rec = command(req);	// ãƒ‡ãƒ¼ã‚¿è¦æ±‚ã‚³ãƒãƒ³ãƒ‰
 				
 				for(int i = 0; i < datanum; i++) {
 					getData();
 				}
 				
 				//System.out.println("---------------");
-				// ƒfƒBƒXƒN‘ä”•ª‚ÌÁ”ï“d—Í‚ğƒ^ƒvƒ‹‚É’Ç‰Á‚·‚é
-				// ŠO‘¤‚Åƒ^ƒvƒ‹‚ğì‚é
-				// ƒ†ƒjƒbƒg‚²‚Æ‚Ìƒ^ƒCƒ€ƒXƒ^ƒ“ƒv‚ğ‚»‚ë‚¦‚é•K—v‚ª‚ ‚é‚©‚à‚µ‚ê‚È‚¢
-				OnMemoryTupleSet ts = new OnMemoryTupleSet(schemaList.get(0));//TODO get(unit)->unit=0‚Å‚â‚é‚±‚Æ‚É‚·‚é
+				// ãƒ‡ã‚£ã‚¹ã‚¯å°æ•°åˆ†ã®æ¶ˆè²»é›»åŠ›ã‚’ã‚¿ãƒ—ãƒ«ã«è¿½åŠ ã™ã‚‹
+				// å¤–å´ã§ã‚¿ãƒ—ãƒ«ã‚’ä½œã‚‹
+				// ãƒ¦ãƒ‹ãƒƒãƒˆã”ã¨ã®ã‚¿ã‚¤ãƒ ã‚¹ã‚¿ãƒ³ãƒ—ã‚’ãã‚ãˆã‚‹å¿…è¦ãŒã‚ã‚‹ã‹ã‚‚ã—ã‚Œãªã„
+				OnMemoryTupleSet ts = new OnMemoryTupleSet(schemaList.get(0));//TODO get(unit)->unit=0ã§ã‚„ã‚‹ã“ã¨ã«ã™ã‚‹
 				for(int i = 0; i < DATANUM; i++) {
 					addTuple(executiontime, ts);
 					executiontime += interval;
 				}
 				ts.beforeFirst();
-				deliverTupleSet(executiontime - interval, table[0], ts);//TODO table[unit]->unit=0‚Å‚â‚é‚±‚Æ‚É‚·‚é
+				deliverTupleSet(executiontime - interval, table[0], ts);//TODO table[unit]->unit=0ã§ã‚„ã‚‹ã“ã¨ã«ã™ã‚‹
 				
 				getDataNum += DATANUM;
 				long after = System.currentTimeMillis();
@@ -138,8 +138,8 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 				//System.out.println("before: " + executiontime);
 				//System.out.println("sleeptime: " + (INTERVAL2 - (after - before)));
 
-				// ’x‰„‰ğÁ
-				if(getNumData(rec) < getDataNum + DATANUM) {	// ƒƒ‚ƒŠ“àƒf[ƒ^‚ª‚È‚­‚È‚é‚Ì‚ğ–h‚®‚½‚ß‚É1•b‚Í•K‚¸’x‚ê‚é
+				// é…å»¶è§£æ¶ˆ
+				if(getNumData(rec) < getDataNum + DATANUM) {	// ãƒ¡ãƒ¢ãƒªå†…ãƒ‡ãƒ¼ã‚¿ãŒãªããªã‚‹ã®ã‚’é˜²ããŸã‚ã«1ç§’ã¯å¿…ãšé…ã‚Œã‚‹
 					Thread.sleep(INTERVAL2);
 					//System.out.println("sleeptime: " + INTERVAL2);
 				}else {
@@ -165,17 +165,17 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 		System.out.print(executiontime);
 		//OnMemoryTupleSet ts = new OnMemoryTupleSet(schemaList.get(0));
 		
-		Tuple t = new Tuple(schemaList.get(0).size());//TODO unit‚ÌŠO. schemaList‚ÌƒTƒCƒY‚ğ‘å‚«‚­
-		t.setTimestamp(table[0], executiontime);//TODO ŠO‚Åtable[0]
-		t.setLong(0, executiontime);//TODO ŠO
+		Tuple t = new Tuple(schemaList.get(0).size());//TODO unitã®å¤–. schemaListã®ã‚µã‚¤ã‚ºã‚’å¤§ãã
+		t.setTimestamp(table[0], executiontime);//TODO å¤–ã§table[0]
+		t.setLong(0, executiontime);//TODO å¤–
 		int rowIndex = 0;
 		
 		for(int unit = 0; unit < MAX_UNIT; unit++) {
 			//System.out.println("---" + i);
 			
-//			Tuple t = new Tuple(schemaList.get(unit).size());//unit‚ÌŠO. schemaList‚ÌƒTƒCƒY‚ğ‘å‚«‚­
-//			t.setTimestamp(table[unit], executiontime);//ŠO‚Åtable[0]
-//			t.setLong(0, executiontime);//ŠO
+//			Tuple t = new Tuple(schemaList.get(unit).size());//unitã®å¤–. schemaListã®ã‚µã‚¤ã‚ºã‚’å¤§ãã
+//			t.setTimestamp(table[unit], executiontime);//å¤–ã§table[0]
+//			t.setLong(0, executiontime);//å¤–
 			
 			for(int disk = 0; disk < MAX_CH / 2; disk++) {
 //				t.setDouble(disk + 1, (Double) power.get(unit).get(0));//TODO row index
@@ -188,29 +188,29 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 				rowIndex++;// TODO
 			}
 			
-//			ts.appendTuple(t);//unit‚ÌŠO
+//			ts.appendTuple(t);//unitã®å¤–
 			
 			
 		}
-		ts.appendTuple(t);//TODO unit‚ÌŠO
+		ts.appendTuple(t);//TODO unitã®å¤–
 		
 		//ts.beforeFirst();
 		//deliverTupleSet(executiontime, table[0], ts);
 		// log
 		System.out.println("");
 		
-		//Thread.sleep(10);	// ‡”Ô‚É•À‚Ô<-‰½‚ª?
+		//Thread.sleep(10);	// é †ç•ªã«ä¸¦ã¶<-ä½•ãŒ?
 	}
 	
 	
-	// ƒRƒ}ƒ“ƒh‚ğÀs
+	// ã‚³ãƒãƒ³ãƒ‰ã‚’å®Ÿè¡Œ
 	private byte[] command(byte[] msg) {		
 		sendMsg(msg);
 		return getMsg();
 	}
 	
 	
-	// MemoryHiLogger‚ÉƒRƒ}ƒ“ƒh‚ğ‘—M
+	// MemoryHiLoggerã«ã‚³ãƒãƒ³ãƒ‰ã‚’é€ä¿¡
 	private void sendMsg(byte[] msg) {
 		try{
 			os.write(msg);
@@ -222,7 +222,7 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 	}
 	
 	
-	// MemoryHiLogger‚©‚çƒRƒ}ƒ“ƒh‚ğóM
+	// MemoryHiLoggerã‹ã‚‰ã‚³ãƒãƒ³ãƒ‰ã‚’å—ä¿¡
 	private byte[] getMsg() {
 		try{
 			while(is.available() == 0);
@@ -237,7 +237,7 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 	}
 	
 	
-	// MemoryHiLogger‚©‚ç“dˆ³ƒf[ƒ^‚ğó‚¯æ‚èÁ”ï“d—Í‚ğŒvZ
+	// MemoryHiLoggerã‹ã‚‰é›»åœ§ãƒ‡ãƒ¼ã‚¿ã‚’å—ã‘å–ã‚Šæ¶ˆè²»é›»åŠ›ã‚’è¨ˆç®—
 	private void getData() throws IOException {
 		try {
 			//command(req);
@@ -252,38 +252,38 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 	}
 	
 	
-	// ¶ƒf[ƒ^‚©‚ç“dˆ³ƒŠƒXƒg‚ğæ“¾
+	// ç”Ÿãƒ‡ãƒ¼ã‚¿ã‹ã‚‰é›»åœ§ãƒªã‚¹ãƒˆã‚’å–å¾—
 	private void getVolt(byte[] rec) {
 		String raw = "";
 		int index = 21;
 
-		if(rec[0] == 0x01 && rec[1] == 0x00 && rec[2] == 0x01) {	// ƒf[ƒ^“]‘—ƒRƒ}ƒ“ƒh
+		if(rec[0] == 0x01 && rec[1] == 0x00 && rec[2] == 0x01) {	// ãƒ‡ãƒ¼ã‚¿è»¢é€ã‚³ãƒãƒ³ãƒ‰
 			for(int unit = 1; unit < 9; unit++) {
 				for(int ch = 1; ch < 17; ch++) {
-					for(int i = 0; i < 4; i++) {	// ŒÂX‚Ì“dˆ³
+					for(int i = 0; i < 4; i++) {	// å€‹ã€…ã®é›»åœ§
 						if(ch <= MAX_CH && unit <= MAX_UNIT) {
 							raw += String.format("%02x", rec[index]);
 						}
 						index++;
 					}
 					if(ch <= MAX_CH && unit <= MAX_UNIT) {
-						// “dˆ³’l‚É•ÏŠ·(ƒXƒ‰ƒCƒhp47)
-						// “dˆ³²ƒŒƒ“ƒW
-						// ‘—¿F 1(V/10DIV)
-						// ƒƒK[ƒ†[ƒeƒBƒŠƒeƒBF 100 mv f.s. -> 0.1(V/10DIV)???
+						// é›»åœ§å€¤ã«å¤‰æ›(ã‚¹ãƒ©ã‚¤ãƒ‰p47)
+						// é›»åœ§è»¸ãƒ¬ãƒ³ã‚¸
+						// è³‡æ–™ï¼š 1(V/10DIV)
+						// ãƒ­ã‚¬ãƒ¼ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ï¼š 100 mv f.s. -> 0.1(V/10DIV)???
 						volt.get(unit - 1).add(((double) Integer.parseInt(raw, 16) - 32768.0) * 0.1 / 20000.0);
 					}
 					raw = "";
 				}
 			}
-		}else {	// ƒf[ƒ^“]‘—ƒRƒ}ƒ“ƒh‚Å‚È‚¢ê‡
+		}else {	// ãƒ‡ãƒ¼ã‚¿è»¢é€ã‚³ãƒãƒ³ãƒ‰ã§ãªã„å ´åˆ
 			System.out.println("NULL");
 			volt = null;
 		}
 	}
 	
 	
-	// “dˆ³ƒŠƒXƒg‚©‚çÁ”ï“d—ÍƒŠƒXƒg‚ğæ“¾
+	// é›»åœ§ãƒªã‚¹ãƒˆã‹ã‚‰æ¶ˆè²»é›»åŠ›ãƒªã‚¹ãƒˆã‚’å–å¾—
 	private void getPower() {
 		for(int unit = 0; unit < MAX_UNIT; unit++) {
 			int voltListSize = volt.get(unit).size();
@@ -292,15 +292,15 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 				voltListSize--;
 			}
 			for(int i = 0; i < voltListSize; i += 2) {
-				// (TODO) ‚Ç‚Á‚¿‚Ìƒ`ƒƒƒ“ƒlƒ‹‚ª12V‚©5V‚©‚ğ”»•Ê‚Å‚«‚é‚æ‚¤‚É‚·‚é•K—v‚ª‚ ‚é
-				// ch1‚ªÔ5VüAch2‚ª‰©12Vü
+				// (TODO) ã©ã£ã¡ã®ãƒãƒ£ãƒ³ãƒãƒ«ãŒ12Vã‹5Vã‹ã‚’åˆ¤åˆ¥ã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
+				// ch1ãŒèµ¤5Vç·šã€ch2ãŒé»„12Vç·š
 				power.get(unit).add(Math.abs((Double) volt.get(unit).get(i)) * 50.0 + Math.abs((Double) volt.get(unit).get(i + 1)) * 120.0);
 			}
 			volt.get(unit).clear();
 		}
 	}
 	
-	// ƒƒ‚ƒŠ“àƒf[ƒ^”‚ğæ“¾
+	// ãƒ¡ãƒ¢ãƒªå†…ãƒ‡ãƒ¼ã‚¿æ•°ã‚’å–å¾—
 	private long getNumData(byte[] rec) {
 		String raw = "";
 		if(rec[0] == 0x02 && rec[1] == 0x01) {
@@ -315,22 +315,22 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 		return -1;
 	}
 		
-	// MemoryHiLogger‚Ìó‘Ô‚ğæ“¾
+	// MemoryHiLoggerã®çŠ¶æ…‹ã‚’å–å¾—
 	private byte getState(byte[] rec) {
 		if(rec[0] == 0x02 && rec[1] == 0x01) {
 			switch(rec[2]) {
-			case 0x50:	// ƒXƒ^[ƒgƒRƒ}ƒ“ƒh
-			case 0x51:	// ƒXƒgƒbƒvƒRƒ}ƒ“ƒh
-			case 0x57:	// ‘ª’èó‘Ô—v‹ƒRƒ}ƒ“ƒh
-			case 0x58:	// ƒAƒvƒŠƒVƒXƒeƒ€ƒgƒŠƒKƒRƒ}ƒ“ƒh
+			case 0x50:	// ã‚¹ã‚¿ãƒ¼ãƒˆã‚³ãƒãƒ³ãƒ‰
+			case 0x51:	// ã‚¹ãƒˆãƒƒãƒ—ã‚³ãƒãƒ³ãƒ‰
+			case 0x57:	// æ¸¬å®šçŠ¶æ…‹è¦æ±‚ã‚³ãƒãƒ³ãƒ‰
+			case 0x58:	// ã‚¢ãƒ—ãƒªã‚·ã‚¹ãƒ†ãƒ ãƒˆãƒªã‚¬ã‚³ãƒãƒ³ãƒ‰
 				return rec[5];
 			}
 		}
-		return (byte) 0xff;	// •s–¾‚ÈƒRƒ}ƒ“ƒh
+		return (byte) 0xff;	// ä¸æ˜ãªã‚³ãƒãƒ³ãƒ‰
 	}
 
 	
-	// ƒf[ƒ^—v‹ƒRƒ}ƒ“ƒh‚ÌƒTƒ“ƒvƒŠƒ“ƒO”Ô†‚ÌƒCƒ“ƒNƒŠƒƒ“ƒg
+	// ãƒ‡ãƒ¼ã‚¿è¦æ±‚ã‚³ãƒãƒ³ãƒ‰ã®ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ç•ªå·ã®ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆ
 	private void incRequireCommand() {
 		for(int i = 12; i > 5; i--) {
 			if(req[i] == 0xffffffff) {
@@ -349,8 +349,8 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 	}
 	
 	
-	// ƒ‰ƒbƒp[¶¬
-	// ƒpƒ‰ƒ[ƒ^‚ğó‚¯æ‚é
+	// ãƒ©ãƒƒãƒ‘ãƒ¼ç”Ÿæˆæ™‚
+	// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’å—ã‘å–ã‚‹
 	public void init() throws StreamSpinnerException {
 		hostname = getParameter(PARAMETER_HOSTNAME);
 		port = Integer.parseInt(getParameter(PARAMETER_PORT));
@@ -358,12 +358,12 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 		datanum = INTERVAL2 / (int) interval;
 	}
 
-	// ƒe[ƒuƒ‹–¼æ“¾
+	// ãƒ†ãƒ¼ãƒ–ãƒ«åå–å¾—
 	public String[] getAllTableNames() {
 		return table;
 	}
 
-	// ƒXƒL[ƒ}‚Ìæ“¾
+	// ã‚¹ã‚­ãƒ¼ãƒã®å–å¾—
 	public Schema getSchema(String tablename) {
 		if(tablename.equals(table[0])) {
 			return schemaList.get(0);
@@ -382,12 +382,12 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 		}
 	}
 
-	// ƒ^ƒvƒ‹‚Ìæ“¾
+	// ã‚¿ãƒ—ãƒ«ã®å–å¾—
 	public TupleSet getTupleSet(ORNode node) throws StreamSpinnerException {
 		return null;
 	}
 
-	// StreamSpinner‚Ì‹N“®A‚Ü‚½‚Íƒ‰ƒbƒp[’Ç‰Á
+	// StreamSpinnerã®èµ·å‹•ã€ã¾ãŸã¯ãƒ©ãƒƒãƒ‘ãƒ¼è¿½åŠ æ™‚
 	public void start() throws StreamSpinnerException {
 		if(interval <= 0) {
 			throw new StreamSpinnerException("interval is not set");
@@ -396,7 +396,7 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 		monitor.start();
 	}
 
-	// StreamSpinner‚ÌƒVƒƒƒbƒgƒ_ƒEƒ“A‚Ü‚½‚Íƒ‰ƒbƒp[íœ
+	// StreamSpinnerã®ã‚·ãƒ£ãƒƒãƒˆãƒ€ã‚¦ãƒ³ã€ã¾ãŸã¯ãƒ©ãƒƒãƒ‘ãƒ¼å‰Šé™¤æ™‚
 	public void stop() throws StreamSpinnerException {
 		try {
 			stopConnection();
@@ -406,7 +406,7 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 		monitor = null;
 	}
 	
-	// Ú‘±ŠJn
+	// æ¥ç¶šé–‹å§‹
 	private void startConnection() throws UnknownHostException, IOException, InterruptedException {
 		if(connecting == false && theSocket == null) {
 			theSocket = new Socket(hostname, port);
@@ -417,7 +417,7 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 			br = new BufferedReader(isr);
 			bis = new BufferedInputStream(is);
 			
-			// ƒ\ƒPƒbƒgƒI[ƒvƒ“‚Ì‰“šˆ—
+			// ã‚½ã‚±ãƒƒãƒˆã‚ªãƒ¼ãƒ—ãƒ³æ™‚ã®å¿œç­”å‡¦ç†
 			is = theSocket.getInputStream();
 			isr = new InputStreamReader(is);
 			br = new BufferedReader(isr);
@@ -427,7 +427,7 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 			
 			os = theSocket.getOutputStream();
 			
-			// ƒf[ƒ^‚Ìæ“¾ŠÔŠu‚ğİ’è
+			// ãƒ‡ãƒ¼ã‚¿ã®å–å¾—é–“éš”ã‚’è¨­å®š
 			if(interval == 10) {
 				command(Command.SAMP_10ms);
 			}else if(interval == 50) {
@@ -436,7 +436,7 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 				command(Command.SAMP_100ms);
 			}
 			
-			// ƒXƒ^[ƒg
+			// ã‚¹ã‚¿ãƒ¼ãƒˆ
 			command(Command.START);
 			
 			// log
@@ -449,14 +449,14 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 			}
 			System.out.println("");
 			
-			Thread.sleep(1000);	// ó‘Ô‚ª•Ï‰»‚·‚é‚Ì‚ğ‘Ò‚Â
+			Thread.sleep(1000);	// çŠ¶æ…‹ãŒå¤‰åŒ–ã™ã‚‹ã®ã‚’å¾…ã¤
 			byte rec = (byte) 0xff;
 			while(rec != 65){
 				rec = getState(command(Command.REQUIRE_STATE));
 			}
 			rec = (byte) 0xff;
 			
-			// ƒVƒXƒeƒ€ƒgƒŠƒK[
+			// ã‚·ã‚¹ãƒ†ãƒ ãƒˆãƒªã‚¬ãƒ¼
 			command(Command.SYSTRIGGER);
 			Thread.sleep(1000);
 			while(rec != 35){
@@ -464,7 +464,7 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 			}
 			rec = (byte) 0xff;
 			
-			// ƒf[ƒ^—v‹
+			// ãƒ‡ãƒ¼ã‚¿è¦æ±‚
 			req = Command.REQUIRE_DATA;
 			command(req);
 			while(is.available() == 0);
@@ -473,15 +473,15 @@ public class MemoryHiLoggerWrapper extends Wrapper implements Runnable {
 
 			Thread.sleep(INTERVAL2);
 			
-			// 1‰ñ‚Ìƒf[ƒ^æ“¾”‚ğİ’è
+			// 1å›ã®ãƒ‡ãƒ¼ã‚¿å–å¾—æ•°ã‚’è¨­å®š
 			req[20] = (byte) datanum;
 		}
 		connecting = true;
 	}
 
-	// Ú‘±I—¹
+	// æ¥ç¶šçµ‚äº†
 	private void stopConnection() {
-		// ƒXƒgƒbƒv
+		// ã‚¹ãƒˆãƒƒãƒ—
 		command(Command.STOP);
 		//System.out.println("[stop]");
 		

@@ -144,7 +144,7 @@ public class RandomStreamGenerator extends Wrapper implements Runnable {
 		t.setLong(0, time);
 
 		//int tmp = 1 + r.nextInt(10);
-		int tmp = 1 + r.nextInt(15);	// random‚Ì’l‚ğ‘å‚«‚­•ÏX
+		int tmp = 1 + r.nextInt(15);	// randomã®å€¤ã‚’å¤§ããå¤‰æ›´
 
 		for(int i=1; i < schema.size(); i++){
 			String type = schema.getType(i);
