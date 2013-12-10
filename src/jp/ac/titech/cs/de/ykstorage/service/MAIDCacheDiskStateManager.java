@@ -138,7 +138,7 @@ public class MAIDCacheDiskStateManager {
 		for (String device : devicePaths) {
 			result.put(device, (int)(accessThreshold * ((double)interval / 1000.0)) + 1);
 		}
-		logger.trace("accessThreashold: {}, interval: {}", accessThreshold, interval);
+		logger.debug("accessThreashold: {}, interval: {}", accessThreshold, interval);
 		return result;
 	}
 	
@@ -177,8 +177,8 @@ public class MAIDCacheDiskStateManager {
 		dataCommand = dataCommand.substring(0, dataCommand.length() - 1) + " FROM Unit1[1000]";
 		cacheCommand = cacheCommand.substring(0, cacheCommand.length() - 1) + " FROM Unit1[1000]";
 		
-		logger.trace("MAID CacheDisk State [DataDisk AVG SQL Command]: {}", dataCommand);
-		logger.trace("MAID CacheDisk State [CacheDisk AVG SQL Command]: {}", cacheCommand);
+		logger.debug("MAID CacheDisk State [DataDisk AVG SQL Command]: {}", dataCommand);
+		logger.debug("MAID CacheDisk State [CacheDisk AVG SQL Command]: {}", cacheCommand);
 	}
 
 	private boolean devicePathCheck(String devicePath) {
@@ -201,7 +201,7 @@ public class MAIDCacheDiskStateManager {
 		String[] cmdarray = {"ls", devicePath};
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
-			logger.trace("[SPINUP]: {}", devicePath);
+			logger.debug("[SPINUP]: {}", devicePath);
 			setDiskReset(devicePath, true);
 			decSpindownIndex();
 			return true;
@@ -224,7 +224,7 @@ public class MAIDCacheDiskStateManager {
 		String[] hdparm = {"hdparm", "-y", devicePath};
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
-			logger.trace("[SPINDOWN]: {}", devicePath);
+			logger.debug("[SPINDOWN]: {}", devicePath);
 			incSpindownIndex();
 			return true;
 		}
@@ -239,7 +239,7 @@ public class MAIDCacheDiskStateManager {
 			Process p = r.exec(cmd);
 			returnCode = p.waitFor();
 			if(returnCode != 0) {
-				logger.info("{} return code: {}", cmd[0], returnCode);
+				logger.debug("{} return code: {}", cmd[0], returnCode);
 			}
 		} catch (IOException e) {
 //			e.printStackTrace();
@@ -311,7 +311,7 @@ public class MAIDCacheDiskStateManager {
 			wdata[index] += data;
 			wdata[index] /= 2.0;
 		}
-		logger.trace("avgWdata: index: " + index + ", wtmp: " + data);
+		logger.debug("avgWdata: index: " + index + ", wtmp: " + data);
 	}
 	
 	private synchronized double getWdata(int index) {
@@ -340,7 +340,7 @@ public class MAIDCacheDiskStateManager {
 				for (String devicePath : diskStates.keySet()) {
 					// XXX 消費電力を用いてもいいかもしれない
 					double accesses = (double)getAccessCount(devicePath) / ((double)interval / 1000.0);
-					logger.trace("[PROPOSAL1]: {}, access: {}, access threshold: {}", devicePath, accesses, accessThreshold);
+					logger.debug("[PROPOSAL1]: {}, access: {}, access threshold: {}", devicePath, accesses, accessThreshold);
 					int index = getSpindownIndex();
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) && accesses < accessThreshold
 							&& index < numOfCacheDisks - 1 && getWdata(index) != 0.0) {
@@ -353,7 +353,7 @@ public class MAIDCacheDiskStateManager {
 				int index = getSpindownIndex();
 				if(index > 0) {
 					// TODO 正しく動作するか確認
-					logger.trace("[PROPOSAL1]: prev Wdata: {}, now Wdata: {}, Wcache: {}", getWdata(index-1), getWdata(index), wcache);
+					logger.debug("[PROPOSAL1]: prev Wdata: {}, now Wdata: {}, Wcache: {}", getWdata(index-1), getWdata(index), wcache);
 					if((getWdata(index-1) > 0.0) && (getWdata(index) - getWdata(index-1) > wcache)) {
 						String spinupDevice = "";
 						for (String devicePath : diskStates.keySet()) {
@@ -362,7 +362,7 @@ public class MAIDCacheDiskStateManager {
 								break;
 							}
 						}
-						logger.trace("[PROPOSAL1]: spinup {}", spinupDevice);
+						logger.debug("[PROPOSAL1]: spinup {}", spinupDevice);
 						spinup(spinupDevice);
 						initWdata(index);
 					}
@@ -382,7 +382,7 @@ public class MAIDCacheDiskStateManager {
 	
 	class GetDataThread extends Thread {
 		public void run() {
-			logger.trace("CacheDisk GetDataThread [START]");
+			logger.debug("CacheDisk GetDataThread [START]");
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
 				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定

@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-//import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
@@ -13,7 +12,6 @@ import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +25,7 @@ public class MAIDSimpleClient2 {
     private long totalRequestCount = 0L;
 	
 	private MAIDStorageManager sm;
-//	private Logger logger = StorageLogger.getLogger();
-    private Logger logger = LoggerFactory.getLogger(MAIDSimpleClient2.class);
+    private final static Logger logger = LoggerFactory.getLogger(MAIDSimpleClient2.class);
 
 	public MAIDSimpleClient2() {
 		init();
@@ -69,7 +66,7 @@ public class MAIDSimpleClient2 {
 
 		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
 
-		StorageLogger.getLogger().config("Starting Simple Clinet.");
+        logger.debug("Starting Simple Client");
 	}
 
 	public boolean put(String key, String value) {
@@ -146,7 +143,7 @@ public class MAIDSimpleClient2 {
 			
 			endTime = System.nanoTime();
 
-            logger.trace("{} key:{} response:{}[s]", cmdArray[cmdIndex], cmdArray[keylIndex], ((double)(endTime - startTime)) / 1000000000);
+            logger.debug("{} key:{} response:{}[s]", cmdArray[cmdIndex], cmdArray[keylIndex], ((double)(endTime - startTime)) / 1000000000);
 			
 			totalResponseTime += endTime - startTime;
             totalRequestCount++;
@@ -157,9 +154,9 @@ public class MAIDSimpleClient2 {
 
 		System.out.println("finished");
 
-        logger.trace("[Access] response time(millisecond): {}", totalResponseTime);
-        logger.trace("[Access] average response time {}[s]", ((double)totalResponseTime / totalRequestCount) / 1000000000);
-		logger.trace("MAIDSimpleClient [END]: {}", System.currentTimeMillis());
+        logger.debug("[Access] response time(millisecond): {}", totalResponseTime);
+        logger.debug("[Access] average response time {}[s]", ((double)totalResponseTime / totalRequestCount) / 1000000000);
+		logger.debug("MAIDSimpleClient [END]: {}", System.currentTimeMillis());
 	}
 	
 	public static void main(String[] args) throws IOException, InterruptedException {

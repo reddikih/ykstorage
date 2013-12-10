@@ -137,7 +137,6 @@ public class MAIDDataDiskStateManager {
 	private String avgCommand;
 	private String inteCommand;
 	
-//	private final Logger logger = StorageLogger.getLogger();
     private final static Logger logger = LoggerFactory.getLogger(MAIDDataDiskStateManager.class);
 
 	private StateCheckThread sct;
@@ -251,8 +250,8 @@ public class MAIDDataDiskStateManager {
 		avgCommand = avgCommand.substring(0, avgCommand.length() - 1) + " FROM Unit1[1000]";
 		inteCommand = inteCommand.substring(0, inteCommand.length() - 1) + " FROM Unit1[1000]";
 		
-		logger.trace("MAID DataDisk State [DataDisk AVG SQL Command]: {}", avgCommand);
-		logger.trace("MAID DataDisk State [DataDisk INTE SQL Command]: {}", inteCommand);
+		logger.debug("MAID DataDisk State [DataDisk AVG SQL Command]: {}", avgCommand);
+		logger.debug("MAID DataDisk State [DataDisk INTE SQL Command]: {}", inteCommand);
 	}
 
 	public void start() {
@@ -272,7 +271,7 @@ public class MAIDDataDiskStateManager {
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
 			spinupCount++;
-			logger.trace("[SPINUP]: {} count: {}", devicePath, spinupCount);
+			logger.debug("[SPINUP]: {} count: {}", devicePath, spinupCount);
 			long currentTime = System.currentTimeMillis();
 //			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
 			setTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
@@ -281,7 +280,7 @@ public class MAIDDataDiskStateManager {
 			return true;
 		}
 		setDiskState(devicePath, DiskState.STANDBY);
-        logger.trace("Couldn't spin up: {} count: {}", devicePath, spinupCount);
+        logger.debug("Couldn't spin up: {} count: {}", devicePath, spinupCount);
 		return false;
 	}
 
@@ -300,7 +299,7 @@ public class MAIDDataDiskStateManager {
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
 			spindownCount++;
-			logger.trace("[SPINDOWN]: {} count: {}", devicePath, spindownCount);
+			logger.debug("[SPINDOWN]: {} count: {}", devicePath, spindownCount);
 			long currentTime = System.currentTimeMillis();
 			setStandbyIntime(devicePath, currentTime);
 //			setTidle(devicePath, currentTime - getIdleIntime(devicePath));	// XXX setはいらない??? setIdleInTimeは欲しい???
@@ -309,7 +308,7 @@ public class MAIDDataDiskStateManager {
 			return true;
 		}
 		setDiskState(devicePath, DiskState.IDLE);
-        logger.trace("Couldn't spin down: {} count: {}", devicePath, spindownCount);
+        logger.debug("Couldn't spin down: {} count: {}", devicePath, spindownCount);
 		return false;
 	}
 
@@ -620,14 +619,14 @@ public class MAIDDataDiskStateManager {
 //							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 //						}
 						
-						logger.trace("[PROPOSAL2]: wIdle: " + wi + ", tIdle: " + ti + ", wStandby: " + ws + ", tStandby: " + ts + ", jSpinup: " + ju + ", jSpindown: " + jd);
+						logger.debug("[PROPOSAL2]: wIdle: " + wi + ", tIdle: " + ti + ", wStandby: " + ws + ", tStandby: " + ts + ", jSpinup: " + ju + ", jSpindown: " + jd);
 						if(wi * (ts + al) > ws * (ts + al) + ju + jd) {
 							addTidle(devicePath, -alpha);
-							logger.trace("sub [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+							logger.debug("sub [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 						if(wi * (ts - al) < ws * (ts - al) + ju + jd) {
 							addTidle(devicePath, alpha);
-							logger.trace("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+							logger.debug("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 						
 						// 初期化
@@ -657,7 +656,7 @@ public class MAIDDataDiskStateManager {
 	
 	class GetDataThread extends Thread {
 		public void run() {
-			logger.trace("DataDisk GetDataThread [START]");
+			logger.debug("DataDisk GetDataThread [START]");
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
 				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定
@@ -735,7 +734,7 @@ public class MAIDDataDiskStateManager {
 	    					}
 	    					
 	    					if(getJspinup(devicePath) > 200.0) {
-	    						logger.trace("over: wcurrent: " + wcurrent + ", wIdle: " + getWidle(devicePath) + ", minWup: " + minWup);
+	    						logger.debug("over: wcurrent: " + wcurrent + ", wIdle: " + getWidle(devicePath) + ", minWup: " + minWup);
 	    					}
 	    					
 	    					if(((minWup) && (wcurrent < getWidle(devicePath) + acc + 0.4)) || (getJspinup(devicePath) > 450.0)) {
