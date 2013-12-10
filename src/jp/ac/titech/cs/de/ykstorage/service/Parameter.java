@@ -39,8 +39,8 @@ public class Parameter {
 	public static final long CAPACITY_OF_CACHEDISK = 64 * 1024 * 1024;
 //	public static final long CAPACITY_OF_CACHEDISK = 10;
 
-//	public static String DATA_DIR = "/ecoim/ykstorage/data";
-	public static String DATA_DIR = "./data";
+	public static String DATA_DIR = "/ecoim/ykstorage/data";
+//	public static String DATA_DIR = "./data";
 
 	public static final int NUMBER_OF_DISKS = 14;
 	private static final int origin = 1;
