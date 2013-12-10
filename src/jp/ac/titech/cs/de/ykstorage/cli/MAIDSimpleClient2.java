@@ -143,7 +143,7 @@ public class MAIDSimpleClient2 {
 			
 			endTime = System.nanoTime();
 
-            logger.debug("{} key:{} response:{}[s]", cmdArray[cmdIndex], cmdArray[keylIndex], ((double)(endTime - startTime)) / 1000000000);
+            logger.debug("{} key:{} response:{}[s]", cmdArray[cmdIndex], cmdArray[keylIndex], String.format("%.6f", ((double)(endTime - startTime)) / 1000000000));
 			
 			totalResponseTime += endTime - startTime;
             totalRequestCount++;
@@ -155,7 +155,7 @@ public class MAIDSimpleClient2 {
 		System.out.println("finished");
 
         logger.debug("[Access] response time(millisecond): {}", totalResponseTime);
-        logger.debug("[Access] average response time {}[s]", ((double)totalResponseTime / totalRequestCount) / 1000000000);
+        logger.debug("[Access] average response time {}[s]", String.format("%.6f", ((double)totalResponseTime / totalRequestCount) / 1000000000) );
 		logger.debug("MAIDSimpleClient [END]: {}", System.currentTimeMillis());
 	}
 	
