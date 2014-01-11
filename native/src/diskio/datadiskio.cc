@@ -50,7 +50,7 @@ Java_jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager_write
   utf_file_path = env->GetStringUTFChars(filePath, &isCopy);
   // printf("write to: %s\n", utf_file_path);
 
-  fd = open(utf_file_path, O_WRONLY|O_DIRECT|O_CREAT, S_IRWXU);
+  fd = open(utf_file_path, O_WRONLY|O_DIRECT|O_SYNC|O_CREAT, S_IRWXU);
   if (isCopy == JNI_TRUE)
     env->ReleaseStringUTFChars(filePath, utf_file_path);
 
@@ -103,7 +103,7 @@ Java_jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager_read
   utf_file_path = env->GetStringUTFChars(filePath, &isCopy);
   // printf("read from: %s\n", utf_file_path);
 
-  fd = open(utf_file_path, O_RDONLY|O_DIRECT);
+  fd = open(utf_file_path, O_RDONLY|O_DIRECT|O_SYNC);
   if (isCopy == JNI_TRUE) {
     env->ReleaseStringUTFChars(filePath, utf_file_path);
   }
