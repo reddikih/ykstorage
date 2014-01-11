@@ -25,7 +25,15 @@ import org.slf4j.LoggerFactory;
 public class MAIDDataDiskManager {
     private final static Logger logger = LoggerFactory.getLogger(MAIDDataDiskManager.class);
 	private MAIDDataDiskStateManager sm;
-	
+
+    private native boolean write(String filePath, byte[] value);
+
+    private native byte[] read(String filePath);
+
+    static {
+        System.loadLibrary("datadiskio");
+    }
+
 	/**
 	 * e.g. /ecoim/ykstorage/data/disk1/
 	 */
@@ -244,14 +252,17 @@ public class MAIDDataDiskManager {
 		String devicePath = mountPointPaths.get(diskPath);
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
-			File f = new File(filepath);
-			FileInputStream fis = new FileInputStream(f);
-			BufferedInputStream bis = new BufferedInputStream(fis);
+//			File f = new File(filepath);
+//			FileInputStream fis = new FileInputStream(f);
+//			BufferedInputStream bis = new BufferedInputStream(fis);
+//
+//			byte[] value = new byte[(int) f.length()];
+//			bis.read(value);
+//
+//			bis.close();
 
-			byte[] value = new byte[(int) f.length()];
-			bis.read(value);
-
-			bis.close();
+            // native read (this avoids File Systems's cache)
+            byte[] value = read(filepath);
 			result = new Value(value);
 			logger.debug("DataDisk [GET]: {}, {}, {}", key, filepath, devicePath);
 		}catch(Exception e) {
@@ -286,14 +297,18 @@ public class MAIDDataDiskManager {
 			if(Parameter.DEBUG) {
 				f.deleteOnExit();
 			}
-			FileOutputStream fos = new FileOutputStream(f);
-			BufferedOutputStream bos = new BufferedOutputStream(fos);
+//			FileOutputStream fos = new FileOutputStream(f);
+//			BufferedOutputStream bos = new BufferedOutputStream(fos);
+//
+//			bos.write(value.getValue());
+//			bos.flush();
+//
+//			bos.close();
+//			result = true;
 
-			bos.write(value.getValue());
-			bos.flush();
+            // native write (this avoids File System cache.)
+            result = write(filepath, value.getValue());
 
-			bos.close();
-			result = true;
 			logger.debug("DataDisk [PUT]: {}, {}, {}", key, filepath, devicePath);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
