@@ -5,8 +5,6 @@ CC_FILE=$CC_FILE_PREFIX.cc
 OBJ_FILE=$CC_FILE_PREFIX.o
 LIB_FILE=lib$CC_FILE_PREFIX.so
 
-LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
-
 HOSTNAME=`hostname`
 
 if [ $HOSTNAME = "ecoim03" ]; then
@@ -23,12 +21,15 @@ else
 fi
 
 # compile cc file
+echo $CC -fPIC -D_GNU_SOURCE $INCLUDE -c $CC_FILE
 $CC -fPIC -D_GNU_SOURCE $INCLUDE -c $CC_FILE
 
 # make shared library
+echo $CC -shared -o $LIB_FILE $OBJ_FILE
 $CC -shared -o $LIB_FILE $OBJ_FILE
 
 if [ -f $LIB_FILE ]; then
+    echo cp ./$LIB_FILE ../../../lib
     cp ./$LIB_FILE ../../../lib
 fi
 
