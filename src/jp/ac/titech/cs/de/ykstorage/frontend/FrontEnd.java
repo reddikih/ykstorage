@@ -102,16 +102,16 @@ public class FrontEnd {
         }
         @Override
         public void run() {
-            logger.info("starting write request Request Key:{}", request.getKey());
+            logger.info("starting write task Request Key:{}", request.getKey());
 
             try {
                 OutputStream out = conn.getOutputStream();
                 byte[] payload = this.request.getPayload();
                 byte[] response;
                 if (payload != null) {
-                    response = new byte[]{new Byte("200"), 0x00,0x00,0x00,0x00};
+                    response = new byte[]{0x00,(byte)0xc8,0x00,0x00,0x00,0x00};
                 } else {
-                    response = new byte[]{new Byte("500"), 0x00,0x00,0x00,0x00};
+                    response = new byte[]{0x01,(byte)0xf4,0x00,0x00,0x00,0x00};
                 }
                 out.write(response);
                 out.flush();
@@ -179,28 +179,24 @@ public class FrontEnd {
                 long key = 0L;
                 int k = 64, offset = 8;
                 byte[] keyVal = new byte[8];
-//                readByte = in.read(keyVal, command.length, keyVal.length);
                 readByte = in.read(keyVal);
                 if (readByte != keyVal.length)
                     throw new IOException("couldn't read request command");
 
                 for (int i = 0; i < keyVal.length; i++)
-                    key |= ((long)keyVal[i] << (k -= offset));
-                this.key = key;
+                    this.key = (this.key << 8) + (keyVal[i] & 0xff);
 
                 logger.debug("Request Key: {}", this.key);
 
                 //get length(4bytes)
-                int length = 0;
                 k = 32;
                 byte[] lengthVal = new byte[4];
-//                readByte = in.read(lengthVal, readByte, lengthVal.length);
                 readByte = in.read(lengthVal);
                 if (readByte != lengthVal.length)
                     throw new IOException("couldn't read request command");
 
                 for (int i = 0; i < lengthVal.length; i++)
-                    this.length |= ((long)lengthVal[i] << (k -= offset));
+                    this.length = (this.length << 8) + (lengthVal[i] & 0xff);
 
                 logger.debug("Request Length: {}", this.length);
 

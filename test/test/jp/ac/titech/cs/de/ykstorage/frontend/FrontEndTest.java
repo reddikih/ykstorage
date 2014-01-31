@@ -40,7 +40,7 @@ public class FrontEndTest {
             out.write(req);
             out.flush();
 
-            int response = in.read();
+            int response = parseResponseStatusCode(in);
             assertThat(response, is(200));
 
         } catch (IOException e) {
@@ -65,6 +65,16 @@ public class FrontEndTest {
 //            fail("IOException occurred.");
 //        }
 //    }
+
+    private int parseResponseStatusCode(InputStream in) throws IOException {
+        int result = 0;
+        byte[] bytes = new byte[2];
+        int ret = in.read(bytes);
+        for (Byte b : bytes) {
+            result = (result << 8) + (b & 0xff);
+        }
+        return result;
+    }
 
     private byte[] createReadRequest(long id) {
         byte[] header = {
