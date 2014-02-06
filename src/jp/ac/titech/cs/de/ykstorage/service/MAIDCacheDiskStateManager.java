@@ -3,11 +3,7 @@ package jp.ac.titech.cs.de.ykstorage.service;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.streamspinner.connection.CQException;
-import org.streamspinner.connection.CQRowSet;
-import org.streamspinner.connection.CQRowSetEvent;
-import org.streamspinner.connection.CQRowSetListener;
-import org.streamspinner.connection.DefaultCQRowSet;
+import org.streamspinner.connection.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -353,7 +349,7 @@ public class MAIDCacheDiskStateManager {
 				int index = getSpindownIndex();
 				if(index > 0) {
 					// TODO 正しく動作するか確認
-					logger.debug("[PROPOSAL1]: prev Wdata: {}, now Wdata: {}, Wcache: {}", getWdata(index-1), getWdata(index), wcache);
+					logger.debug("[PROPOSAL1]: prev Wdata: {}, now Wdata: {}, Wcache: {}", getWdata(index - 1), getWdata(index), wcache);
 					if((getWdata(index-1) > 0.0) && (getWdata(index) - getWdata(index-1) > wcache)) {
 						String spinupDevice = "";
 						for (String devicePath : diskStates.keySet()) {
