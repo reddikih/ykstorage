@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 

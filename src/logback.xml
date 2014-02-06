@@ -46,19 +46,19 @@
 
 
     <!-- Logger Settings -->
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager" additivity="false">
         <appender-ref ref="DATA_DISK_LOGGER" />
     </logger>
 
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager" additivity="false">
         <appender-ref ref="DATA_DISK_STATE_LOGGER" />
     </logger>
 
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager" additivity="false">
         <appender-ref ref="CACHE_DISK_LOGGER" />
     </logger>
 
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager" additivity="false">
         <appender-ref ref="CACHE_DISK_STATE_LOGGER" />
     </logger>
 
