@@ -48,15 +48,15 @@
         </javac>
     </target>
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
-    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
-        <copy todir="${ant.library.dir}">
-            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
-        </copy>
-        <unzip dest="${ant.library.dir}">
-            <patternset includes="jdtCompilerAdapter.jar"/>
-            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
-        </unzip>
-    </target>
+    <!--<target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">-->
+        <!--<copy todir="${ant.library.dir}">-->
+            <!--<fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>-->
+        <!--</copy>-->
+        <!--<unzip dest="${ant.library.dir}">-->
+            <!--<patternset includes="jdtCompilerAdapter.jar"/>-->
+            <!--<fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>-->
+        <!--</unzip>-->
+    <!--</target>-->
     <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
@@ -73,7 +73,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
+            <test name="test.jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
             <classpath refid="ykstorage.classpath"/>
         </junit>
     </target>
@@ -129,7 +129,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
+            <test name="test.jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
             <classpath refid="ykstorage.classpath"/>
         </junit>
     </target>
@@ -137,7 +137,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
+            <test name="test.jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
             <classpath refid="ykstorage.classpath"/>
         </junit>
     </target>
