@@ -1,6 +1,6 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 public class StorageService {

@@ -3,7 +3,7 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
-import test.jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManagerTest;
+import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManagerTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({

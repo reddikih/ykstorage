@@ -10,7 +10,7 @@ import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 

@@ -1,4 +1,4 @@
-package test.jp.ac.titech.cs.de.ykstorage.service.cmm;
+package test.jp.ac.titech.cs.de.ykstorage.storage.buffer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.ac.titech.cs.de.ykstorage.service.Value;
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
 import org.junit.Before;
 import org.junit.Test;

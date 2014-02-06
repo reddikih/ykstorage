@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
 public class ReStorageManager {
 	private static final int CACHEMEM = 0;

@@ -12,7 +12,7 @@ import jp.ac.titech.cs.de.ykstorage.service.ReCacheDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.ReDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.ReDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.ReStorageManager;
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
 import org.junit.After;
 import org.junit.Before;

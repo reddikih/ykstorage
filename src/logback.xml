@@ -62,7 +62,7 @@
         <appender-ref ref="CACHE_DISK_STATE_LOGGER" />
     </logger>
 
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager" additivity="false">
         <appender-ref ref="CACHE_MEMORY_LOGGER" />
     </logger>
 
