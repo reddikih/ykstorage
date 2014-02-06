@@ -8,7 +8,11 @@ import java.util.Arrays;
 
 import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+<<<<<<< HEAD:test/test/jp/ac/titech/cs/de/ykstorage/storage/StorageManagerTest.java
 import jp.ac.titech.cs.de.ykstorage.storage.OLDStorageManager;
+=======
+import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
+>>>>>>> refactoring changed the packages:test/test/jp/ac/titech/cs/de/ykstorage/storage/StorageManagerTest.java
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
 import org.junit.After;

@@ -9,7 +9,10 @@ import test.jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManagerT
 import test.jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ReCacheDiskManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.ReDataDiskManagerTest;
+<<<<<<< HEAD
 import test.jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManagerTest;
+=======
+>>>>>>> refactoring changed the packages
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
