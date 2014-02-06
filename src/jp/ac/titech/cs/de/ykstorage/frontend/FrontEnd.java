@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -107,13 +109,15 @@ public class FrontEnd {
             try {
                 OutputStream out = conn.getOutputStream();
                 byte[] payload = this.request.getPayload();
-                byte[] response;
-                if (payload != null) {
-                    response = new byte[]{0x00,(byte)0xc8,0x00,0x00,0x00,0x00};
-                } else {
-                    response = new byte[]{0x01,(byte)0xf4,0x00,0x00,0x00,0x00};
-                }
-                out.write(response);
+
+                ByteBuffer respBuff = ByteBuffer.allocate(14 + this.request.getLength());
+                respBuff.putShort((short)200);
+                respBuff.putLong(this.request.getKey());
+                respBuff.putInt(this.request.getLength());
+                if (this.request.getLength() > 0)
+                    respBuff.put(this.request.getPayload());
+
+                out.write(respBuff.array());
                 out.flush();
                 out.close();
             } catch (IOException e) {
@@ -132,93 +136,25 @@ public class FrontEnd {
         }
         @Override
         public void run() {
+            logger.info("starting Read task Request Key:{}", request.getKey());
 
-        }
-    }
-
-    public enum RequestCommand {
-        READ,
-        WRITE,
-        DELETE,
-    }
-
-    private class RequestHeader {
-        private RequestCommand command;
-        private long key;
-        private int length;
-
-        RequestHeader(Socket sock) {
-            parseHeader(sock);
-        }
-
-        public RequestCommand getCommand() {return this.command;}
-        public long getKey() {return this.key;}
-        public int getLength() {return this.length;}
-
-        private void parseHeader(Socket sock) {
             try {
-                InputStream in = sock.getInputStream();
+                OutputStream out = conn.getOutputStream();
+                byte[] bytes = new byte[16];
+                Arrays.fill(bytes, (byte)96);
+                ByteBuffer buf = ByteBuffer.allocate(14 + 16);
+                buf.putShort((short)200)
+                   .putLong(this.request.getKey())
+                   .putInt(16)
 
-                byte[] command = new byte[2];
-                int readByte = in.read(command);
-                if (readByte != command.length)
-                    throw new IOException("couldn't read request command");
-
-                if (command[0] == 0x00) {
-                    if (command[1] == 0x01) this.command = RequestCommand.READ;
-                    if (command[1] == 0x10) this.command = RequestCommand.WRITE;
-                } else if (command[0] == 0x01) {
-                    if (command[1] == 0x00) this.command = RequestCommand.DELETE;
-                } else {
-                    throw new IllegalStateException("request command is invalid.: " + ((int)command[0] + (int)command[1]));
-                }
-
-                logger.debug("Requested Command: {}", this.command);
-
-                // get key(8bytes)
-                long key = 0L;
-                int k = 64, offset = 8;
-                byte[] keyVal = new byte[8];
-                readByte = in.read(keyVal);
-                if (readByte != keyVal.length)
-                    throw new IOException("couldn't read request command");
-
-                for (int i = 0; i < keyVal.length; i++)
-                    this.key = (this.key << 8) + (keyVal[i] & 0xff);
-
-                logger.debug("Request Key: {}", this.key);
-
-                //get length(4bytes)
-                k = 32;
-                byte[] lengthVal = new byte[4];
-                readByte = in.read(lengthVal);
-                if (readByte != lengthVal.length)
-                    throw new IOException("couldn't read request command");
-
-                for (int i = 0; i < lengthVal.length; i++)
-                    this.length = (this.length << 8) + (lengthVal[i] & 0xff);
-
-                logger.debug("Request Length: {}", this.length);
-
+                   .put(bytes);
+                out.write(buf.array());
+                out.flush();
+                out.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    private class ClientRequest {
-        private final RequestHeader header;
-        private byte[] payload;
-
-        protected ClientRequest(RequestHeader header, byte[] payload) {
-            this.header = header;
-            this.payload = payload;
-        }
-
-        public RequestCommand getCommand() { return this.header.getCommand(); }
-        public long getKey() { return this.header.getKey(); }
-        public int getLength() { return this.header.getLength(); }
-        public byte[] getPayload() { return this.payload; }
     }
 
     public static void main(String[] args) throws IOException {
