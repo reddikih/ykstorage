@@ -81,7 +81,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.DiskManagerTest" todir="${junit.output.dir}"/>
+            <test name="test.jp.ac.titech.cs.de.ykstorage.storage.DiskManagerTest" todir="${junit.output.dir}"/>
             <classpath refid="ykstorage.classpath"/>
         </junit>
     </target>
@@ -89,7 +89,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.StorageManagerTest" todir="${junit.output.dir}"/>
+            <test name="test.jp.ac.titech.cs.de.ykstorage.storage.StorageManagerTest" todir="${junit.output.dir}"/>
             <classpath refid="ykstorage.classpath"/>
         </junit>
     </target>

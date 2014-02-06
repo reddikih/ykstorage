@@ -5,11 +5,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import org.slf4j.Logger;
@@ -155,7 +155,7 @@ public class MAIDSimpleClient2 {
 		System.out.println("finished");
 
         logger.debug("[Access] response time(millisecond): {}", totalResponseTime);
-        logger.debug("[Access] average response time {}[s]", String.format("%.6f", ((double)totalResponseTime / totalRequestCount) / 1000000000) );
+        logger.debug("[Access] average response time {}[s]", String.format("%.6f", ((double) totalResponseTime / totalRequestCount) / 1000000000));
 		logger.debug("MAIDSimpleClient [END]: {}", System.currentTimeMillis());
 	}
 	

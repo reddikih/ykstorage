@@ -4,11 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;

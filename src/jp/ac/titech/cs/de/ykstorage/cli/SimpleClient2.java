@@ -6,9 +6,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.StorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 

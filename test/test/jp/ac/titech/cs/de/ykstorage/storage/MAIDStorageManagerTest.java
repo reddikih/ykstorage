@@ -1,4 +1,4 @@
-package test.jp.ac.titech.cs.de.ykstorage.service;
+package test.jp.ac.titech.cs.de.ykstorage.storage;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
@@ -6,11 +6,11 @@ import static org.hamcrest.CoreMatchers.*;
 import java.io.File;
 import java.util.Arrays;
 
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
