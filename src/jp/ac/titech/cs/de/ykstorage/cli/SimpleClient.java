@@ -33,7 +33,11 @@ public class SimpleClient {
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD);
 
+<<<<<<< HEAD
 		this.sm = new OLDStorageManager(cmm, dm);
+=======
+		this.sm = new StorageManager(cmm, dm);
+>>>>>>> Change logger library from java.logging to slf4j(+ logback)
 	}
 
 	public boolean put(String key, String value) {
