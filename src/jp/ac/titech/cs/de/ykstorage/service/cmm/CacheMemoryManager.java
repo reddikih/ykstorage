@@ -1,19 +1,20 @@
 package jp.ac.titech.cs.de.ykstorage.service.cmm;
 
+import jp.ac.titech.cs.de.ykstorage.service.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
-import jp.ac.titech.cs.de.ykstorage.service.Value;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 public class CacheMemoryManager {
 
-	private Logger logger = StorageLogger.getLogger();
+//	private Logger logger = StorageLogger.getLogger();
+    private Logger logger = LoggerFactory.getLogger(CacheMemoryManager.class);
 
 	private ByteBuffer memBuffer;
 
@@ -39,8 +40,8 @@ public class CacheMemoryManager {
 
 		this.max = max;
 		this.limit = (int)Math.floor(max * threshold);
-		logger.fine(String.format("cache memory max capacity : %d[Bytes]", this.max));
-		logger.fine(String.format("cache memory threshold    : %d[Bytes]", this.limit));
+		logger.debug("cache memory max capacity : {}[Bytes]", this.max);
+		logger.debug("cache memory threshold    : {}[Bytes]", this.limit);
 
 		this.memBuffer = ByteBuffer.allocateDirect(max);
 		this.headerTable = new HashMap<Integer, MemoryHeader>();
@@ -52,9 +53,9 @@ public class CacheMemoryManager {
 		int usage = memBuffer.capacity() - memBuffer.remaining();
 		int requireSize = value.getValue().length;
 		if (this.limit < usage + requireSize) {
-			logger.fine(String.format(
-					"cache memory overflow. key id: %d, require size: %d[B], available: %d[B]",
-					key, requireSize, memBuffer.remaining()));
+			logger.debug(
+					"cache memory overflow. key id: {}, require size: {}[B], available: {}[B]",
+					key, requireSize, memBuffer.remaining());
 			return Value.NULL;
 		}
 
@@ -75,9 +76,9 @@ public class CacheMemoryManager {
 		// update access time for LRU
 		updateLRUInfo(key, thisTime);
 
-		logger.fine(String.format(
-				"put on cache memory. key id: %d, val pos: %d, size: %d, time: %d",
-				key, header.getPosition(), requireSize, thisTime));
+		logger.debug(
+				"put on cache memory. key id: {}, val pos: {}, size: {], time: {}",
+				key, header.getPosition(), requireSize, thisTime);
 
 		return value;
 	}
@@ -100,8 +101,7 @@ public class CacheMemoryManager {
 		updateLRUInfo(key, thisTime);
 
 		long accessedTime = headerTable.get(key).getAccessedTime();
-		logger.fine(String.format("get from cache memory. key id: %d, time: %d",
-									key, accessedTime));
+		logger.debug("get from cache memory. key id: {}, time: {}",	key, accessedTime);
 
 		return value;
 	}
@@ -111,19 +111,19 @@ public class CacheMemoryManager {
 		if (!Value.NULL.equals(deleted)) {
 			MemoryHeader deletedHeader = headerTable.remove(key);
 			int lrukey = lruKeys.remove(deletedHeader.getAccessedTime());
-			logger.fine(String.format("delete from cache memory. key id: %d lrukey: %d", key, lrukey));
+			logger.debug("delete from cache memory. key id: {} LRU key: {}", key, lrukey);
 			
 			if(lrukey != key) {
-				logger.fine("delete miss: key: " + key + ", lrukey: " + lrukey);
+				logger.debug("delete miss: key: {}, LRU key: {}", key, lrukey);
 				System.exit(1);
 			}
 			
 			if(lruKeys.containsKey(deletedHeader.getAccessedTime())) {
-				logger.fine("containsKey miss delete lrukey: " + lrukey);
+				logger.debug("containsKey miss delete LRU key: {}", lrukey);
 				System.exit(1);
 			}
 			if(lruKeys.containsValue(lrukey)) {
-				logger.fine("containsValue miss delete lrukey: " + lrukey);
+				logger.debug("containsValue miss delete LRU key: {}", lrukey);
 				System.exit(1);
 			}
 			
@@ -140,7 +140,7 @@ public class CacheMemoryManager {
 //			}
 //			}
 		} else {
-			logger.fine(key + " is null");
+			logger.debug("key: {} is null", key);
 		}
 		return deleted;
 	}
@@ -155,12 +155,12 @@ public class CacheMemoryManager {
 				Map.Entry<Long, Integer> lruKey = lruKeys.firstEntry();
 				assert lruKey != null;
 				int replacedKey = lruKey.getValue();
-				logger.fine("replace: replacedKey: " + replacedKey);
+				logger.debug("replace: replacedKey: {}", replacedKey);
 				Value deleted = delete(replacedKey);
 				if (!Value.NULL.equals(deleted))
 					replacedMap.put(replacedKey, deleted);
 			} else {
-				logger.fine("replace put: usage: " + usage + ", require: " + requireSize);
+				logger.debug("replace put: usage: {}, require: {}", usage, requireSize);
 				put(key, value);
 				break;
 			}
@@ -174,7 +174,7 @@ public class CacheMemoryManager {
 		if(lruKeys.containsKey(header.getAccessedTime())) {
 			int lrukey = lruKeys.remove(header.getAccessedTime());
 			if(lrukey != key) {
-				logger.fine("update LRU miss: key: " + key + ", lrukey: " + lrukey);
+				logger.debug("update LRU miss: key: {}, LRU key: {}", key, lrukey);
 				System.exit(1);
 			}
 		}

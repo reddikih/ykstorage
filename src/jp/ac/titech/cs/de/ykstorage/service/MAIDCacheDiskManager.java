@@ -1,5 +1,9 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
+import jp.ac.titech.cs.de.ykstorage.util.DiskState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -12,15 +16,11 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.logging.Logger;
-
-import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class MAIDCacheDiskManager {
-	private Logger logger = StorageLogger.getLogger();
-	private MAIDCacheDiskStateManager sm;
+	private final static Logger logger = LoggerFactory.getLogger(MAIDCacheDiskManager.class);
+    private MAIDCacheDiskStateManager sm;
 	
 	/**
 	 * e.g. /ecoim/ykstorage/data/disk1/
@@ -83,7 +83,7 @@ public class MAIDCacheDiskManager {
 			this.sm = sm;
 			this.sm.start();
 		}
-		logger.fine("MAIDCacheDiskManager: Capacity: " + maxCapacity + "[B]");
+		logger.trace("MAIDCacheDiskManager: Capacity: {}[B]", maxCapacity);
 	}
 
 	public Value get(int key) {
@@ -109,7 +109,7 @@ public class MAIDCacheDiskManager {
 				if(!f.mkdirs()) {
 					throw new SecurityException("cannot create dir: " + path);
 				}
-				logger.fine("CacheDisk [MKDIR]: " + path);
+				logger.trace("CacheDisk [MKDIR]: {}", path);
 			}
 			
 			String devicePath = mountPointPaths.get(path);
@@ -237,10 +237,10 @@ public class MAIDCacheDiskManager {
 			result = new Value(value);
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
-			logger.fine("CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("CacheDisk [GET]: {}, {}, {}", key, filepath, devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
-			logger.warning("failed CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed CacheDisk [GET]: {}, {}, {}", key, filepath, devicePath);
 		}
 		return result;
 	}
@@ -309,11 +309,11 @@ public class MAIDCacheDiskManager {
 			result = true;
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
-			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath + ", size: " + valueSize + "[B], usage: " + capacity.get(devicePath) + "[B], max: " + maxCapacity);
+			logger.debug("CacheDisk [PUT]: {}, {}, {}, size: {}[B], usage: {}[B], max: {}", key, filepath, devicePath, valueSize, capacity.get(devicePath), maxCapacity);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
-			logger.warning("failed CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed CacheDisk [PUT]: {}, {}, {}", key, filepath, devicePath);
 		}
 		return result;
 	}
@@ -345,11 +345,11 @@ public class MAIDCacheDiskManager {
 			result = f.delete();
 			
 			capacity.put(devicePath, capacity.get(devicePath) - tmp);
-			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath + ", size: " + tmp + "[B], usage: " + capacity.get(devicePath) + "[B], max: " + maxCapacity);
+			logger.debug("CacheDisk [DELETE]: {}, {}, {}, size: {}[B], usage: {}[B], max: {}", key, filepath, devicePath, tmp, capacity.get(devicePath), maxCapacity);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
-			logger.warning("failed CacheDIsk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed CacheDIsk [DELETE]: {}, {}, {}", key, filepath, devicePath);
 		}
 		return result;
 	}
@@ -363,11 +363,11 @@ public class MAIDCacheDiskManager {
 			String filePath = keyFileMap.get(key);
 			String diskPath = getDiskPath(filePath);
 			if(devicePath.equals(mountPointPaths.get(diskPath))) {
-				logger.fine("CacheDisk [LRU]: " + keyFileMap.get(key) + ", usage: " + capacity.get(devicePath) + "[B]" + ", max: " + maxCapacity + "[B]");
+				logger.debug("CacheDisk [LRU]: {}, usage: {}[B], max: {}[B]", keyFileMap.get(key), capacity.get(devicePath), maxCapacity);
 				return remove(key);
 			}			
 		}
-		logger.warning("failed CacheDisk [LRU]: usage: " + capacity.get(devicePath) + "[B]" + ", max: " + maxCapacity + "[B]");
+		logger.debug("failed CacheDisk [LRU]: usage: {}[B], max: {}[B]", capacity.get(devicePath), maxCapacity);
 		return false;
 	}
 }

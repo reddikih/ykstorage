@@ -2,31 +2,31 @@ package org.streamspinner.wrapper;
 
 
 public class Command {
-	// ƒXƒ^[ƒgó‘Ô‚ÆPC‚ÌMAC—v‹ƒRƒ}ƒ“ƒh
+	// ã‚¹ã‚¿ãƒ¼ãƒˆçŠ¶æ…‹ã¨PCã®MACè¦æ±‚ã‚³ãƒãƒ³ãƒ‰
 	public static final byte[] REQUIRE_MAC = {(byte) 0x02, (byte) 0x01, (byte) 0x5b, (byte) 0x00, (byte) 0x00};
-	// ‹L˜^ŠÔŠui‚‘¬‘¤j‚Ìİ’è‚ğæ“¾
+	// è¨˜éŒ²é–“éš”ï¼ˆé«˜é€Ÿå´ï¼‰ã®è¨­å®šã‚’å–å¾—
 	public static final byte[] SAMP = {(byte) 0x02, (byte) 0x20, (byte) 0x01, (byte) 0x00, (byte) 0x00};
-	// ‹L˜^ŠÔŠui‚‘¬‘¤j‚ğ10ms‚Éİ’è
+	// è¨˜éŒ²é–“éš”ï¼ˆé«˜é€Ÿå´ï¼‰ã‚’10msã«è¨­å®š
 	public static final byte[] SAMP_10ms = {(byte) 0x02, (byte) 0x20, (byte) 0x01, (byte) 0x00, (byte) 0x01, (byte) 0x00};
-	// ‹L˜^ŠÔŠui‚‘¬‘¤j‚ğ50ms‚Éİ’è
+	// è¨˜éŒ²é–“éš”ï¼ˆé«˜é€Ÿå´ï¼‰ã‚’50msã«è¨­å®š
 	public static final byte[] SAMP_50ms = {(byte) 0x02, (byte) 0x20, (byte) 0x01, (byte) 0x00, (byte) 0x01, (byte) 0x02};
-	// ‹L˜^ŠÔŠui‚‘¬‘¤j‚ğ100ms‚Éİ’è
+	// è¨˜éŒ²é–“éš”ï¼ˆé«˜é€Ÿå´ï¼‰ã‚’100msã«è¨­å®š
 	public static final byte[] SAMP_100ms = {(byte) 0x02, (byte) 0x20, (byte) 0x01, (byte) 0x00, (byte) 0x01, (byte) 0x03};
-	// ƒXƒ^[ƒgƒRƒ}ƒ“ƒh(Œã‚ë6ƒoƒCƒg‚ÍPC‚ÌMACƒAƒhƒŒƒX)
+	// ã‚¹ã‚¿ãƒ¼ãƒˆã‚³ãƒãƒ³ãƒ‰(å¾Œã‚6ãƒã‚¤ãƒˆã¯PCã®MACã‚¢ãƒ‰ãƒ¬ã‚¹)
 	public static final byte[] START = {(byte) 0x02, (byte) 0x01, (byte) 0x50, (byte) 0x00, (byte) 0x06
 			, (byte) 0x00, (byte) 0x1a, (byte) 0x4d, (byte) 0x5b, (byte) 0x15, (byte) 0x3c};
-	// ƒƒ‚ƒŠ“àæ“ª”Ô†Aƒf[ƒ^”—v‹ƒRƒ}ƒ“ƒh1sti‚‘¬j
+	// ãƒ¡ãƒ¢ãƒªå†…å…ˆé ­ç•ªå·ã€ãƒ‡ãƒ¼ã‚¿æ•°è¦æ±‚ã‚³ãƒãƒ³ãƒ‰1stï¼ˆé«˜é€Ÿï¼‰
 	public static final byte[] REQUIRE_MEMORY = {(byte) 0x02, (byte) 0x01, (byte) 0x53, (byte) 0x00, (byte) 0x00};
-	// ‘ª’èó‘Ô—v‹ƒRƒ}ƒ“ƒh
+	// æ¸¬å®šçŠ¶æ…‹è¦æ±‚ã‚³ãƒãƒ³ãƒ‰
 	public static final byte[] REQUIRE_STATE = {(byte) 0x02, (byte) 0x01, (byte) 0x57, (byte) 0x00, (byte) 0x00};
-	// ƒAƒvƒŠƒVƒXƒeƒ€ƒgƒŠƒKƒRƒ}ƒ“ƒh
+	// ã‚¢ãƒ—ãƒªã‚·ã‚¹ãƒ†ãƒ ãƒˆãƒªã‚¬ã‚³ãƒãƒ³ãƒ‰
 	public static final byte[] SYSTRIGGER = {(byte) 0x02, (byte) 0x01, (byte) 0x58, (byte) 0x00, (byte) 0x09
 			, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
 			, (byte) 0x00};
-	// ƒf[ƒ^—v‹ƒRƒ}ƒ“ƒh1sti‚‘¬j
+	// ãƒ‡ãƒ¼ã‚¿è¦æ±‚ã‚³ãƒãƒ³ãƒ‰1stï¼ˆé«˜é€Ÿï¼‰
 	public static final byte[] REQUIRE_DATA = {(byte) 0x02, (byte) 0x01, (byte) 0x55, (byte) 0x00, (byte) 0x10
 			, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
 			, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x01};
-	// ƒXƒgƒbƒvƒRƒ}ƒ“ƒh
+	// ã‚¹ãƒˆãƒƒãƒ—ã‚³ãƒãƒ³ãƒ‰
 	public static final byte[] STOP = {(byte) 0x02, (byte) 0x01, (byte) 0x51, (byte) 0x00, (byte) 0x00};
 }

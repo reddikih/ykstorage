@@ -100,21 +100,27 @@ public class MAIDStorageManager {
 		PutThread pt = new PutThread(DATADISK, keyNum, value);
 		pt.start();
 		
-		if(!(cmmResult & cachedmResult)) {
-			try {
-				pt.join(TIMEOUT);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return false;
-			}
-			
-			if(pt.isAlive()) {
-				return false;
-			}
-		}
-		
-		return true;
+//		if(!(cmmResult & cachedmResult)) {
+//			try {
+//				pt.join(TIMEOUT);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//				return false;
+//			}
+//
+//			if(pt.isAlive()) {
+//				return false;
+//			}
+//		}
+        try {
+            pt.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
 	}
 	
 	public void end() {

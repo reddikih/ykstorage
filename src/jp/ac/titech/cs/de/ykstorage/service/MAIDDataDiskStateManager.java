@@ -1,22 +1,20 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.logging.Logger;
-
+import jp.ac.titech.cs.de.ykstorage.util.DiskState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.streamspinner.connection.CQException;
 import org.streamspinner.connection.CQRowSet;
 import org.streamspinner.connection.CQRowSetEvent;
 import org.streamspinner.connection.CQRowSetListener;
 import org.streamspinner.connection.DefaultCQRowSet;
 
-import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedMap;
 
 
 public class MAIDDataDiskStateManager {
@@ -139,7 +137,7 @@ public class MAIDDataDiskStateManager {
 	private String avgCommand;
 	private String inteCommand;
 	
-	private final Logger logger = StorageLogger.getLogger();
+    private final static Logger logger = LoggerFactory.getLogger(MAIDDataDiskStateManager.class);
 
 	private StateCheckThread sct;
 	private StateCheckThread2 sct2;
@@ -252,8 +250,8 @@ public class MAIDDataDiskStateManager {
 		avgCommand = avgCommand.substring(0, avgCommand.length() - 1) + " FROM Unit1[1000]";
 		inteCommand = inteCommand.substring(0, inteCommand.length() - 1) + " FROM Unit1[1000]";
 		
-		logger.fine("MAID DataDisk State [DataDisk AVG SQL Command]: " + avgCommand);
-		logger.fine("MAID DataDisk State [DataDisk INTE SQL Command]: " + inteCommand);
+		logger.debug("MAID DataDisk State [DataDisk AVG SQL Command]: {}", avgCommand);
+		logger.debug("MAID DataDisk State [DataDisk INTE SQL Command]: {}", inteCommand);
 	}
 
 	public void start() {
@@ -273,7 +271,7 @@ public class MAIDDataDiskStateManager {
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
 			spinupCount++;
-			logger.fine("[SPINUP]: " + devicePath + "count: " + spinupCount);
+			logger.debug("[SPINUP]: {} count: {}", devicePath, spinupCount);
 			long currentTime = System.currentTimeMillis();
 //			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
 			setTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
@@ -282,6 +280,7 @@ public class MAIDDataDiskStateManager {
 			return true;
 		}
 		setDiskState(devicePath, DiskState.STANDBY);
+        logger.debug("Couldn't spin up: {} count: {}", devicePath, spinupCount);
 		return false;
 	}
 
@@ -300,7 +299,7 @@ public class MAIDDataDiskStateManager {
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
 			spindownCount++;
-			logger.fine("[SPINDOWN]: " + devicePath + "count: " + spindownCount);
+			logger.debug("[SPINDOWN]: {} count: {}", devicePath, spindownCount);
 			long currentTime = System.currentTimeMillis();
 			setStandbyIntime(devicePath, currentTime);
 //			setTidle(devicePath, currentTime - getIdleIntime(devicePath));	// XXX setはいらない??? setIdleInTimeは欲しい???
@@ -309,6 +308,7 @@ public class MAIDDataDiskStateManager {
 			return true;
 		}
 		setDiskState(devicePath, DiskState.IDLE);
+        logger.debug("Couldn't spin down: {} count: {}", devicePath, spindownCount);
 		return false;
 	}
 
@@ -319,7 +319,7 @@ public class MAIDDataDiskStateManager {
 			Process p = r.exec(cmd);
 			returnCode = p.waitFor();
 			if(returnCode != 0) {
-				logger.info(cmd[0] + " return code: " + returnCode);
+				logger.info("{} return code: {}", cmd[0], returnCode);
 			}
 		} catch (IOException e) {
 //			e.printStackTrace();
@@ -481,10 +481,10 @@ public class MAIDDataDiskStateManager {
 		long tmp = tIdle.get(devicePath);
 		if(tmp + time < 0) {
 			tIdle.put(devicePath, 0L);
-			logger.fine("addTidle: " + devicePath + ", " + 0);
+			logger.debug("addTidle: {}, {}", devicePath, 0);
 		} else {
 			tIdle.put(devicePath, tmp + time);
-			logger.fine("addTidle: " + devicePath + ", " + tmp  + " + " + time);
+			logger.debug("addTidle: {}, {} + {}", devicePath, tmp, time);
 		}
 		
 		return result;
@@ -619,14 +619,14 @@ public class MAIDDataDiskStateManager {
 //							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 //						}
 						
-						logger.fine("[PROPOSAL2]: wIdle: " + wi + ", tIdle: " + ti + ", wStandby: " + ws + ", tStandby: " + ts + ", jSpinup: " + ju + ", jSpindown: " + jd);
+						logger.debug("[PROPOSAL2]: wIdle: " + wi + ", tIdle: " + ti + ", wStandby: " + ws + ", tStandby: " + ts + ", jSpinup: " + ju + ", jSpindown: " + jd);
 						if(wi * (ts + al) > ws * (ts + al) + ju + jd) {
 							addTidle(devicePath, -alpha);
-							logger.fine("sub [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+							logger.debug("sub [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 						if(wi * (ts - al) < ws * (ts - al) + ju + jd) {
 							addTidle(devicePath, alpha);
-							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+							logger.debug("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 						
 						// 初期化
@@ -656,7 +656,7 @@ public class MAIDDataDiskStateManager {
 	
 	class GetDataThread extends Thread {
 		public void run() {
-			logger.fine("DataDisk GetDataThread [START]");
+			logger.debug("DataDisk GetDataThread [START]");
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
 				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定
@@ -734,7 +734,7 @@ public class MAIDDataDiskStateManager {
 	    					}
 	    					
 	    					if(getJspinup(devicePath) > 200.0) {
-	    						logger.fine("over: wcurrent: " + wcurrent + ", wIdle: " + getWidle(devicePath) + ", minWup: " + minWup);
+	    						logger.debug("over: wcurrent: " + wcurrent + ", wIdle: " + getWidle(devicePath) + ", minWup: " + minWup);
 	    					}
 	    					
 	    					if(((minWup) && (wcurrent < getWidle(devicePath) + acc + 0.4)) || (getJspinup(devicePath) > 450.0)) {
