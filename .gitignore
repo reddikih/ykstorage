@@ -2,4 +2,7 @@ bin/
 *~
 *.class
 junit/
+.idea/
+.settings/
+data/
 
