@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
@@ -13,10 +14,14 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class SimpleClient2 {
+	private static Logger logger = StorageLogger.getLogger();
+	
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
 	private static final int valuelIndex = 3;
+	
+	static private long responseTime = 0L;
 	
 	private StorageManager sm;
 
@@ -29,12 +34,13 @@ public class SimpleClient2 {
 		double threshold = Parameter.MEMORY_THRESHOLD;
 		CacheMemoryManager cmm = new CacheMemoryManager(capacity, threshold);
 
-		String[] diskPaths = Parameter.DATA_DISK_PATHS;
+		String[] diskPaths = Parameter.DISK_PATHS;
+		String savePath = Parameter.DATA_DISK_SAVE_FILE_PATH;
 		DiskManager dm = new DiskManager(
 				diskPaths,
+				savePath,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD,
-				Parameter.PERSISTENCE);
+				Parameter.SPIN_DOWN_THRESHOLD);
 
 		this.sm = new StorageManager(cmm, dm);
 
@@ -51,8 +57,7 @@ public class SimpleClient2 {
 		String value = new String(byteVal);
 		return value;
 	}
-
-
+	
 	public static void main(String[] args) throws IOException, InterruptedException {
 		int bufSize = 1024 * 1024 * 20;
 		char[] buf = new char[bufSize];
@@ -66,7 +71,11 @@ public class SimpleClient2 {
 		BufferedReader br = new BufferedReader(fr);
 		String line = "";
 		int interval = 0;
-
+		
+		long startTime = 0L;
+		long endTime = 0L;
+		
+		logger.fine("MAIDSimpleClient [START]: " + System.currentTimeMillis());
 		int i = 0;
 		while((line = br.readLine()) != null) {
 			interval = 0;
@@ -74,6 +83,7 @@ public class SimpleClient2 {
 			
 			i++;
 			System.out.print(i + " ");
+			startTime = System.currentTimeMillis();
 			if(cmdArray.length == 3 && (cmdArray[cmdIndex].equalsIgnoreCase("get"))) {
 				System.out.print("[GET] Key: " + cmdArray[keylIndex]);
 				String value = (String) sc.get(cmdArray[keylIndex]);
@@ -108,11 +118,18 @@ public class SimpleClient2 {
 				interval = Integer.parseInt(cmdArray[intervalIndex]);
 			}
 			
+			endTime = System.currentTimeMillis();
+			
+			responseTime += endTime - startTime;
+			
 			Thread.sleep(interval);
 		}
 		
+		logger.fine("[Access] response time(millisecond): " + responseTime);
 		br.close();
+		
 		System.out.println("finished");
+		logger.fine("MAIDSimpleClient [END]: " + System.currentTimeMillis());
 	}
 
 }

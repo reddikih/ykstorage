@@ -61,7 +61,10 @@ public class DiskManager {
 		this.sm = new StateManager(dataDiskDevices, spinDownThreshold);
 
 		init();
-		this.sm.start();
+		
+		if(Parameter.DISKMANAGER_SPINDOWN) {
+			this.sm.start();
+		}
 	}
 
 	public Value get(int key) {
