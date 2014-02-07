@@ -3,7 +3,9 @@ package test.jp.ac.titech.cs.de.ykstorage.service;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
-import org.junit.Assume;
+import java.io.File;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,26 +40,23 @@ public class StateManagerTest {
 
 	@Test
 	public void spinupTest() {
-		Assume.assumeTrue(System.getProperty("os.name").contains("Linux"));
 		assertThat(sm.spinup(devicePaths[0]), is(true));
 	}
 
 	@Test
 	public void spindownTest() {
-		Assume.assumeTrue(System.getProperty("os.name").contains("Linux"));
 		assertThat(sm.spindown(devicePaths[0]), is(true));	// spindown /dev/sdb
 	}
 
 	@Test
 	public void writeToSpindownDiskTest() {
-		Assume.assumeTrue(System.getProperty("os.name").contains("Linux"));
 		int key = 1;
 		Value value = new Value("value".getBytes());
 		DiskManager dm = new DiskManager(
 				Parameter.DATA_DISK_PATHS,
+				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
-				Parameter.SPIN_DOWN_THRESHOLD,
-				false);
+				Parameter.SPIN_DOWN_THRESHOLD);
 
 		assertThat(sm.spindown(devicePaths[0]), is(true));	// spindown /dev/sdb
 		assertThat(sm.spinup(devicePaths[0]), is(true));
@@ -82,5 +81,14 @@ public class StateManagerTest {
 		assertThat(sm.setDiskState(devicePaths[0], DiskState.IDLE), is(true));
 		assertThat(sm.getDiskState(devicePaths[0]), is(DiskState.IDLE));
 	}
-	
+
+	@After
+	public void teardown() {
+		for(String path : Parameter.DATA_DISK_PATHS) {
+			File f = new File(path);
+			f.delete();
+		}
+		File f = new File(Parameter.DATA_DISK_SAVE_FILE_PATH);
+		f.delete();
+	}
 }

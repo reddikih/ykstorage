@@ -23,13 +23,12 @@ import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class DiskManager {
-	private static final String SAVE_FILE_PATH = "file.map";
-	
 	private Logger logger = StorageLogger.getLogger();
 	private StateManager sm;
-	private String[] dataDiskPaths;
-	private boolean persistence;
-	
+
+	private String[] diskpaths;
+	private String savePath;
+
 	/**
 	 * key: disk path on file system
 	 * value: device file path
@@ -46,19 +45,19 @@ public class DiskManager {
 
 	public DiskManager(
 			String[] diskpaths,
+			String savePath,
 			SortedMap<String, String> mountPointPaths,
-			double spinDownThreshold,
-			boolean persistence) {
-		
-		this.dataDiskPaths = diskpaths;
+			double spinDownThreshold) {
+		this.diskpaths = diskpaths;
+		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
-		this.persistence = persistence;
 
-		ArrayList<String> dataDiskDevices = new ArrayList<String>();
+//		this.sm = new StateManager(this.mountPointPaths.values(), spinDownThreshold);
+		ArrayList<String> devices = new ArrayList<String>();
 		for(String diskpath : diskpaths) {
-			dataDiskDevices.add(mountPointPaths.get(diskpath));
+			devices.add(mountPointPaths.get(diskpath));
 		}
-		this.sm = new StateManager(dataDiskDevices, spinDownThreshold);
+		this.sm = new StateManager(devices, spinDownThreshold);
 
 		init();
 		
@@ -84,7 +83,7 @@ public class DiskManager {
 	}
 
 	private void init() {
-		for (String path : dataDiskPaths) {
+		for (String path : diskpaths) {
 			File f = new File(path);
 			if(!f.exists() || !f.isDirectory()) {
 				if(!f.mkdirs()) {
@@ -93,34 +92,35 @@ public class DiskManager {
 				logger.fine("[MKDIR]: " + path);
 			}
 		}
-		
+
 		loadHashMap();
 	}
-	
+
+	public DiskState getDiskState(String devicePath) {
+		//String devicePath = mountPointPaths.get(diskPath);
+		//return sm.getDiskState(devicePath);
+		return sm.getDiskState(devicePath);
+	}
+
 	public DiskState getDiskState(int key) {
-		String devicePath = getDevicePath(key);
+		String filePath = keyFileMap.get(key);
+		String diskPath = getDiskPath(filePath);
+		String devicePath = mountPointPaths.get(diskPath);
 		return sm.getDiskState(devicePath);
 	}
 	
-	private String getDiskPath(int key) {
+	private String getDiskPath(String filePath) {
 		String diskPath = "";
-		String filePath = keyFileMap.get(key);
 		if(filePath != null) {
 			diskPath = filePath.substring(0, filePath.lastIndexOf("/") + 1);
 		}
 		return diskPath;
 	}
-	
-	private String getDevicePath(int key) {
-		String diskPath = getDiskPath(key);
-		String devicePath = mountPointPaths.get(diskPath);
-		return devicePath;
-	}
 
 	private void loadHashMap() {
 		try {
-			File f = new File(SAVE_FILE_PATH);
-			if(!f.isFile() || !persistence) {
+			File f = new File(savePath);
+			if(!f.isFile()) {
 				return;
 			}
 			BufferedReader br = new BufferedReader(new FileReader(f));
@@ -144,10 +144,7 @@ public class DiskManager {
 
 	private void saveHashMap() {
 		try {
-			File f = new File(SAVE_FILE_PATH);
-			if(!persistence) {
-				f.deleteOnExit();
-			}
+			File f = new File(savePath);
 			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
 
 			Iterator<Integer> keys = keyFileMap.keySet().iterator();
@@ -168,6 +165,7 @@ public class DiskManager {
 		}
 	}
 
+	// キーに基づいて格納先のディスクを選択
 	private String selectDisk(int key) {
 		String filepath = keyFileMap.get(key);
 		if(filepath != null) {
@@ -180,9 +178,9 @@ public class DiskManager {
 	}
 
 	private String roundRobin(int key) {
-		String filepath = dataDiskPaths[diskIndex] + key;
+		String filepath = diskpaths[diskIndex] + key;
 		diskIndex++;
-		if(diskIndex > dataDiskPaths.length - 1) {
+		if(diskIndex > diskpaths.length - 1) {
 			diskIndex = 0;
 		}
 		return filepath;
@@ -195,8 +193,9 @@ public class DiskManager {
 		if(filepath == null) {
 			return result;
 		}
-		
-		String devicePath = getDevicePath(key);
+//		int diskId = getDiskId(filepath);
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
@@ -223,11 +222,13 @@ public class DiskManager {
 		boolean result = false;
 		
 		String filepath = selectDisk(key);
-		String devicePath = getDevicePath(key);
+//		int diskId = getDiskId(filepath);
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {	
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
-			if(!persistence) {
+			if(Parameter.DEBUG) {
 				f.deleteOnExit();
 			}
 			FileOutputStream fos = new FileOutputStream(f);
@@ -259,7 +260,10 @@ public class DiskManager {
 		}
 		
 		keyFileMap.remove(key);
-		String devicePath = getDevicePath(key);
+//		int diskId = getDiskId(filepath);
+		//String devicePath = mountPointPaths.get(selectDisk(key));
+		String diskPath = getDiskPath(filepath);
+		String devicePath = mountPointPaths.get(diskPath);
 		try {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
