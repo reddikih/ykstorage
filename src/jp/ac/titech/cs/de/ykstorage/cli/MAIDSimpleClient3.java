@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
@@ -13,9 +12,11 @@ import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
+import org.slf4j.LoggerFactory;
 
 public class MAIDSimpleClient3 {
+    private final static org.slf4j.Logger logger = LoggerFactory.getLogger(MAIDSimpleClient3.class);
+
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
@@ -24,7 +25,7 @@ public class MAIDSimpleClient3 {
 	private long responseTime = 0L;
 	
 	private MAIDStorageManager sm;
-	private Logger logger = StorageLogger.getLogger();
+
 
 	public MAIDSimpleClient3() {
 		init();
@@ -64,8 +65,6 @@ public class MAIDSimpleClient3 {
 				sm);
 
 		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
-
-		StorageLogger.getLogger().config("Starting Simple Clinet.");
 	}
 
 	public boolean put(String key, String value) {
@@ -97,7 +96,7 @@ public class MAIDSimpleClient3 {
 		long startTime = 0L;
 		long endTime = 0L;
 
-		logger.fine("MAIDSimpleClient [START]: " + System.currentTimeMillis());
+		logger.debug("MAIDSimpleClient [START]: " + System.currentTimeMillis());
 		int i = 0;
 		while((line = br.readLine()) != null) {
 			interval = 0;
@@ -147,11 +146,11 @@ public class MAIDSimpleClient3 {
 			Thread.sleep(interval);
 		}
 		
-		logger.fine("[Access] response time(millisecond): " + responseTime);
+        logger.debug("[Access] response time(millisecond): " + responseTime);
 		br.close();
 		
 		System.out.println("finished");
-		logger.fine("MAIDSimpleClient [END]: " + System.currentTimeMillis());
+		logger.debug("MAIDSimpleClient [END]: " + System.currentTimeMillis());
 	}
 	
 	public static void main(String[] args) throws IOException, InterruptedException {

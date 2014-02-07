@@ -8,7 +8,6 @@ import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 public class SimpleClient {
 	private StorageManager sm;
@@ -31,8 +30,6 @@ public class SimpleClient {
 				Parameter.SPIN_DOWN_THRESHOLD);
 
 		this.sm = new StorageManager(cmm, dm);
-
-		StorageLogger.getLogger().config("Starting Simple Clinet.");
 	}
 
 	public boolean put(String key, String value) {

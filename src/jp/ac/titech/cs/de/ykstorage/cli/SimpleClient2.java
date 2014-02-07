@@ -4,18 +4,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
-
+import org.slf4j.LoggerFactory;
 
 public class SimpleClient2 {
-	private static Logger logger = StorageLogger.getLogger();
-	
+    private final static org.slf4j.Logger logger = LoggerFactory.getLogger(SimpleClient2.class);
+
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
@@ -43,8 +41,6 @@ public class SimpleClient2 {
 				Parameter.SPIN_DOWN_THRESHOLD);
 
 		this.sm = new StorageManager(cmm, dm);
-
-		StorageLogger.getLogger().config("Starting Simple Clinet.");
 	}
 
 	public boolean put(String key, String value) {
@@ -75,7 +71,7 @@ public class SimpleClient2 {
 		long startTime = 0L;
 		long endTime = 0L;
 		
-		logger.fine("MAIDSimpleClient [START]: " + System.currentTimeMillis());
+		logger.debug("MAIDSimpleClient [START]: " + System.currentTimeMillis());
 		int i = 0;
 		while((line = br.readLine()) != null) {
 			interval = 0;
@@ -125,11 +121,11 @@ public class SimpleClient2 {
 			Thread.sleep(interval);
 		}
 		
-		logger.fine("[Access] response time(millisecond): " + responseTime);
+		logger.debug("[Access] response time(millisecond): " + responseTime);
 		br.close();
 		
 		System.out.println("finished");
-		logger.fine("MAIDSimpleClient [END]: " + System.currentTimeMillis());
+		logger.debug("MAIDSimpleClient [END]: " + System.currentTimeMillis());
 	}
 
 }

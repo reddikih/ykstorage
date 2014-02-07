@@ -13,7 +13,6 @@ import java.util.TreeMap;
 
 public class CacheMemoryManager {
 
-//	private Logger logger = StorageLogger.getLogger();
     private Logger logger = LoggerFactory.getLogger(CacheMemoryManager.class);
 
 	private ByteBuffer memBuffer;

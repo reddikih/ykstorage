@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class StateManager {
@@ -32,7 +30,6 @@ public class StateManager {
 	private long spindownThreshold;
 
 	private int interval = 1000;
-	private final Logger logger = StorageLogger.getLogger();
 
 	private StateCheckThread sct;
 
@@ -80,7 +77,6 @@ public class StateManager {
 		String[] cmdarray = {"ls", devicePath};
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
-			logger.fine("[SPINUP]: " + devicePath);
 			return true;
 		}
 		setDiskState(devicePath, DiskState.STANDBY);
@@ -101,7 +97,6 @@ public class StateManager {
 		String[] hdparm = {"hdparm", "-y", devicePath};
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
-			logger.fine("[SPINDOWN]: " + devicePath);
 			return true;
 		}
 		setDiskState(devicePath, DiskState.IDLE);
@@ -114,9 +109,7 @@ public class StateManager {
 			Runtime r = Runtime.getRuntime();
 			Process p = r.exec(cmd);
 			returnCode = p.waitFor();
-			if(returnCode != 0) {
-				logger.info(cmd[0] + " return code: " + returnCode);
-			}
+
 		} catch (IOException e) {
 //			e.printStackTrace();
 		} catch (InterruptedException e) {

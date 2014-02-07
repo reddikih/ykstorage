@@ -7,15 +7,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.streamspinner.connection.*;
 
 
 public class ReCacheDiskStateManager {
+    private final static Logger logger = LoggerFactory.getLogger(ReCacheDiskStateManager.class);
 	private static String[] UNIT_NAMES;
 	static {
 		int maxUnits = 6;
@@ -80,7 +81,6 @@ public class ReCacheDiskStateManager {
 	 * the interval of checking disk state for proposal1
 	 */
 	private long interval;
-	private final Logger logger = StorageLogger.getLogger();
 
 	private StateCheckThread sct;
 	private GetDataThread gdt;
@@ -132,7 +132,7 @@ public class ReCacheDiskStateManager {
 		for (String device : devicePaths) {
 			result.put(device, (int)(accessThreshold * ((double)interval / 1000.0)) + 1);
 		}
-		logger.fine("accessThreashold: " + accessThreshold + ", interval: " + interval);
+		logger.debug("accessThreashold: " + accessThreshold + ", interval: " + interval);
 		return result;
 	}
 	
@@ -170,8 +170,8 @@ public class ReCacheDiskStateManager {
 		dataCommand = dataCommand.substring(0, dataCommand.length() - 1) + " FROM Unit1[1000]";
 		cacheCommand = cacheCommand.substring(0, cacheCommand.length() - 1) + " FROM Unit1[1000]";
 		
-		logger.fine("MAID CacheDisk State [DataDisk AVG SQL Command]: " + dataCommand);
-		logger.fine("MAID CacheDisk State [CacheDisk AVG SQL Command]: " + cacheCommand);
+		logger.debug("MAID CacheDisk State [DataDisk AVG SQL Command]: " + dataCommand);
+		logger.debug("MAID CacheDisk State [CacheDisk AVG SQL Command]: " + cacheCommand);
 	}
 
 	private boolean devicePathCheck(String devicePath) {
@@ -194,7 +194,7 @@ public class ReCacheDiskStateManager {
 		String[] cmdarray = {"ls", devicePath};
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
-			logger.fine("[SPINUP]: " + devicePath);
+			logger.debug("[SPINUP]: " + devicePath);
 			setDiskReset(devicePath, true);
 			decSpindownIndex();
 			return true;
@@ -217,7 +217,7 @@ public class ReCacheDiskStateManager {
 		String[] hdparm = {"hdparm", "-y", devicePath};
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
-			logger.fine("[SPINDOWN]: " + devicePath);
+			logger.debug("[SPINDOWN]: " + devicePath);
 			incSpindownIndex();
 			return true;
 		}
@@ -326,9 +326,9 @@ public class ReCacheDiskStateManager {
 				for (String devicePath : diskStates.keySet()) {
 					// XXX 消費電力を用いてもいいかもしれない
 					double accesses = (double)getAccessCount(devicePath) / ((double)interval / 1000.0);
-					logger.fine("[PROPOSAL1]: " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
+					logger.debug("[PROPOSAL1]: " + devicePath + ", access: " + accesses + ", access threshold: " + accessThreshold);
 					if (DiskState.IDLE.equals(getDiskState(devicePath)) && accesses < accessThreshold && getSpindownIndex() < numOfCacheDisks - 1) {
-						logger.fine("[PROPOSAL1]: spindown " + devicePath);
+						logger.debug("[PROPOSAL1]: spindown " + devicePath);
 						spindown(devicePath);
 						break;	// 一度に複数台のディスクをspindownさせない
 					}
@@ -337,7 +337,7 @@ public class ReCacheDiskStateManager {
 				int index = getSpindownIndex();
 				if(index > 0) {
 					// TODO 正しく動作するか確認
-					logger.fine("[PROPOSAL1]: prev Wdata: " + getWdata(index-1) + ", now Wdata: " + getWdata(index) + ", Wcache: " + wcache);
+					logger.debug("[PROPOSAL1]: prev Wdata: " + getWdata(index-1) + ", now Wdata: " + getWdata(index) + ", Wcache: " + wcache);
 					if((getWdata(index-1) > 0.0) && (getWdata(index) - getWdata(index-1) > wcache)) {
 						String spinupDevice = "";
 						for (String devicePath : diskStates.keySet()) {
@@ -346,7 +346,7 @@ public class ReCacheDiskStateManager {
 								break;
 							}
 						}
-						logger.fine("[PROPOSAL1]: spinup " + spinupDevice);
+						logger.debug("[PROPOSAL1]: spinup " + spinupDevice);
 						spinup(spinupDevice);
 					}
 				}
@@ -365,7 +365,7 @@ public class ReCacheDiskStateManager {
 	
 	class GetDataThread extends Thread {
 		public void run() {
-			logger.fine("CacheDisk GetDataThread [START]");
+			logger.debug("CacheDisk GetDataThread [START]");
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
 				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定

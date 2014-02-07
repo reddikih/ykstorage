@@ -7,8 +7,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.streamspinner.connection.CQException;
 import org.streamspinner.connection.CQRowSet;
 import org.streamspinner.connection.CQRowSetEvent;
@@ -16,10 +17,12 @@ import org.streamspinner.connection.CQRowSetListener;
 import org.streamspinner.connection.DefaultCQRowSet;
 
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class ReDataDiskStateManager {
+    
+    private final static Logger logger = LoggerFactory.getLogger(ReDataDiskStateManager.class);
+    
 	private static String[] UNIT_NAMES;
 	static {
 		int maxUnits = 6;
@@ -136,7 +139,6 @@ public class ReDataDiskStateManager {
 	private String avgCommand;
 	private String inteCommand;
 	
-	private final Logger logger = StorageLogger.getLogger();
 
 	private StateCheckThread sct;
 	private StateCheckThread2 sct2;
@@ -249,8 +251,8 @@ public class ReDataDiskStateManager {
 		avgCommand = avgCommand.substring(0, avgCommand.length() - 1) + " FROM Unit1[1000]";
 		inteCommand = inteCommand.substring(0, inteCommand.length() - 1) + " FROM Unit1[1000]";
 		
-		logger.fine("MAID DataDisk State [DataDisk AVG SQL Command]: " + avgCommand);
-		logger.fine("MAID DataDisk State [DataDisk INTE SQL Command]: " + inteCommand);
+		logger.debug("MAID DataDisk State [DataDisk AVG SQL Command]: " + avgCommand);
+		logger.debug("MAID DataDisk State [DataDisk INTE SQL Command]: " + inteCommand);
 	}
 
 	public void start() {
@@ -269,7 +271,7 @@ public class ReDataDiskStateManager {
 		String[] cmdarray = {"ls", devicePath};
 		int returnCode = execCommand(cmdarray);
 		if(returnCode == 0) {
-			logger.fine("[SPINUP]: " + devicePath);
+			logger.debug("[SPINUP]: " + devicePath);
 			long currentTime = System.currentTimeMillis();
 			avgTstandby(devicePath, currentTime - getStandbyIntime(devicePath));
 			setIsSpinup(devicePath, true);
@@ -294,7 +296,7 @@ public class ReDataDiskStateManager {
 		String[] hdparm = {"hdparm", "-y", devicePath};
 		int hdparmRet = execCommand(hdparm);
 		if(hdparmRet == 0) {
-			logger.fine("[SPINDOWN]: " + devicePath);
+			logger.debug("[SPINDOWN]: " + devicePath);
 			long currentTime = System.currentTimeMillis();
 			setStandbyIntime(devicePath, currentTime);
 			setTidle(devicePath, currentTime - getIdleIntime(devicePath));
@@ -347,7 +349,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		idleIntimes.put(devicePath, time);
-//		logger.fine("setIdleIntime: " + devicePath + ", " + time);
+//		logger.debug("setIdleIntime: " + devicePath + ", " + time);
 		return result;
 	}
 
@@ -363,7 +365,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		standbyIntimes.put(devicePath, time);
-		logger.fine("setStandbyIntime: " + devicePath + ", " + time);
+		logger.debug("setStandbyIntime: " + devicePath + ", " + time);
 		return result;
 	}
 
@@ -379,7 +381,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		wIdle.put(devicePath, data);
-		logger.fine("setWidle: " + devicePath + ", " + data);
+		logger.debug("setWidle: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -394,7 +396,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		wStandby.put(devicePath, data);
-		logger.fine("setWstandby: " + devicePath + ", " + data);
+		logger.debug("setWstandby: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -409,7 +411,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		jSpinup.put(devicePath, jSpinup.get(devicePath) + data);
-		logger.fine("addJspinup: " + devicePath + ", " + data);
+		logger.debug("addJspinup: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -432,7 +434,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		jSpindown.put(devicePath, jSpindown.get(devicePath) + data);
-		logger.fine("addJspindown: " + devicePath + ", " + data);
+		logger.debug("addJspindown: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -455,7 +457,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		tIdle.put(devicePath, time);
-		logger.fine("setTidle: " + devicePath + ", " + time);
+		logger.debug("setTidle: " + devicePath + ", " + time);
 		return result;
 	}
 	
@@ -473,10 +475,10 @@ public class ReDataDiskStateManager {
 		long tmp = tIdle.get(devicePath);
 		if(tmp + time < 0) {
 			tIdle.put(devicePath, 0L);
-			logger.fine("addTidle: " + devicePath + ", " + 0);
+			logger.debug("addTidle: " + devicePath + ", " + 0);
 		} else {
 			tIdle.put(devicePath, tmp + time);
-			logger.fine("addTidle: " + devicePath + ", " + tmp + time + ", add: " + time);
+			logger.debug("addTidle: " + devicePath + ", " + tmp + time + ", add: " + time);
 		}
 		
 		return result;
@@ -505,10 +507,10 @@ public class ReDataDiskStateManager {
 		long tmp = getTstandby(devicePath);
 		if(tmp == 0L) {
 			tStandby.put(devicePath, time + tmp);
-			logger.fine("avgTstandby: " + devicePath + ", " + time + tmp);
+			logger.debug("avgTstandby: " + devicePath + ", " + time + tmp);
 		} else {
 			tStandby.put(devicePath, (time + tmp) / 2);
-			logger.fine("avgTstandby: " + devicePath + ", " + ((time + tmp) / 2));
+			logger.debug("avgTstandby: " + devicePath + ", " + ((time + tmp) / 2));
 		}
 		return result;
 	}
@@ -519,7 +521,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		isSpinup.put(devicePath, data);
-		logger.fine("setIsSpinup: " + devicePath + ", " + data);
+		logger.debug("setIsSpinup: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -534,7 +536,7 @@ public class ReDataDiskStateManager {
 			result = false;
 		}
 		isSpindown.put(devicePath, data);
-		logger.fine("setIsSpindown: " + devicePath + ", " + data);
+		logger.debug("setIsSpindown: " + devicePath + ", " + data);
 		return result;
 	}
 	
@@ -595,11 +597,11 @@ public class ReDataDiskStateManager {
 //								+ getJspinup(devicePath) + getJspindown(devicePath)) {
 //							//addTidle(devicePath, -1000);	// TODO -1000
 //							setTidle(devicePath, getTidle(devicePath)/alpha);
-//							logger.fine("sub [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+//							logger.debug("sub [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 //						} else {
 //							//addTidle(devicePath, 1000);	// TODO +1000
 //							setTidle(devicePath, getTidle(devicePath)*alpha);
-//							logger.fine("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+//							logger.debug("add [PROPOSAL2]: Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 //						}
 						
 						double wi = getWidle(devicePath);
@@ -608,14 +610,14 @@ public class ReDataDiskStateManager {
 						long ti = getTidle(devicePath);
 						double ju = getJspinup(devicePath);
 						double jd = getJspindown(devicePath);
-						logger.fine("[PROPOSAL2]: wIdle: " + wi + ", tIdle: " + ti + ", wStandby: " + ws + ", tStandby: " + ts + ", jSpinup: " + ju + ", jSpindown: " + jd);
+						logger.debug("[PROPOSAL2]: wIdle: " + wi + ", tIdle: " + ti + ", wStandby: " + ws + ", tStandby: " + ts + ", jSpinup: " + ju + ", jSpindown: " + jd);
 						if(wi * (ts + alpha) > ws * (ts + alpha) + ju + jd) {
 							addTidle(devicePath, -alpha);
-							logger.fine("sub [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+							logger.debug("sub [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 						if(wi * (ts - alpha) < ws * (ts - alpha) + ju + jd) {
 							addTidle(devicePath, alpha);
-							logger.fine("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
+							logger.debug("add [PROPOSAL2]: new Tidle: " + getTidle(devicePath) + "[ms], Tstandby: " + getTstandby(devicePath) + "[ms]");
 						}
 					}
 					
@@ -638,7 +640,7 @@ public class ReDataDiskStateManager {
 	
 	class GetDataThread extends Thread {
 		public void run() {
-			logger.fine("DataDisk GetDataThread [START]");
+			logger.debug("DataDisk GetDataThread [START]");
 			try {
 				CQRowSet rs = new DefaultCQRowSet();
 				rs.setUrl(rmiUrl);   // StreamSpinnerの稼働するマシン名を指定
