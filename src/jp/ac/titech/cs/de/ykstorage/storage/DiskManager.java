@@ -18,7 +18,7 @@ import java.util.SortedMap;
 import java.util.StringTokenizer;
 
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.StateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 

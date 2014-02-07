@@ -1,4 +1,4 @@
-package test.jp.ac.titech.cs.de.ykstorage.storage;
+package test.jp.ac.titech.cs.de.ykstorage.storage.diskstate;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
@@ -13,7 +13,7 @@ import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.StateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
