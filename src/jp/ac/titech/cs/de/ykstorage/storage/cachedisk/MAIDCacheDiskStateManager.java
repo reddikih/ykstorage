@@ -13,8 +13,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 
-//import java.util.logging.Logger;
-
 
 public class MAIDCacheDiskStateManager {
 	private static String[] UNIT_NAMES;
@@ -81,7 +79,7 @@ public class MAIDCacheDiskStateManager {
 	 * the interval of checking disk state for proposal1
 	 */
 	private long interval;
-//	private final Logger logger = StorageLogger.getLogger();
+
     private final static Logger logger = LoggerFactory.getLogger(MAIDCacheDiskStateManager.class);
 
 	private StateCheckThread sct;

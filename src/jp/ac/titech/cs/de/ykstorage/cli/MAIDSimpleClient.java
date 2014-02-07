@@ -11,7 +11,6 @@ import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class MAIDSimpleClient {
@@ -55,8 +54,6 @@ public class MAIDSimpleClient {
 				cdsm);
 
 		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
-
-		StorageLogger.getLogger().config("Starting MAID Simple Clinet.");
 	}
 
 	public boolean put(String key, String value) {

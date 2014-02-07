@@ -9,16 +9,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.SortedMap;
-import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ReCacheDiskManager {
-	private Logger logger = StorageLogger.getLogger();
+
+    private final static Logger logger = LoggerFactory.getLogger(ReCacheDiskManager.class);
+
 	private ReCacheDiskStateManager sm;
 	
 	/**
@@ -96,7 +98,7 @@ public class ReCacheDiskManager {
 			this.sm = sm;
 			this.sm.start();
 		}
-		logger.fine("MAIDCacheDiskManager: Capacity: " + maxCapacity + "[B]");
+		logger.debug("MAIDCacheDiskManager: Capacity: " + maxCapacity + "[B]");
 	}
 
 	public Value get(int key) {
@@ -135,7 +137,7 @@ public class ReCacheDiskManager {
 				if(!f.mkdirs()) {
 					throw new SecurityException("cannot create dir: " + path);
 				}
-				logger.fine("CacheDisk [MKDIR]: " + path);
+				logger.debug("CacheDisk [MKDIR]: " + path);
 			}
 			
 			String devicePath = mountPointPaths.get(path);
@@ -254,10 +256,10 @@ public class ReCacheDiskManager {
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
 			incKeyAccessMap(key);
-			logger.fine("CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
-			logger.warning("failed CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed CacheDisk [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -327,11 +329,11 @@ public class ReCacheDiskManager {
 			
 			keyFileMap.put(key, keyFileMap.remove(key));
 			incKeyAccessMap(key);
-			logger.fine("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath + ", size: " + valueSize + "[B], usage: " + capacity.get(devicePath) + "[B], max: " + maxCapacity);
+			logger.debug("CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath + ", size: " + valueSize + "[B], usage: " + capacity.get(devicePath) + "[B], max: " + maxCapacity);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
-			logger.warning("failed CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed CacheDisk [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}
@@ -363,11 +365,11 @@ public class ReCacheDiskManager {
 			result = f.delete();
 			
 			capacity.put(devicePath, capacity.get(devicePath) - tmp);
-			logger.fine("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath + ", size: " + tmp + "[B], usage: " + capacity.get(devicePath) + "[B], max: " + maxCapacity);
+			logger.debug("CacheDisk [DELETE]: " + key + ", " + filepath + ", " + devicePath + ", size: " + tmp + "[B], usage: " + capacity.get(devicePath) + "[B], max: " + maxCapacity);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
-			logger.warning("failed CacheDIsk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
+			logger.debug("failed CacheDIsk [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}
 		return result;
 	}

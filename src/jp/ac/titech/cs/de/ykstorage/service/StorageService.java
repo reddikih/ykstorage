@@ -3,7 +3,6 @@ package jp.ac.titech.cs.de.ykstorage.service;
 import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 public class StorageService {
 
@@ -28,7 +27,6 @@ public class StorageService {
 
 		this.sm = new StorageManager(cmm, dm);
 
-		StorageLogger.getLogger().config("Starting StorageService.");
 	}
 
 	public boolean put(String key, String value) {

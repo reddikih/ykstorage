@@ -16,17 +16,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
-import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.StateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
 
 
 public class DiskManager {
-	private Logger logger = StorageLogger.getLogger();
 	private StateManager sm;
 
 	private String[] diskpaths;
@@ -92,7 +89,6 @@ public class DiskManager {
 				if(!f.mkdirs()) {
 					throw new SecurityException("cannot create dir: " + path);
 				}
-				logger.fine("[MKDIR]: " + path);
 			}
 		}
 
@@ -221,10 +217,8 @@ public class DiskManager {
 
 			bis.close();
 			result = new Value(value);
-			logger.fine("[GET]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			e.printStackTrace();
-			logger.warning("failed [GET]: " + key + ", " + filepath + ", " + devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
@@ -253,11 +247,9 @@ public class DiskManager {
 
 			bos.close();
 			result = true;
-			logger.fine("[PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(Exception e) {
 			keyFileMap.remove(key);
 			e.printStackTrace();
-			logger.warning("failed [PUT]: " + key + ", " + filepath + ", " + devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);
@@ -282,11 +274,9 @@ public class DiskManager {
 			sm.setDiskState(devicePath, DiskState.ACTIVE);
 			File f = new File(filepath);
 			result = f.delete();
-			logger.fine("[DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}catch(SecurityException e) {
 			keyFileMap.put(key, filepath);
 			e.printStackTrace();
-			logger.warning("failed [DELETE]: " + key + ", " + filepath + ", " + devicePath);
 		}finally {
 			sm.setIdleIntime(devicePath, System.currentTimeMillis());
 			sm.setDiskState(devicePath, DiskState.IDLE);

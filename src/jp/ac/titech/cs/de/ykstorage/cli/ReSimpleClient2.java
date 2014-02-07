@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ReCacheDiskManager;
@@ -13,16 +12,18 @@ import jp.ac.titech.cs.de.ykstorage.storage.datadisk.ReDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.ReDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.storage.ReStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
+import org.slf4j.LoggerFactory;
 
 public class ReSimpleClient2 {
+    
+    private final static org.slf4j.Logger logger = LoggerFactory.getLogger(ReSimpleClient2.class);
+    
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
 	private static final int valuelIndex = 3;
 	
 	private ReStorageManager sm;
-	private Logger logger = StorageLogger.getLogger();
 
 	public ReSimpleClient2() {
 		init();
@@ -65,7 +66,6 @@ public class ReSimpleClient2 {
 		this.sm = new ReStorageManager(cmm, cdm, ddm, Parameter.NUMBER_OF_DATA, 
 				Parameter.NUMBER_OF_DISKS, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.RE_INTERVAL);
 
-		StorageLogger.getLogger().config("Starting Simple Clinet.");
 	}
 
 	public boolean put(String key, String value) {
@@ -97,7 +97,7 @@ public class ReSimpleClient2 {
 		long startTime = 0L;
 		long endTime = 0L;
 
-		logger.fine("MAIDSimpleClient [START]: " + System.currentTimeMillis());
+		logger.debug("MAIDSimpleClient [START]: " + System.currentTimeMillis());
 		int i = 0;
 		while((line = br.readLine()) != null) {
 			interval = 0;
@@ -141,14 +141,14 @@ public class ReSimpleClient2 {
 			}
 			
 			endTime = System.currentTimeMillis();
-			logger.fine("[Access] now: " + endTime + ", response time: " + (endTime - startTime));
+			logger.debug("[Access] now: " + endTime + ", response time: " + (endTime - startTime));
 			
 			Thread.sleep(interval);
 		}
 		
 		br.close();
 		System.out.println("finished");
-		logger.fine("MAIDSimpleClient [END]: " + System.currentTimeMillis());
+		logger.debug("MAIDSimpleClient [END]: " + System.currentTimeMillis());
 	}
 	
 	public static void main(String[] args) throws IOException, InterruptedException {
