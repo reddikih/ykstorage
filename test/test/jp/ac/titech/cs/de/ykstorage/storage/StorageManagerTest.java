@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.OLDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
 import org.junit.After;
@@ -20,7 +20,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class StorageManagerTest {
 
-	private StorageManager sm;
+	private OLDStorageManager sm;
 
 	@Before
 	public void setUpClass() {
@@ -34,7 +34,7 @@ public class StorageManagerTest {
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD);
 
-		this.sm = new StorageManager(cmm, dm);
+		this.sm = new OLDStorageManager(cmm, dm);
 	}
 
 	@Test
@@ -71,7 +71,7 @@ public class StorageManagerTest {
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD);
 
-		StorageManager sm2 = new StorageManager(cmm2, dm2);
+		OLDStorageManager sm2 = new OLDStorageManager(cmm2, dm2);
 		
 		String key1 = "key1";
 		byte[] value1 = {1,2,3};

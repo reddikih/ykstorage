@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# YKSTORAGE_HOME=
 IP_ADDR=
 PORT=
 
