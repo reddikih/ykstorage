@@ -6,11 +6,11 @@ import java.io.InputStreamReader;
 
 import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.OLDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
 public class SimpleClient {
-	private StorageManager sm;
+	private OLDStorageManager sm;
 
 	public SimpleClient() {
 		init();
@@ -29,7 +29,7 @@ public class SimpleClient {
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD);
 
-		this.sm = new StorageManager(cmm, dm);
+		this.sm = new OLDStorageManager(cmm, dm);
 	}
 
 	public boolean put(String key, String value) {

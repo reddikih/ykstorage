@@ -1,5 +1,7 @@
 package jp.ac.titech.cs.de.ykstorage.frontend;
 
+import jp.ac.titech.cs.de.ykstorage.storage.DumStorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +11,6 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -17,22 +18,22 @@ public class FrontEnd {
 
     private static Logger logger = LoggerFactory.getLogger(FrontEnd.class);
 
-    private final int NUM_THREADS;
     private final Executor service;
     private final ServerSocket socket;
+    private final StorageManager storageManager;
 
-    public static FrontEnd getInstance(int threads, int port) throws IOException {
-        return new FrontEnd(threads, port);
+    public static FrontEnd getInstance(int port, StorageManager storageManager) throws IOException {
+        return new FrontEnd(port, storageManager);
     }
 
-    private FrontEnd(int threads, int port) throws IOException {
-        this.NUM_THREADS = threads;
-        this.service = Executors.newFixedThreadPool(this.NUM_THREADS);
+    private FrontEnd(int port, StorageManager storageManager) throws IOException {
+        this.service = Executors.newCachedThreadPool();
         this.socket = new ServerSocket(port);
-        logger.info("Host:{} Port:{} ThreadPool:{}",
+        this.storageManager = storageManager;
+
+        logger.info("Host:{} Port:{}",
                 socket.getInetAddress().toString(),
-                socket.getLocalPort(),
-                threads);
+                socket.getLocalPort());
     }
 
     public void start() {
@@ -107,21 +108,27 @@ public class FrontEnd {
             logger.info("starting write task Request Key:{}", request.getKey());
 
             try {
+                boolean result = storageManager.write(
+                        this.request.getKey(), this.request.getPayload());
+
                 OutputStream out = conn.getOutputStream();
-                byte[] payload = this.request.getPayload();
+                ByteBuffer responseBuf = ByteBuffer.allocate(14);
+                if (result) responseBuf.putShort((short)200);
+                else responseBuf.putShort((short)500);
 
-                ByteBuffer respBuff = ByteBuffer.allocate(14 + this.request.getLength());
-                respBuff.putShort((short)200);
-                respBuff.putLong(this.request.getKey());
-                respBuff.putInt(this.request.getLength());
-                if (this.request.getLength() > 0)
-                    respBuff.put(this.request.getPayload());
-
-                out.write(respBuff.array());
+                responseBuf.putLong(this.request.getKey())
+                           .putInt(this.request.getLength());
+                out.write(responseBuf.array());
                 out.flush();
-                out.close();
+                logger.info("finished Write task Request Key:{}", request.getKey());
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    this.conn.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -139,28 +146,35 @@ public class FrontEnd {
             logger.info("starting Read task Request Key:{}", request.getKey());
 
             try {
-                OutputStream out = conn.getOutputStream();
-                byte[] bytes = new byte[16];
-                Arrays.fill(bytes, (byte)96);
-                ByteBuffer buf = ByteBuffer.allocate(14 + 16);
-                buf.putShort((short)200)
-                   .putLong(this.request.getKey())
-                   .putInt(16)
+                byte[] result = storageManager.read(this.request.getKey());
+                if (result == null) result = new byte[0];
 
-                   .put(bytes);
-                out.write(buf.array());
+                OutputStream out = conn.getOutputStream();
+
+                ByteBuffer responseBuf = ByteBuffer.allocate(14 + result.length);
+                if (result.length > 0) responseBuf.putShort((short)200);
+                else responseBuf.putShort((short)500);
+                responseBuf.putLong(this.request.getKey())
+                           .putInt(result.length)
+                           .put(result);
+                out.write(responseBuf.array());
                 out.flush();
-                out.close();
+                logger.info("finished Read task Request Key:{}", request.getKey());
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    this.conn.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
     public static void main(String[] args) throws IOException {
-        int thread = 1;
         int port = 9999;
-        FrontEnd server = FrontEnd.getInstance(1, 9999);
+        FrontEnd server = FrontEnd.getInstance(port, new DumStorageManager(null,null,null,null));
         logger.info("Starting FrontEnd");
         server.start();
     }
