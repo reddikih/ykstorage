@@ -44,6 +44,7 @@ public class FrontEnd {
         while (true) {
             try {
                 final Socket conn = this.socket.accept();
+                logger.debug("connection accepted.");
                 Runnable task = getTask(conn);
                 service.execute(task);
             } catch (IOException e) {
@@ -175,7 +176,7 @@ public class FrontEnd {
     public static void main(String[] args) throws IOException {
         int port = 9999;
         FrontEnd server = FrontEnd.getInstance(port, new DumStorageManager(null,null,null,null));
-        logger.info("Starting FrontEnd");
+        logger.info("Starting FrontEnd as a DumServer");
         server.start();
     }
 }
