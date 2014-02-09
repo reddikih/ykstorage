@@ -28,7 +28,6 @@ public class RequestHeader {
             InputStream in = sock.getInputStream();
 
             byte[] command = new byte[2];
-            if (in.available() < 1) throw new IOException("reading [request command] is not avialable.");
             int readByte = in.read(command);
             if (readByte != command.length)
                 throw new IOException("couldn't read request command");
