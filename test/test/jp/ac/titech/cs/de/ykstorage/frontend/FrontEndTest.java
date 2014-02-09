@@ -1,34 +1,47 @@
 package test.jp.ac.titech.cs.de.ykstorage.frontend;
 
-import jp.ac.titech.cs.de.ykstorage.frontend.FrontEnd;
 import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
 public class FrontEndTest {
 
-    private int thread = 1;
-    private int port = 9999;
-    private String hostName = "masterwort";
-//    private String hostName = "carnation";
+    private int thread;
+    private int port;
+    private String hostName;
 
-//    @Test(timeout=10000)
+    private final static Properties config = new Properties();
+    private boolean isConfigured = false;
+
+    @Before
+    public void startUp() {
+        if (!isConfigured) try {
+            config.load(new FileInputStream("./test/test/jp/ac/titech/cs/de/ykstorage/frontend/server_info.properties"));
+
+            this.thread = Integer.parseInt(config.getProperty("server.info.threads"));
+            this.hostName = config.getProperty("server.info.hostname");
+            this.port = Integer.parseInt(config.getProperty("server.info.port"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+
     @Test(timeout=15000)
     public void writeToFrontEnd() {
         long id = 223L;
@@ -36,7 +49,6 @@ public class FrontEndTest {
         byte[] req = createWriteRequest(id, size);
         try {
             Socket conn = new Socket(this.hostName, this.port);
-            InputStream in = conn.getInputStream();
             OutputStream out = conn.getOutputStream();
 
             out.write(req);
