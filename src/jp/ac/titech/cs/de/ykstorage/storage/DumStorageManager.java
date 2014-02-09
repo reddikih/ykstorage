@@ -4,10 +4,14 @@ import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
 public class DumStorageManager extends StorageManager {
+
+    private final static Logger logger = LoggerFactory.getLogger(DumStorageManager.class);
 
     public DumStorageManager(
             IBufferManager bufferManager,
@@ -53,7 +57,11 @@ public class DumStorageManager extends StorageManager {
         boolean result = false;
         BufferedOutputStream bos = null;
         try {
-            bos = new BufferedOutputStream((new FileOutputStream(Parameter.DATA_DIR + "/test_" + key)));
+            checkDataDir();
+            File file = new File(Parameter.DATA_DIR + "/test_" + key);
+            logger.debug("write to:[{}]", file.getCanonicalPath());
+            if (!file.exists()) file.createNewFile();
+            bos = new BufferedOutputStream((new FileOutputStream(file)));
             bos.write(value);
             bos.flush();
             result = true;
@@ -70,5 +78,12 @@ public class DumStorageManager extends StorageManager {
             }
         }
         return result;
+    }
+
+    public void checkDataDir() {
+        File file = new File(Parameter.DATA_DIR);
+        if (!file.exists()) {
+            file.mkdir();
+        }
     }
 }
