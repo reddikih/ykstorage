@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface IDataDiskManager {
 
-    public byte[] read(List<Long> blockIds);
+    public List<Block> read(List<Long> blockIds);
 
     public boolean write(List<Block> blocks);
 
