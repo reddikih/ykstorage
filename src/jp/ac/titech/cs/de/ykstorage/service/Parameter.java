@@ -61,12 +61,43 @@ public class Parameter {
 
     public int serverPort = 9999;
 
+    public char[] driveCharacters = {
+            'b','c','d','e','f','g','h','i','j','k',
+            'l','m','n','o','p','q','r','s','t','u',
+            'v','w','x','y','z',
+    };
+
+    /**
+     * ${YKSTORAGE_HOME}/${DATA_DIR}/${DISK_PREFIX}${i}
+     * ex) /var/ykstorage/data/diska, /var/ykstorage/data/diskb, ...
+     */
+    public String[] diskFilePaths;
+
+    /**
+     * subset of diskFilePaths
+     *
+     * ${YKSTORAGE_HOME}/${DATA_DIR}/${DISK_PREFIX}${i}
+     * ex) /var/ykstorage/data/diska, /var/ykstorage/data/diskb, ...
+     */
+    public String[] dataDiskPaths;
+
+    /**
+     * subset of diskFilePaths
+     *
+     * ${YKSTORAGE_HOME}/${DATA_DIR}/${DISK_PREFIX}${i}
+     * ex) /var/ykstorage/data/diska, /var/ykstorage/data/diskb, ...
+     */
+    public String[] cacheDiskPaths;
+
+
+    @Deprecated
     private static final char diskIds[] = {
             'b','c','d','e','f','g','h','i','j','k',
             'l','m','n','o','p','q','r','s','t','u',
             'v','w','x','y','z',
     };
-	
+
+    @Deprecated
 	public static String[] DISK_PATHS;
 	static {
 		DISK_PATHS = new String[NUMBER_OF_DISKS];
@@ -75,6 +106,7 @@ public class Parameter {
 		}
 	};
 
+    @Deprecated
 	public static String[] DATA_DISK_PATHS;
 	static {
 		DATA_DISK_PATHS = new String[NUMBER_OF_DISKS - NUMBER_OF_CACHE_DISKS];
@@ -83,7 +115,8 @@ public class Parameter {
                     DATA_DIR + DISK_PREFIX, ORIGIN + NUMBER_OF_CACHE_DISKS + i);
 		}
 	};
-	
+
+    @Deprecated
 	public static String[] CACHE_DISK_PATHS;
 	static {
 		CACHE_DISK_PATHS = new String[NUMBER_OF_CACHE_DISKS];
@@ -92,6 +125,7 @@ public class Parameter {
 		}
 	};
 
+    @Deprecated
 	public static SortedMap<String, String> MOUNT_POINT_PATHS = new TreeMap<String, String>();
 	static {
 		char[] ids = new char[NUMBER_OF_DISKS];
