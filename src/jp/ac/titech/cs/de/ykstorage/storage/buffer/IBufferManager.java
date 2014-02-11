@@ -3,9 +3,10 @@ package jp.ac.titech.cs.de.ykstorage.storage.buffer;
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
 
 public interface IBufferManager {
-    public byte[] read(long key);
 
-    public boolean write(long key, Block block);
+    public Block read(long blockId);
 
-    public byte[] remove(long key);
+    public boolean write(Block block);
+
+    public Block remove(long blockId);
 }
