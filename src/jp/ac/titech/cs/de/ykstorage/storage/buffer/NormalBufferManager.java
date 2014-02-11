@@ -4,18 +4,20 @@ import jp.ac.titech.cs.de.ykstorage.storage.Block;
 
 public class NormalBufferManager implements IBufferManager {
 
+    private Buffer buffer = new DummyBuffer();
+
     @Override
-    public byte[] read(long key) {
-        return new byte[0];
+    public Block read(long blockId) {
+        return null;
     }
 
     @Override
-    public boolean write(long key, Block block) {
+    public boolean write(Block block) {
         return false;
     }
 
     @Override
-    public byte[] remove(long key) {
-        return new byte[0];
+    public Block remove(long blockId) {
+        return null;
     }
 }
