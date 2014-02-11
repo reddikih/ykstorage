@@ -26,7 +26,7 @@ public class DumStorageManager extends StorageManager {
         byte[] result;
         BufferedInputStream bis = null;
         File file = new File(Parameter.DATA_DIR + "/test_" + key);
-        if (!file.exists() && !file.isFile())
+        if (!file.exists() || !file.isFile())
             throw new RuntimeException("read file is not exist or is not a file");
         result = new byte[(int)file.length()];
 
