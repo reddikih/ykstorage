@@ -5,7 +5,6 @@ import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,8 +84,7 @@ public class NormalStorageManager extends StorageManager {
     }
 
     private int assginPrimaryDisk(long blockId) {
-        BigInteger numerator = BigInteger.valueOf(blockId);
-        BigInteger denominator = BigInteger.valueOf(Parameter.NUMBER_OF_DATA_DISKS);
-        return numerator.mod(denominator).intValue();
+        return this.dataDiskManager.assginPrimaryDiskId(blockId);
     }
+
 }
