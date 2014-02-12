@@ -5,18 +5,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class NormalDataDiskManager implements IDataDiskManager {
 
     private final static Logger logger = LoggerFactory.getLogger(NormalDataDiskManager.class);
+
+    private boolean deleteOnExit = false;
 
     private String devicePrefix = "/dev/sd";
     private String diskFilePrefix;
@@ -26,19 +26,20 @@ public class NormalDataDiskManager implements IDataDiskManager {
     private ExecutorService[] diskIOExecutors;
     private ExecutorService diskOperationExecutor;
 
-    public NormalDataDiskManager(int numberOfDataDisks, String diskFilePrefix, String[] deviceCharacters) {
+    public NormalDataDiskManager(int numberOfDataDisks, String diskFilePrefix, char[] deviceCharacters) {
         this.diskFilePrefix = diskFilePrefix;
         this.numberOfDataDisks = numberOfDataDisks;
+
         init(deviceCharacters);
     }
 
-    private void init(String[] deviceCharacters) {
+    private void init(char[] deviceCharacters) {
         this.diskId2FilePath = new HashMap<Integer, DiskFileAndDevicePath>();
 
         int diskId= 0;
-        for (String deviceChar : deviceCharacters) {
+        for (char deviceChar : deviceCharacters) {
             DiskFileAndDevicePath pathInfo = new DiskFileAndDevicePath(
-                    this.diskFilePrefix + deviceChar, this.devicePrefix + deviceChar);
+                    this.diskFilePrefix + deviceChar + "/", this.devicePrefix + deviceChar);
             diskId2FilePath.put(diskId++, pathInfo);
         }
 
@@ -52,27 +53,52 @@ public class NormalDataDiskManager implements IDataDiskManager {
 
     @Override
     public List<Block> read(List<Long> blockIds) {
-        return null;
+        List<Block> result = new ArrayList<Block>();
+
+        List<OperationTask> operations = new ArrayList<OperationTask>();
+        for (Long blockId : blockIds)
+            operations.add(new OperationTask(blockId, IOType.READ));
+
+        try {
+            List<Future<Object>> futures = this.diskOperationExecutor.invokeAll(operations);
+            for (Future f : futures) {
+                result.add((Block)f.get());
+            }
+
+        } catch (InterruptedException e) {
+            throw launderThrowable(e);
+        } catch (ExecutionException e) {
+            throw launderThrowable(e);
+        }
+
+        return result;
     }
 
     @Override
     public boolean write(List<Block> blocks) {
+        boolean result = true;
+
         List<OperationTask> operations = new ArrayList<OperationTask>();
         for (Block block : blocks)
             operations.add(new OperationTask(block, IOType.WRITE));
 
         try {
             List<Future<Object>> futures = this.diskOperationExecutor.invokeAll(operations);
+            for (Future f : futures)
+                if (!(Boolean)f.get() && result == true)
+                    result = false;
 
         } catch (InterruptedException e) {
             throw launderThrowable(e);
+        } catch (ExecutionException e) {
+            throw launderThrowable(e);
         }
 
-        return false;
+        return result;
     }
 
-    private String getDiskPath(Block block) {
-        int diskId = block.getPrimaryDiskId();
+    private String getDiskFilePathPrefix(long blockId) {
+        int diskId = assginPrimaryDiskId(blockId);
         DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
         return pathInfo.getDiskFilePath();
     }
@@ -83,10 +109,22 @@ public class NormalDataDiskManager implements IDataDiskManager {
         private Block block;
         private IOType ioType;
 
+        /**
+         * this constructor be only used by read request.
+         *
+         * @param blockId
+         * @param ioType
+         */
         public OperationTask(long blockId, IOType ioType) {
             this(blockId, null, ioType);
         }
 
+        /**
+         * this constructor be only used by write request.
+         *
+         * @param block
+         * @param ioType
+         */
         public OperationTask(Block block, IOType ioType) {
             this(-1, block, ioType);
         }
@@ -101,28 +139,33 @@ public class NormalDataDiskManager implements IDataDiskManager {
         public Object call() throws Exception {
             Object result = null;
             if (ioType.equals(IOType.READ)) {
-                ReadPrimitiveTask readTask = new ReadPrimitiveTask(getDiskPath(block));
-                Future<byte[]> future = diskIOExecutors[block.getPrimaryDiskId()].submit(readTask);
-                // TODO BlockクラスをBlockInfoに変更？
-//                result = new Block
+                ReadPrimitiveTask readTask = new ReadPrimitiveTask(blockId, getDiskFilePathPrefix(blockId));
+
+                Future<byte[]> future = diskIOExecutors[assginPrimaryDiskId(blockId)].submit(readTask);
+                byte[] payload = future.get();
+
+                result = new Block(blockId, 0, assginPrimaryDiskId(blockId), 0, payload);
             } else if (ioType.equals(IOType.WRITE)) {
-                WritePrimitiveTask writeTask = new WritePrimitiveTask(block, getDiskPath(block));
+                WritePrimitiveTask writeTask = new WritePrimitiveTask(block, getDiskFilePathPrefix(block.getBlockId()));
+
                 Future<Boolean> future = diskIOExecutors[block.getPrimaryDiskId()].submit(writeTask);
                 boolean isWritten = future.get();
                 if (isWritten) {
-                    result = block;
+                    result = new Boolean(true);
                 }
             }
+
             return result;
         }
     }
 
-    // TODO implement read io task
     private class ReadPrimitiveTask implements Callable<byte[]> {
 
+        private long blockId;
         private String diskFilePath;
 
-        public ReadPrimitiveTask(String diskFilePath) {
+        public ReadPrimitiveTask(long blockId, String diskFilePath) {
+            this.blockId = blockId;
             this.diskFilePath = diskFilePath;
         }
 
@@ -130,9 +173,9 @@ public class NormalDataDiskManager implements IDataDiskManager {
         public byte[] call() throws Exception {
             byte[] result;
 
-            File file = new File(this.diskFilePath);
+            File file = new File(this.diskFilePath + blockId);
             if (!file.exists() || !file.isFile())
-                throw new IOException("[" + this.diskFilePath + "] is not exist or not a file.");
+                throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
 
             result = new byte[(int)file.length()];
 
@@ -148,7 +191,6 @@ public class NormalDataDiskManager implements IDataDiskManager {
         }
     }
 
-    // TODO implement write io task
     private class WritePrimitiveTask implements Callable<Boolean> {
 
         private Block block;
@@ -161,11 +203,14 @@ public class NormalDataDiskManager implements IDataDiskManager {
 
         @Override
         public Boolean call() throws Exception {
-            boolean result = false;
-            File file = new File(diskFilePath);
+            boolean result;
+
+            File file = new File(diskFilePath + block.getBlockId());
+            if (deleteOnExit) file.deleteOnExit();
+
             checkDataDir(file.getParent());
 
-            logger.info("write to: [{}]", file.getCanonicalPath());
+            logger.info("write to: {}", file.getCanonicalPath());
 
             if (!file.exists()) file.createNewFile();
 
@@ -178,7 +223,7 @@ public class NormalDataDiskManager implements IDataDiskManager {
 
             result = true;
 
-            logger.info("written successfully. to: [{}], {}[byte]",
+            logger.info("written successfully. to: {}, {}[byte]",
                     file.getCanonicalPath(), this.block.getPayload().length);
 
             return result;
@@ -204,11 +249,21 @@ public class NormalDataDiskManager implements IDataDiskManager {
         WRITE,
     }
 
-    public void checkDataDir(String dir) {
+    public void checkDataDir(String dir) throws IOException {
         File file = new File(dir);
+        if (deleteOnExit) file.deleteOnExit();
+
         if (!file.exists()) {
-            file.mkdir();
+            if (!file.mkdirs())
+                logger.info("could not create dir: {}", file.getCanonicalPath());
         }
+    }
+
+    @Override
+    public int assginPrimaryDiskId(long blockId) {
+        BigInteger numerator = BigInteger.valueOf(blockId);
+        BigInteger denominator = BigInteger.valueOf(this.numberOfDataDisks);
+        return numerator.mod(denominator).intValue();
     }
 
     private RuntimeException launderThrowable(Throwable t) {
@@ -216,4 +271,9 @@ public class NormalDataDiskManager implements IDataDiskManager {
         else if (t instanceof Error) throw (Error) t;
         else throw new IllegalStateException("Not unchecked", t);
     }
+
+    public void setDeleteOnExit(boolean deleteOnExit) {
+        this.deleteOnExit = deleteOnExit;
+    }
+
 }
