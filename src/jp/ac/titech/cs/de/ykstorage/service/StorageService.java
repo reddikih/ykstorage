@@ -41,8 +41,16 @@ public class StorageService {
     }
 
     private Parameter getStorageParameter() {
-        // TODO 設定ファイルやコマンドライン引数からparameterを設定する
-        return new Parameter();
+        Parameter parameter = new Parameter();
+
+        // TODO should be set the non-static parameters from config file
+        // * data directory, log directory
+        // * device characters
+        // * replica level
+        // and so on
+        parameter.diskFilePathPrefix = Parameter.DATA_DIR + "/sd";
+
+        return parameter;
     }
 
     private void start() {

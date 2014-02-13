@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -38,7 +37,7 @@ public class FrontEnd {
 
     public void start() {
         if (this.socket == null)
-            throw new IllegalStateException("Socket is not opend.");
+            throw new IllegalStateException("Socket is not opened.");
 
         logger.info("into the while loop");
         while (true) {
@@ -72,24 +71,8 @@ public class FrontEnd {
 
     private ClientRequest parseRequest(Socket conn) {
         ClientRequest result = null;
-        RequestHeader header = new RequestHeader(conn);
-
-        if (header.getCommand().equals(RequestCommand.READ) ||
-            header.getCommand().equals(RequestCommand.DELETE))
-            return new ClientRequest(header, null);
-
-        // extract payload for write request
         try {
-            InputStream in = conn.getInputStream();
-
-            int length = header.getLength();
-            byte[] payload = new byte[length];
-            int readBytes = in.read(payload);
-            if (readBytes != payload.length)
-                throw new IOException("request payload is incorrected.");
-
-            result = new ClientRequest(header, payload);
-
+            result = new ClientRequest(conn);
         } catch (IOException e) {
             e.printStackTrace();
         }
