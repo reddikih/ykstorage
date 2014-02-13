@@ -1,5 +1,6 @@
 package test.jp.ac.titech.cs.de.ykstorage.frontend;
 
+import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
 import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -46,7 +48,8 @@ public class FrontEndTest {
     public void writeToFrontEnd() {
         long id = 223L;
         int size = 8;
-        byte[] req = createWriteRequest(id, size);
+        byte[] payload = generateContent(size, (byte)0x62);
+        byte[] req = createWriteRequest(id, payload);
         try {
             Socket conn = new Socket(this.hostName, this.port);
             OutputStream out = conn.getOutputStream();
@@ -70,19 +73,20 @@ public class FrontEndTest {
     public void writeAndReadFromFrontEnd() {
         long id = 112233L;
         int size = 16;
-        ResponseHeader responseHeader = null;
 
         try {
             // write
             Socket conn = new Socket(hostName, port);
             OutputStream out = conn.getOutputStream();
 
-            byte[] request = createWriteRequest(id, size);
+            byte[] payload = generateContent(size, (byte)0x62);
+            byte[] request = createWriteRequest(id, payload);
             out.write(request);
             out.flush();
 
-            responseHeader = new ResponseHeader(conn);
-            int responseStatus = responseHeader.getStatus();
+            ClientResponse response = new ClientResponse(conn);
+
+            int responseStatus = response.getHeader().getStatus();
             assertThat(responseStatus, is(200));
             conn.close();
 
@@ -94,23 +98,19 @@ public class FrontEndTest {
             out.write(request);
             out.flush();
 
-            responseHeader = new ResponseHeader(conn);
+            response = new ClientResponse(conn);
 
-            assertThat(responseHeader.getStatus(), is(200));
-            assertThat(responseHeader.getKey(), is(id));
-            assertThat(responseHeader.getLength(), is(size));
-            assertThat(getReadPayload(conn, responseHeader.getLength()).length, is(size));
+            assertThat(response.getHeader().getStatus(), is(200));
+            assertThat(response.getHeader().getKey(), is(id));
+
+            byte[] responseContent = extractContent(response.getPayload(), 0, payload.length);
+            assertThat(responseContent.length, is(payload.length));
+            assertThat(responseContent, is(payload));
 
         } catch (IOException e) {
             e.printStackTrace();
             fail("IOException occurred.");
         }
-    }
-
-    private byte[] getReadPayload(Socket sock, int length) throws IOException {
-        byte[] result = new byte[length];
-        int ret = sock.getInputStream().read(result);
-        return result;
     }
 
     private byte[] createReadRequest(long id) {
@@ -129,7 +129,7 @@ public class FrontEndTest {
         return request;
     }
 
-    private byte[] createWriteRequest(long id, int size) {
+    private byte[] createWriteRequest(long id, byte[] payload) {
         byte[] header = {
                 0x00, 0x10,
                 (byte)(0x00000000000000ff & (id >>> 56)) ,
@@ -140,15 +140,24 @@ public class FrontEndTest {
                 (byte)(0x00000000000000ff & (id >>> 16)) ,
                 (byte)(0x00000000000000ff & (id >>> 8)) ,
                 (byte)(0x00000000000000ff & id),
-                (byte)(0x000000ff & (size >>> 24)),
-                (byte)(0x000000ff & (size >>> 16)),
-                (byte)(0x000000ff & (size >>> 8)),
-                (byte)(0x000000ff & size),
+                (byte)(0x000000ff & (payload.length >>> 24)),
+                (byte)(0x000000ff & (payload.length >>> 16)),
+                (byte)(0x000000ff & (payload.length >>> 8)),
+                (byte)(0x000000ff & payload.length),
         };
-        byte[] request = Arrays.copyOf(header, header.length + size);
-        for (int i = header.length; i < request.length; i++) {
-            request[i] = 0x62;
+        ByteBuffer buf = ByteBuffer.allocate(header.length + payload.length);
+        return buf.put(header).put(payload).array();
+    }
+
+    private byte[] generateContent(int size, byte b) {
+        byte[] result = new byte[size];
+        for (int i=0; i < size; i++) {
+            result[i] = b;
         }
-        return request;
+        return result;
+    }
+
+    private byte[] extractContent(byte[] content, int start, int end) {
+        return Arrays.copyOfRange(content, start, end);
     }
 }

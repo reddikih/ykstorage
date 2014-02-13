@@ -34,7 +34,7 @@ public class NormalDataDiskManager implements IDataDiskManager {
     }
 
     private void init(char[] deviceCharacters) {
-        this.diskId2FilePath = new HashMap<Integer, DiskFileAndDevicePath>();
+        this.diskId2FilePath = new HashMap<>();
 
         int diskId= 0;
         for (char deviceChar : deviceCharacters) {
@@ -53,9 +53,9 @@ public class NormalDataDiskManager implements IDataDiskManager {
 
     @Override
     public List<Block> read(List<Long> blockIds) {
-        List<Block> result = new ArrayList<Block>();
+        List<Block> result = new ArrayList<>();
 
-        List<OperationTask> operations = new ArrayList<OperationTask>();
+        List<OperationTask> operations = new ArrayList<>();
         for (Long blockId : blockIds)
             operations.add(new OperationTask(blockId, IOType.READ));
 
@@ -78,7 +78,7 @@ public class NormalDataDiskManager implements IDataDiskManager {
     public boolean write(List<Block> blocks) {
         boolean result = true;
 
-        List<OperationTask> operations = new ArrayList<OperationTask>();
+        List<OperationTask> operations = new ArrayList<>();
         for (Block block : blocks)
             operations.add(new OperationTask(block, IOType.WRITE));
 

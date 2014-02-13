@@ -9,14 +9,19 @@ public abstract class StorageManagerFactory {
 
     protected Parameter parameter;
 
+    public void setParameter(Parameter parameter) {this.parameter = parameter;}
+
     public static StorageManagerFactory getStorageManagerFactory(Parameter parameter) {
         StorageManagerFactory factory = null;
         try {
-            factory = (StorageManagerFactory)Class.forName(parameter.STORAGE_MANAGER_FACTORY_NAME).newInstance();
+            factory = (StorageManagerFactory)Class.forName(
+                    StorageManagerFactory.class.getPackage().getName() + "." +
+                    parameter.storageManagerFactory).newInstance();
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
+        factory.setParameter(parameter);
         return factory;
     }
 
