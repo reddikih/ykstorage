@@ -7,15 +7,7 @@ import java.io.IOException;
 
 import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-<<<<<<< HEAD
-<<<<<<< HEAD
 import jp.ac.titech.cs.de.ykstorage.storage.OLDStorageManager;
-=======
-import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
->>>>>>> refactoring changed the packages
-=======
-import jp.ac.titech.cs.de.ykstorage.storage.OLDStorageManager;
->>>>>>> implemented DumServer.
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import org.slf4j.LoggerFactory;
 
@@ -48,15 +40,7 @@ public class SimpleClient2 {
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 		this.sm = new OLDStorageManager(cmm, dm);
-=======
-		this.sm = new StorageManager(cmm, dm);
->>>>>>> Change logger library from java.logging to slf4j(+ logback)
-=======
-		this.sm = new OLDStorageManager(cmm, dm);
->>>>>>> implemented DumServer.
 	}
 
 	public boolean put(String key, String value) {
