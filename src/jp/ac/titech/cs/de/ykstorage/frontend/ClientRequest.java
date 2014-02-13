@@ -1,15 +1,28 @@
 package jp.ac.titech.cs.de.ykstorage.frontend;
 
-/**
- * Created by hikida on 14/02/05.
- */
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
+
 public class ClientRequest {
     private final RequestHeader header;
     private byte[] payload;
 
-    protected ClientRequest(RequestHeader header, byte[] payload) {
-        this.header = header;
-        this.payload = payload;
+    public ClientRequest(Socket connection) throws IOException {
+        this.header = new RequestHeader(connection);
+        this.payload = extractPayload(connection);
+    }
+
+    private byte[] extractPayload(Socket connection) throws IOException {
+        byte[] result = null;
+        if (this.header.getCommand() == RequestCommand.WRITE) {
+            InputStream in = connection.getInputStream();
+            result = new byte[this.header.getLength()];
+            int readBytes = in.read(result);
+            if (readBytes != result.length)
+                throw new IOException("request payload is incorrect.");
+        }
+        return result;
     }
 
     public RequestCommand getCommand() { return this.header.getCommand(); }

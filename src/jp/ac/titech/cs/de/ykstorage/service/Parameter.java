@@ -34,8 +34,10 @@ public class Parameter {
 
     public static final String LOG_DIR =YKSTORAGE_HOME + "/log";
 
+    @Deprecated
     public static final String DISK_PREFIX = "/disk%d";
 
+    @Deprecated
     public static final String DEVICE_PREFIX = "/dev/sd%s";
 
 	public static int NUMBER_OF_CACHE_DISKS = 2;
@@ -50,14 +52,14 @@ public class Parameter {
 
     public static int NUMBER_OF_REPLICA = 3;
 
-    public String STORAGE_MANAGER_FACTORY_NAME = "NormalStorageManagerFactory";
+    public String storageManagerFactory = "NormalStorageManagerFactory";
 
     /** cs, dga, random  */
     public String BUFFER_ALLOCATION_POLICY = "cs";
 
     public String BUFFER_MANAGER_FACTORY = "NormalBufferManager";
 
-    public static int BLOCK_SIZE = 32 * 1024 * 1024;
+    public static int BLOCK_SIZE = 32 * 1024;
 
     public int serverPort = 9999;
 
@@ -68,26 +70,12 @@ public class Parameter {
     };
 
     /**
-     * ${YKSTORAGE_HOME}/${DATA_DIR}/${DISK_PREFIX}${i}
-     * ex) /var/ykstorage/data/diska, /var/ykstorage/data/diskb, ...
-     */
-    public String[] diskFilePaths;
-
-    /**
-     * subset of diskFilePaths
+     * prefix string of disk file paths.
      *
-     * ${YKSTORAGE_HOME}/${DATA_DIR}/${DISK_PREFIX}${i}
-     * ex) /var/ykstorage/data/diska, /var/ykstorage/data/diskb, ...
+     * ${YKSTORAGE_HOME}/${DATA_DIR}/sd
+     * ex) /var/ykstorage/data/sd
      */
-    public String[] dataDiskPaths;
-
-    /**
-     * subset of diskFilePaths
-     *
-     * ${YKSTORAGE_HOME}/${DATA_DIR}/${DISK_PREFIX}${i}
-     * ex) /var/ykstorage/data/diska, /var/ykstorage/data/diskb, ...
-     */
-    public String[] cacheDiskPaths;
+    public String diskFilePathPrefix;
 
 
     @Deprecated

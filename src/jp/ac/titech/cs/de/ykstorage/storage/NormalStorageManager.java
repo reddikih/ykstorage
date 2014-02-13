@@ -4,6 +4,8 @@ import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -12,19 +14,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NormalStorageManager extends StorageManager {
 
+    private final static Logger logger = LoggerFactory.getLogger(NormalStorageManager.class);
+
     public NormalStorageManager(
             IBufferManager bufferManager,
             ICacheDiskManager cacheDiskManager,
             IDataDiskManager dataDiskManager,
             Parameter parameter) {
         super(bufferManager, cacheDiskManager, dataDiskManager, parameter);
-        this.key2blockIdMap = new ConcurrentHashMap<Long, List<Long>>();
+        this.key2blockIdMap = new ConcurrentHashMap<>();
     }
 
     @Override
     public byte[] read(long key) {
         List<Long> blockIds = getCorrespondingBlockIds(key);
-        List<Block> result = new ArrayList<Block>();
+        List<Block> result = new ArrayList<>();
         for (Long blockId : blockIds) {
             Block block = this.bufferManager.read(blockId);
             if (block != null)
@@ -48,15 +52,22 @@ public class NormalStorageManager extends StorageManager {
     }
 
     private List<Block> assignBlock(long key, byte[] value) {
-        ArrayList<Block> blocks = new ArrayList<Block>();
-        ArrayList<Long> blockIds = new ArrayList<Long>();
+        ArrayList<Block> blocks = new ArrayList<>();
+        ArrayList<Long> blockIds = new ArrayList<>();
 
         int numBlocks = (int)Math.ceil((double)value.length / Block.BLOCK_SIZE);
         for (int i=0; i<numBlocks; i++) {
             long blockId = this.sequenceNumber.getAndIncrement();
 
             byte[] payload = new byte[Block.BLOCK_SIZE];
-            System.arraycopy(value, i * Block.BLOCK_SIZE, payload, 0, Block.BLOCK_SIZE);
+
+            logger.info("create block payload length: {} (key={})", payload.length, key);
+
+            int length = value.length - i * Block.BLOCK_SIZE < Block.BLOCK_SIZE
+                    ? value.length - i * Block.BLOCK_SIZE : Block.BLOCK_SIZE;
+
+            System.arraycopy(value, i * Block.BLOCK_SIZE, payload, 0, length);
+
             Block block = new Block(blockId, 0, assginPrimaryDisk(blockId), 0, payload);
 
             blockIds.add(blockId);
