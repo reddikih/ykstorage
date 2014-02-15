@@ -8,7 +8,7 @@ import java.util.Map;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
 
-public class StateManager {
+public class OLDStateManager {
 
 	/**
 	 * key: device file path
@@ -34,7 +34,7 @@ public class StateManager {
 	private StateCheckThread sct;
 
 
-	public StateManager(Collection<String> devicePaths, double spinDownThreshold) {
+	public OLDStateManager(Collection<String> devicePaths, double spinDownThreshold) {
 		this.diskStates = initDiskStates(devicePaths);
 		this.idleIntimes = initIdleInTimes(devicePaths);
 		this.spindownThreshold = (long)(spinDownThreshold * 1000);

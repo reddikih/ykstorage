@@ -13,19 +13,19 @@ import org.junit.runners.JUnit4;
 
 import jp.ac.titech.cs.de.ykstorage.storage.DiskManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.OLDStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
 
 @RunWith(JUnit4.class)
-public class StateManagerTest {
-	private StateManager sm;
+public class OLDStateManagerTest {
+	private OLDStateManager sm;
 	private String devicePaths[];
 
 	@Before
 	public void setUpClass() {
-		this.sm = new StateManager(Parameter.MOUNT_POINT_PATHS.values(), Parameter.SPIN_DOWN_THRESHOLD);
+		this.sm = new OLDStateManager(Parameter.MOUNT_POINT_PATHS.values(), Parameter.SPIN_DOWN_THRESHOLD);
 		this.devicePaths = new String[Parameter.NUMBER_OF_DATA_DISKS];
 		for (int i=0; i < devicePaths.length; i++) {
 			devicePaths[i] = Parameter.MOUNT_POINT_PATHS.get(Parameter.DATA_DISK_PATHS[i]);
