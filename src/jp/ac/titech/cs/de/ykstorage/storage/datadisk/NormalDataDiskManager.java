@@ -1,6 +1,10 @@
 package jp.ac.titech.cs.de.ykstorage.storage.datadisk;
 
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +39,10 @@ public class NormalDataDiskManager implements IDataDiskManager {
     private ExecutorService[] diskIOExecutors;
     private ExecutorService diskOperationExecutor;
 
+    private StateManager stateManager;
+
+    private ReadWriteLock[] diskStateLocks;
+
     public NormalDataDiskManager(int numberOfDataDisks, String diskFilePrefix, char[] deviceCharacters) {
         this.diskFilePrefix = diskFilePrefix;
         this.numberOfDataDisks = numberOfDataDisks;
@@ -57,6 +65,13 @@ public class NormalDataDiskManager implements IDataDiskManager {
         this.diskIOExecutors = new ExecutorService[this.numberOfDataDisks];
         for (int i=0; i < numberOfDataDisks; i++) {
             diskIOExecutors[i] = Executors.newFixedThreadPool(1);
+        }
+
+        this.stateManager = new StateManager(this.devicePrefix, deviceCharacters);
+
+        this.diskStateLocks = new ReentrantReadWriteLock[numberOfDataDisks];
+        for (int i=0; i < this.diskStateLocks.length; i++) {
+            this.diskStateLocks[i] = new ReentrantReadWriteLock();
         }
     }
 
@@ -148,14 +163,14 @@ public class NormalDataDiskManager implements IDataDiskManager {
         public Object call() throws Exception {
             Object result = null;
             if (ioType.equals(IOType.READ)) {
-                ReadPrimitiveTask readTask = new ReadPrimitiveTask(blockId, getDiskFilePathPrefix(blockId));
+                Callable readTask = new ReadPrimitiveTask(blockId, getDiskFilePathPrefix(blockId));
 
                 Future<byte[]> future = diskIOExecutors[assginPrimaryDiskId(blockId)].submit(readTask);
                 byte[] payload = future.get();
 
                 result = new Block(blockId, 0, assginPrimaryDiskId(blockId), 0, payload);
             } else if (ioType.equals(IOType.WRITE)) {
-                WritePrimitiveTask writeTask = new WritePrimitiveTask(block, getDiskFilePathPrefix(block.getBlockId()));
+                Callable writeTask = new WritePrimitiveTask(block, getDiskFilePathPrefix(block.getBlockId()));
 
                 Future<Boolean> future = diskIOExecutors[block.getPrimaryDiskId()].submit(writeTask);
                 boolean isWritten = future.get();
@@ -198,6 +213,111 @@ public class NormalDataDiskManager implements IDataDiskManager {
 
             return result;
         }
+    }
+
+    private class ReadPrimitiveTaskWithStateManagement implements Callable<byte[]> {
+
+        private long blockId;
+        private String diskFilePath;
+
+        public ReadPrimitiveTaskWithStateManagement(long blockId, String diskFilePath) {
+            this.blockId = blockId;
+            this.diskFilePath = diskFilePath;
+        }
+
+        @Override
+        public byte[] call() throws Exception {
+            byte[] result = null;
+
+            // check disk state either the disk is spinning or not.
+            int diskId = assginPrimaryDiskId(blockId);
+            diskStateLocks[diskId].readLock().lock();
+            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
+                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
+                diskStateLocks[diskId].readLock().unlock();
+                diskStateLocks[diskId].writeLock().lock();
+                try {
+                    // re-check state because another thread might have acquired
+                    // write lock and changed state before we did.
+                    if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
+                        stateManager.setState(diskId, DiskStateType.SPINUP);
+                        diskStateLocks[diskId].readLock().lock();
+
+                    }
+                } finally {
+                    // unlock write still folding read lock
+                    diskStateLocks[diskId].writeLock().unlock();
+                }
+
+                try {
+                    spinUp(diskId);
+                } finally {
+                    diskStateLocks[diskId].readLock().unlock();
+                }
+            }
+
+            // when the disk is spinning then we can read the data from it.
+            // and update the disk status IDLE to ACTIVE
+            diskStateLocks[diskId].readLock().lock();
+            if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
+                    DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
+
+                diskStateLocks[diskId].readLock().unlock();
+                diskStateLocks[diskId].writeLock().lock();
+
+                try {
+                    if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
+                            DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
+                        stateManager.setState(diskId, DiskStateType.ACTIVE);
+                        diskStateLocks[diskId].readLock().lock();
+                    }
+                } finally {
+                    // unlock write still folding read lock
+                    diskStateLocks[diskId].writeLock().unlock();
+                }
+
+                try {
+                    // TODO 停止中ディスクのファイル情報もディスクを停止したまま取得できるか要確認
+                    File file = new File(this.diskFilePath + blockId);
+                    if (!file.exists() || !file.isFile())
+                        throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
+
+                    result = new byte[(int)file.length()];
+
+                    BufferedInputStream bis = null;
+                    bis = new BufferedInputStream(new FileInputStream(file));
+                    if (bis.available() < 1)
+                        throw new IOException("[" + this.diskFilePath + "] is not available.");
+
+                    bis.read(result);
+                    bis.close();
+                } finally {
+                    diskStateLocks[diskId].readLock().unlock();
+                }
+            }
+
+            // when read is finished then we change the disk status from ACTIVE to IDLE
+            // and invoke idle time counter.
+            diskStateLocks[diskId].readLock().lock();
+            if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId))) {
+                diskStateLocks[diskId].readLock().unlock();
+                diskStateLocks[diskId].writeLock().lock();
+                try {
+                    stateManager.setState(diskId, DiskStateType.IDLE);
+                    stateManager.resetWatchDogTimer(diskId);
+
+                    diskStateLocks[diskId].readLock().lock();
+                } finally {
+                    diskStateLocks[diskId].writeLock().unlock();
+                    diskStateLocks[diskId].readLock().lock();
+                }
+            }
+
+            return result;
+        }
+    }
+
+    private void spinUp(int diskId) {
     }
 
     private class WritePrimitiveTask implements Callable<Boolean> {

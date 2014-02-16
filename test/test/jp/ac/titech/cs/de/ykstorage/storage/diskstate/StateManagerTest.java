@@ -1,16 +1,29 @@
 package test.jp.ac.titech.cs.de.ykstorage.storage.diskstate;
 
+import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
-import org.junit.*;
-import org.junit.runner.*;
-import org.junit.runners.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
 public class StateManagerTest {
 
+    private String devicePathPrefix = "/dev/sd";
+    private char[] deviceCharacters = new Parameter().driveCharacters;
+
     @Test
     public void getAStateFromStateManager() {
-        StateManager stm = new StateManager(null, null);
+        StateManager stm = new StateManager(devicePathPrefix, deviceCharacters);
+
+        DiskStateType state = stm.getState(0);
+        assertThat(state, is(DiskStateType.IDLE));
     }
+
+
 
 }
