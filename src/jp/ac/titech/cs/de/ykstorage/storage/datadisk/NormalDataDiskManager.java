@@ -4,6 +4,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.IdleThresholdListener;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class NormalDataDiskManager implements IDataDiskManager {
+public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdListener {
 
     private final static Logger logger = LoggerFactory.getLogger(NormalDataDiskManager.class);
 
@@ -37,16 +38,29 @@ public class NormalDataDiskManager implements IDataDiskManager {
     private Map<Integer, DiskFileAndDevicePath> diskId2FilePath;
 
     private ExecutorService[] diskIOExecutors;
-    private ExecutorService diskOperationExecutor;
+    private final ExecutorService diskOperationExecutor = Executors.newCachedThreadPool();
 
     private StateManager stateManager;
 
     private ReadWriteLock[] diskStateLocks;
 
-    public NormalDataDiskManager(int numberOfDataDisks, String diskFilePrefix, char[] deviceCharacters) {
+    public NormalDataDiskManager(
+            int numberOfDataDisks,
+            String diskFilePrefix,
+            char[] deviceCharacters) {
+
+        this(numberOfDataDisks, diskFilePrefix, deviceCharacters, null);
+    }
+
+    public NormalDataDiskManager(
+            int numberOfDataDisks,
+            String diskFilePrefix,
+            char[] deviceCharacters,
+            StateManager stateManager) {
+
         this.diskFilePrefix = diskFilePrefix;
         this.numberOfDataDisks = numberOfDataDisks;
-
+        this.stateManager = stateManager;
         init(deviceCharacters);
     }
 
@@ -60,19 +74,18 @@ public class NormalDataDiskManager implements IDataDiskManager {
             diskId2FilePath.put(diskId++, pathInfo);
         }
 
-        this.diskOperationExecutor = Executors.newCachedThreadPool();
-
         this.diskIOExecutors = new ExecutorService[this.numberOfDataDisks];
         for (int i=0; i < numberOfDataDisks; i++) {
             diskIOExecutors[i] = Executors.newFixedThreadPool(1);
         }
 
-        this.stateManager = new StateManager(this.devicePrefix, deviceCharacters);
-
         this.diskStateLocks = new ReentrantReadWriteLock[numberOfDataDisks];
         for (int i=0; i < this.diskStateLocks.length; i++) {
             this.diskStateLocks[i] = new ReentrantReadWriteLock();
         }
+
+        // register watchdog of idleness of data disks.
+        this.stateManager.addListener(this);
     }
 
     @Override
@@ -125,6 +138,27 @@ public class NormalDataDiskManager implements IDataDiskManager {
         int diskId = assginPrimaryDiskId(blockId);
         DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
         return pathInfo.getDiskFilePath();
+    }
+
+    @Override
+    public void exceededIdleThreshold(int diskId) {
+        logger.debug("diskId: {} is exceeeded idleness threshold time", diskId);
+        diskStateLocks[diskId].readLock().lock();
+        if (DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
+            diskStateLocks[diskId].readLock().unlock();
+            diskStateLocks[diskId].writeLock().lock();
+            try {
+                stateManager.setState(diskId, DiskStateType.SPINDOWN);
+                spinDown(diskId);
+                stateManager.setState(diskId, DiskStateType.STANDBY);
+            } finally {
+                diskStateLocks[diskId].writeLock().unlock();
+            }
+        }
+    }
+
+    private void spinDown(int diskId) {
+
     }
 
     private class OperationTask implements Callable<Object> {
@@ -318,6 +352,7 @@ public class NormalDataDiskManager implements IDataDiskManager {
     }
 
     private void spinUp(int diskId) {
+        // TODO to be implement.
     }
 
     private class WritePrimitiveTask implements Callable<Boolean> {
