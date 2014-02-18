@@ -18,7 +18,7 @@ public class StateManagerTest {
 
     @Test
     public void getAStateFromStateManager() {
-        StateManager stm = new StateManager(devicePathPrefix, deviceCharacters);
+        StateManager stm = new StateManager(devicePathPrefix, deviceCharacters, 10.0);
 
         DiskStateType state = stm.getState(0);
         assertThat(state, is(DiskStateType.IDLE));
