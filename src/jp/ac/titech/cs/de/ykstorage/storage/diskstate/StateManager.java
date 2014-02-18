@@ -60,7 +60,10 @@ public class StateManager {
     }
 
     public void setState(int diskId, DiskStateType state) {
+        DiskStateType oldState = this.diskStates[diskId].getState();
         this.diskStates[diskId].setState(state);
+        logger.debug("Set state. diskId: {}, old: {}, new: {}", diskId, oldState, state);
+
     }
 
     public void startIdleStateWatchDog(final int diskId) {
@@ -77,6 +80,7 @@ public class StateManager {
                         watchdog, idleTimeThreshold, TimeUnit.SECONDS);
 
         this.scheduledTasks.putIfAbsent(diskId, scheduledTask);
+        logger.debug("start watchdog for diskId: {}", diskId);
     }
 
     public void resetWatchDogTimer(int diskId) {

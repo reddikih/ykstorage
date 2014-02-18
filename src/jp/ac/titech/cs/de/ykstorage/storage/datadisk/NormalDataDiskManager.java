@@ -32,6 +32,8 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
     private boolean deleteOnExit = false;
 
+    private boolean startedWatchdog = false;
+
     private String devicePrefix = "/dev/sd";
     private String diskFilePrefix;
     private int numberOfDataDisks;
@@ -86,6 +88,14 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
         // register watchdog of idleness of data disks.
         this.stateManager.addListener(this);
+    }
+
+    public void startWatchDog() {
+        if (this.startedWatchdog) return;
+
+        for (int i=0; i<numberOfDataDisks; i++) {
+            this.stateManager.startIdleStateWatchDog(i);
+        }
     }
 
     @Override
@@ -395,11 +405,10 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                 try {
                     stateManager.setState(diskId, DiskStateType.IDLE);
                     stateManager.resetWatchDogTimer(diskId);
-
-                    diskStateLocks[diskId].readLock().lock();
+                    stateManager.startIdleStateWatchDog(diskId);
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
-                    diskStateLocks[diskId].readLock().lock();
+                    diskStateLocks[diskId].readLock().unlock();
                 }
             }
 
@@ -458,7 +467,7 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
         @Override
         public Boolean call() throws Exception {
-            boolean result;
+            boolean result = false;
 
             int diskId = block.getPrimaryDiskId();
             diskStateLocks[diskId].readLock().lock();
@@ -466,9 +475,45 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                 diskStateLocks[diskId].readLock().unlock();
                 diskStateLocks[diskId].writeLock().lock();
 
-            }
+                try {
+                    stateManager.setState(diskId, DiskStateType.SPINUP);
+                    if (!spinUp(diskId))
+                        throw new IllegalStateException(
+                                "Couldn't spin up the disk id: " + diskId);
 
-            return null;
+                    stateManager.setState(diskId, DiskStateType.IDLE);
+
+                    File file = new File(diskFilePath + block.getBlockId());
+                    if (deleteOnExit) file.deleteOnExit();
+
+                    checkDataDir(file.getParent());
+
+                    logger.info("write to: {}", file.getCanonicalPath());
+
+                    if (!file.exists()) file.createNewFile();
+
+                    BufferedOutputStream bos = null;
+                    bos = new BufferedOutputStream(new FileOutputStream(file));
+
+                    stateManager.setState(diskId, DiskStateType.ACTIVE);
+                    bos.write(this.block.getPayload());
+                    bos.flush();
+                    bos.close();
+
+                    result = true;
+
+                    stateManager.setState(diskId, DiskStateType.IDLE);
+                    stateManager.resetWatchDogTimer(diskId);
+                    stateManager.startIdleStateWatchDog(diskId);
+
+                    logger.info("written successfully. to: {}, {}[byte]",
+                            file.getCanonicalPath(), this.block.getPayload().length);
+
+                } finally {
+                    diskStateLocks[diskId].writeLock().unlock();
+                }
+            }
+            return result;
         }
     }
 
