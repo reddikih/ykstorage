@@ -47,7 +47,7 @@ public class NormalDataDiskManagerTest {
         NormalDataDiskManager dataDiskManager = getDataDiskManager(numberOfDataDisks);
         dataDiskManager.setDeleteOnExit(true);
 
-        Block block = getBlock(1, dataDiskManager.assginPrimaryDiskId(1), "write to dataDisk test.");
+        Block block = getBlock(1, dataDiskManager.assignPrimaryDiskId(1), "write to dataDisk test.");
         this.blocks.add(block);
         boolean result = dataDiskManager.write(blocks);
         assertThat(result, is(true));
@@ -60,7 +60,7 @@ public class NormalDataDiskManagerTest {
         dataDiskManager.setDeleteOnExit(true);
 
         for (int i=0; i < 16; i++) {
-            blocks.add(getBlock(i, dataDiskManager.assginPrimaryDiskId(i), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+            blocks.add(getBlock(i, dataDiskManager.assignPrimaryDiskId(i), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
         }
 
         boolean result = dataDiskManager.write(blocks);
@@ -76,7 +76,7 @@ public class NormalDataDiskManagerTest {
         long blockId = 1;
         String content = "write after read is ok?";
 
-        Block block = getBlock(blockId, dataDiskManager.assginPrimaryDiskId(blockId), content);
+        Block block = getBlock(blockId, dataDiskManager.assignPrimaryDiskId(blockId), content);
         this.blocks.add(block);
         boolean written = dataDiskManager.write(blocks);
         assertThat(written, is(true));

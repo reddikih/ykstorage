@@ -95,7 +95,7 @@ public class NormalStorageManager extends StorageManager {
     }
 
     private int assginPrimaryDisk(long blockId) {
-        return this.dataDiskManager.assginPrimaryDiskId(blockId);
+        return this.dataDiskManager.assignPrimaryDiskId(blockId);
     }
 
 }

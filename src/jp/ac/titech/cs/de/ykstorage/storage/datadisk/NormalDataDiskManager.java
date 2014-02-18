@@ -135,7 +135,7 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
     }
 
     private String getDiskFilePathPrefix(long blockId) {
-        int diskId = assginPrimaryDiskId(blockId);
+        int diskId = assignPrimaryDiskId(blockId);
         DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
         return pathInfo.getDiskFilePath();
     }
@@ -199,10 +199,10 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
             if (ioType.equals(IOType.READ)) {
                 Callable readTask = new ReadPrimitiveTask(blockId, getDiskFilePathPrefix(blockId));
 
-                Future<byte[]> future = diskIOExecutors[assginPrimaryDiskId(blockId)].submit(readTask);
+                Future<byte[]> future = diskIOExecutors[assignPrimaryDiskId(blockId)].submit(readTask);
                 byte[] payload = future.get();
 
-                result = new Block(blockId, 0, assginPrimaryDiskId(blockId), 0, payload);
+                result = new Block(blockId, 0, assignPrimaryDiskId(blockId), 0, payload);
             } else if (ioType.equals(IOType.WRITE)) {
                 Callable writeTask = new WritePrimitiveTask(block, getDiskFilePathPrefix(block.getBlockId()));
 
@@ -264,7 +264,7 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
             byte[] result = null;
 
             // check disk state either the disk is spinning or not.
-            int diskId = assginPrimaryDiskId(blockId);
+            int diskId = assignPrimaryDiskId(blockId);
             diskStateLocks[diskId].readLock().lock();
             if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
@@ -424,7 +424,7 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
     }
 
     @Override
-    public int assginPrimaryDiskId(long blockId) {
+    public int assignPrimaryDiskId(long blockId) {
         BigInteger numerator = BigInteger.valueOf(blockId);
         BigInteger denominator = BigInteger.valueOf(this.numberOfDataDisks);
         return numerator.mod(denominator).intValue();
