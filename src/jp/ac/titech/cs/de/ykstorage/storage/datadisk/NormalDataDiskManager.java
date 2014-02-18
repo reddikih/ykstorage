@@ -142,24 +142,79 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
     @Override
     public void exceededIdleThreshold(int diskId) {
-        logger.debug("diskId: {} is exceeeded idleness threshold time", diskId);
+        logger.debug("diskId: {} is exceeded idleness threshold time", diskId);
         diskStateLocks[diskId].readLock().lock();
         if (DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
             diskStateLocks[diskId].readLock().unlock();
             diskStateLocks[diskId].writeLock().lock();
             try {
                 stateManager.setState(diskId, DiskStateType.SPINDOWN);
-                spinDown(diskId);
-                stateManager.setState(diskId, DiskStateType.STANDBY);
+                if (spinDown(diskId)) {
+                    stateManager.setState(diskId, DiskStateType.STANDBY);
+                    logger.debug("Spinning down diskId: {} is successful.", diskId);
+                } else {
+                    stateManager.setState(diskId, DiskStateType.IDLE);
+                    logger.debug("Spinning down diskId: {} is failed. and return state to IDLE", diskId);
+                }
             } finally {
                 diskStateLocks[diskId].writeLock().unlock();
             }
         }
     }
 
-    private void spinDown(int diskId) {
+    private boolean spinDown(int diskId) {
+        String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
+        if (!devicePathCheck(devicePath)) return false;
 
+        String command = "sync";
+        int rc = executeExternalCommand(command);
+        logger.debug("return value of [{}]: {}", command, rc);
+
+        command = "sudo hdparm -y " + devicePath;
+        rc = executeExternalCommand(command);
+        logger.debug("return value of [{}]: {}", command, rc);
+        if (rc != 0) return false;
+        // TODO increment spin down count.
+        // and the other some operation if needed.
+        return true;
     }
+
+    private boolean spinUp(int diskId) {
+        String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
+        if (!devicePathCheck(devicePath)) return false;
+
+        String command = "ls " + devicePath;
+        int rc = executeExternalCommand(command);
+        logger.debug("return value of [{}]: {}", command, rc);
+        if (rc != 0) return false;
+        // TODO increment spin up count.
+        // and the other some operation if needed.
+        return true;
+    }
+
+    private int executeExternalCommand(String command) {
+        int returnCode = 1;
+
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            returnCode = process.waitFor();
+        } catch (IOException e) {
+            launderThrowable(e);
+        } catch (InterruptedException e) {
+            launderThrowable(e);
+        }
+        return returnCode;
+    }
+
+    private boolean devicePathCheck(String devicePath) {
+        if (devicePath == null || devicePath == "") {
+            return false;
+        }
+
+        File file = new File(devicePath);
+        return file.exists();
+    }
+
 
     private class OperationTask implements Callable<Object> {
 
@@ -284,7 +339,8 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                 }
 
                 try {
-                    spinUp(diskId);
+                    boolean isSuccess = spinUp(diskId);
+                    logger.debug("spinning up disk id:{} is {}", diskId, isSuccess);
                 } finally {
                     diskStateLocks[diskId].readLock().unlock();
                 }
@@ -351,10 +407,6 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
         }
     }
 
-    private void spinUp(int diskId) {
-        // TODO to be implement.
-    }
-
     private class WritePrimitiveTask implements Callable<Boolean> {
 
         private Block block;
@@ -391,6 +443,32 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                     file.getCanonicalPath(), this.block.getPayload().length);
 
             return result;
+        }
+    }
+
+    private class WritePrimitiveTaskWithStateManagement implements Callable<Boolean> {
+
+        private Block block;
+        private String diskFilePath;
+
+        public WritePrimitiveTaskWithStateManagement(Block block, String diskFilePath) {
+            this.block = block;
+            this.diskFilePath = diskFilePath;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+            boolean result;
+
+            int diskId = block.getPrimaryDiskId();
+            diskStateLocks[diskId].readLock().lock();
+            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
+                diskStateLocks[diskId].readLock().unlock();
+                diskStateLocks[diskId].writeLock().lock();
+
+            }
+
+            return null;
         }
     }
 
