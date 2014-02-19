@@ -1,5 +1,6 @@
 package jp.ac.titech.cs.de.ykstorage.storage;
 
+import java.util.Iterator;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
@@ -47,34 +48,47 @@ public class NormalStorageManager extends StorageManager {
 
     @Override
     public boolean write(long key, byte[] value) {
-        List<Block> blocks = assignBlock(key, value);
+        List<Long> blockIds = getCorrespondingBlockIds(key);
+        if (blockIds == null || blockIds.size() == 0) {
+            blockIds = assignBlockIds(key, value.length, Block.BLOCK_SIZE);
+        }
+        List<Block> blocks = createBlocks(blockIds, value, Block.BLOCK_SIZE);
         return this.dataDiskManager.write(blocks);
     }
 
-    private List<Block> assignBlock(long key, byte[] value) {
-        ArrayList<Block> blocks = new ArrayList<>();
+    private List<Long> assignBlockIds(long key, int byteSize, int blockSize) {
         ArrayList<Long> blockIds = new ArrayList<>();
 
-        int numBlocks = (int)Math.ceil((double)value.length / Block.BLOCK_SIZE);
+        int numBlocks = (int)Math.ceil((double)byteSize / blockSize);
         for (int i=0; i<numBlocks; i++) {
             long blockId = this.sequenceNumber.getAndIncrement();
+            logger.info("Assigned blockId:{}, key:{}", blockId, key);
+            blockIds.add(blockId);
+        }
+        setRequestKey2BlockIds(key, blockIds);
+        return blockIds;
+    }
 
-            byte[] payload = new byte[Block.BLOCK_SIZE];
+    private List<Block> createBlocks(List<Long> blockIds, byte[] value, int blockSize) {
+        ArrayList<Block> blocks = new ArrayList<>();
 
-            logger.info("create block payload length: {} (key={})", payload.length, key);
+        Iterator<Long> ids = blockIds.iterator();
+        for (int i=0; i < blockIds.size(); i++) {
+            long blockId = ids.next();
 
-            int length = value.length - i * Block.BLOCK_SIZE < Block.BLOCK_SIZE
-                    ? value.length - i * Block.BLOCK_SIZE : Block.BLOCK_SIZE;
+            byte[] payload = new byte[blockSize];
 
-            System.arraycopy(value, i * Block.BLOCK_SIZE, payload, 0, length);
+            int length = value.length - i * blockSize < blockSize
+                    ? value.length - i * blockSize : blockSize;
+
+            System.arraycopy(value, i * blockSize, payload, 0, length);
 
             Block block = new Block(blockId, 0, assginPrimaryDisk(blockId), 0, payload);
 
-            blockIds.add(blockId);
+            logger.info("Create block. blockId:{}, length:{} ", blockId, payload.length);
+
             blocks.add(block);
         }
-
-        setRequestKey2BlockIds(key, blockIds);
         return blocks;
     }
 
