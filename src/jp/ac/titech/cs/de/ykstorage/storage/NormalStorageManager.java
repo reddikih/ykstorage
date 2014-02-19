@@ -30,18 +30,22 @@ public class NormalStorageManager extends StorageManager {
     public byte[] read(long key) {
         List<Long> blockIds = getCorrespondingBlockIds(key);
         List<Block> result = new ArrayList<>();
+        List<Long> hitMissIds = new ArrayList<>();
+
         for (Long blockId : blockIds) {
             Block block = this.bufferManager.read(blockId);
             if (block != null)
                 result.add(block);
+            else
+                hitMissIds.add(blockId);
         }
 
-        if (result.size() > 0) {
+        if (hitMissIds.size() == 0) {
             return convertBlocks2Bytes(result);
         }
 
-        List<Long> requestBlocks = getCorrespondingBlockIds(key);
-        result = this.dataDiskManager.read(requestBlocks);
+        List<Block> fromDataDiskBlocks = this.dataDiskManager.read(hitMissIds);
+        result.addAll(fromDataDiskBlocks);
 
         return convertBlocks2Bytes(result);
     }
