@@ -19,7 +19,7 @@ public class NormalDataDiskManagerTest {
 
     private final static String diskFilePrefix =
             "./test/test/jp/ac/titech/cs/de/ykstorage/storage/datadisk/data/sd";
-    private Parameter parameter = new Parameter();
+    private Parameter parameter = new Parameter("./config/config.properties");
 
     private ArrayList<Block> blocks = new ArrayList<Block>();
 

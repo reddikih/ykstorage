@@ -22,8 +22,9 @@ public class StorageService {
     @Deprecated
     private OLDStorageManager storageManager = null; //TODO delete in near future
 
-    private void initialize() {
-        Parameter parameter = getStorageParameter();
+    private void initialize(String[] args) {
+        Parameter parameter = getStorageParameter(args[0]);
+
         StorageManagerFactory smFactory =
                 StorageManagerFactory.getStorageManagerFactory(parameter);
 
@@ -40,17 +41,8 @@ public class StorageService {
 
     }
 
-    private Parameter getStorageParameter() {
-        Parameter parameter = new Parameter();
-
-        // TODO should be set the non-static parameters from config file
-        // * data directory, log directory
-        // * device characters
-        // * replica level
-        // and so on
-        parameter.diskFilePathPrefix = Parameter.DATA_DIR + "/sd";
-
-        return parameter;
+    private Parameter getStorageParameter(String configPath) {
+        return new Parameter(configPath);
     }
 
     private void start() {
@@ -94,7 +86,7 @@ public class StorageService {
 	}
 
     public static void main(String[] args) {
-        storageService.initialize();
+        storageService.initialize(args);
 
         storageService.start();
    }

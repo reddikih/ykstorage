@@ -1,7 +1,13 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 起動パラメータ用の一時的なクラス．最終的にはXMLやプロパティファイル
@@ -14,7 +20,68 @@ import java.util.TreeMap;
  */
 public class Parameter {
 
-	/** Debug flag */
+    private static Properties config;
+
+    public Parameter(String configPath) {
+
+        this.config = new Properties(System.getProperties());
+
+        if (configPath != null)
+            try {
+                config.load(new BufferedInputStream(new FileInputStream(configPath)));
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+
+        initialize();
+    }
+
+    private void initialize() {
+        Parameter.BLOCK_SIZE = (int)convertSizeParameter(config.getProperty("block.size"));
+        this.storageManagerFactory = config.getProperty("storage.manager.factory");
+        this.numberOfCacheDisks = Integer.parseInt(config.getProperty("cachedisk.number"));
+        this.numberOfDataDisks = Integer.parseInt(config.getProperty("datadisk.number"));
+        this.serverPort = Integer.parseInt(config.getProperty("server.port"));
+        this.driveCharacters = config.getProperty("device.characters").split(",");
+        this.ykstorageHome = config.getProperty("ykstorage.home");
+        this.dataDir = config.getProperty("data.dir");
+        this.diskFilePathPrefix = concatenatePathStrings(ykstorageHome, concatenatePathStrings(dataDir, config.getProperty("disk.file.prefix")));
+        this.devicePathPrefix = config.getProperty("device.file.prefix");
+    }
+
+    private String concatenatePathStrings(String parent, String child) {
+        if (parent == null || child == null)
+            return null;
+
+        if (parent.endsWith("/")) parent = parent.substring(parent.length() - 2);
+        if (child.startsWith("/")) child = child.substring(1);
+
+        return parent + "/" + child;
+    }
+
+    private long convertSizeParameter(String sizeStr) {
+        long result = 1L;
+        sizeStr = sizeStr.toLowerCase();
+        Matcher m = Pattern.compile("(?<number>[1-9][0-9]*)(?<unit>k|m|g|t)?b?").matcher(sizeStr);
+        if (m.matches()) {
+            switch(m.group("unit")) {
+                case "t": result *= 1024;
+                case "g": result *= 1024;
+                case "m": result *= 1024;
+                case "k": result *= 1024;
+                default: break;
+            }
+        } else {
+            throw new IllegalArgumentException("the format of this parameter is invalid: " + sizeStr);
+        }
+        return result * Long.parseLong(m.group("number"));
+    }
+
+
+    //--- these are the parameters ---//
+
+    /** Debug flag */
 	public static final boolean DEBUG = true;
 
 	/** Capacity of cache memory. It's unit is byte. */
@@ -28,6 +95,7 @@ public class Parameter {
 	/** The disk spin down threshold time(second). */
 	public static final double SPIN_DOWN_THRESHOLD = 10.0;
 
+    @Deprecated
     public static String YKSTORAGE_HOME = System.getProperty("user.dir");
 
     public static final String DATA_DIR =YKSTORAGE_HOME + "/data";
@@ -52,22 +120,30 @@ public class Parameter {
 
     public static int NUMBER_OF_REPLICA = 3;
 
-    public String storageManagerFactory = "NormalStorageManagerFactory";
+    public int numberOfCacheDisks;
+
+    public int numberOfDataDisks;
+
+    /**
+     * This value is one of them:
+     * NormalStorageManagerFactory, MAIDStorageManagerFactory, RAPoSDAStorageManagerFactory
+     */
+    public String storageManagerFactory;
 
     /** cs, dga, random  */
-    public String BUFFER_ALLOCATION_POLICY = "cs";
+    public String bufferAllocationPolicy = "cs";
 
-    public String BUFFER_MANAGER_FACTORY = "NormalBufferManager";
+    public String bufferManagerFactory = "NormalBufferManager";
 
     public static int BLOCK_SIZE = 32 * 1024;
 
-    public int serverPort = 9999;
+    public int serverPort;
 
-    public char[] driveCharacters = {
-            'b','c','d','e','f','g','h','i','j','k',
-            'l','m','n','o','p','q','r','s','t','u',
-            'v','w','x','y','z',
-    };
+    public String[] driveCharacters;
+
+    public String ykstorageHome;
+
+    public String dataDir;
 
     /**
      * prefix string of disk file paths.
@@ -77,6 +153,11 @@ public class Parameter {
      */
     public String diskFilePathPrefix;
 
+    public String devicePathPrefix;
+
+
+
+    /*--- These are settigs for Oguri kun ---*/
 
     @Deprecated
     private static final char diskIds[] = {
@@ -128,7 +209,6 @@ public class Parameter {
 	}
 
 
-    /*--- These are settigs for Oguri kun ---*/
 	public static final String DATA_DISK_SAVE_FILE_PATH = "./datamap";
 
 	public static final boolean PROPOSAL1 = false;

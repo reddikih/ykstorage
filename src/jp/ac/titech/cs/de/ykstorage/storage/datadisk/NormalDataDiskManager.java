@@ -26,18 +26,18 @@ public class NormalDataDiskManager implements IDataDiskManager {
     private ExecutorService[] diskIOExecutors;
     private ExecutorService diskOperationExecutor;
 
-    public NormalDataDiskManager(int numberOfDataDisks, String diskFilePrefix, char[] deviceCharacters) {
+    public NormalDataDiskManager(int numberOfDataDisks, String diskFilePrefix, String[] deviceCharacters) {
         this.diskFilePrefix = diskFilePrefix;
         this.numberOfDataDisks = numberOfDataDisks;
 
         init(deviceCharacters);
     }
 
-    private void init(char[] deviceCharacters) {
+    private void init(String[] deviceCharacters) {
         this.diskId2FilePath = new HashMap<>();
 
         int diskId= 0;
-        for (char deviceChar : deviceCharacters) {
+        for (String deviceChar : deviceCharacters) {
             DiskFileAndDevicePath pathInfo = new DiskFileAndDevicePath(
                     this.diskFilePrefix + deviceChar + "/", this.devicePrefix + deviceChar);
             diskId2FilePath.put(diskId++, pathInfo);
