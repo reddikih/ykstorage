@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
-
+@Deprecated
 public class MAIDDataDiskStateManager {
 	private static String[] UNIT_NAMES;
 	static {
