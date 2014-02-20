@@ -18,13 +18,13 @@ import java.util.SortedMap;
 import java.util.StringTokenizer;
 
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.OLDStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
 
 public class DiskManager {
-	private StateManager sm;
+	private OLDStateManager sm;
 
 	private String[] diskpaths;
 	private String savePath;
@@ -57,7 +57,7 @@ public class DiskManager {
 		for(String diskpath : diskpaths) {
 			devices.add(mountPointPaths.get(diskpath));
 		}
-		this.sm = new StateManager(devices, spinDownThreshold);
+		this.sm = new OLDStateManager(devices, spinDownThreshold);
 
 		init();
 		

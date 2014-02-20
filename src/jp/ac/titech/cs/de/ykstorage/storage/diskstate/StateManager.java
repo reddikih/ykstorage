@@ -1,174 +1,93 @@
 package jp.ac.titech.cs.de.ykstorage.storage.diskstate;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import jp.ac.titech.cs.de.ykstorage.util.DiskState;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StateManager {
 
-	/**
-	 * key: device file path
-	 * value: disk state
-	 */
-	private Map<String, DiskState> diskStates;
+    private final static Logger logger = LoggerFactory.getLogger(StateManager.class);
 
-	/**
-	 * key: device file path
-	 * value: start time of idle state
-	 */
-	private Map<String, Long> idleIntimes;
+    private DiskState[] diskStates;
 
-//	private double spindownThreshold;
-	/**
-	 * In this class, given spin down threshold time is converted
-	 * from second(in double type) to millisecond(in long type) value
-	 */
-	private long spindownThreshold;
+    private final List<IdleThresholdListener> idleThresholdListeners = new ArrayList<>();
 
-	private int interval = 1000;
+    private ScheduledExecutorService idleStateWatchdogTimer;
 
-	private StateCheckThread sct;
+    private int idleTimeThreshold;
 
+    private final ConcurrentHashMap<Integer, Future<?>> scheduledTasks = new ConcurrentHashMap<>();
 
-	public StateManager(Collection<String> devicePaths, double spinDownThreshold) {
-		this.diskStates = initDiskStates(devicePaths);
-		this.idleIntimes = initIdleInTimes(devicePaths);
-		this.spindownThreshold = (long)(spinDownThreshold * 1000);
-		this.sct = new StateCheckThread();
-	}
+    public StateManager(
+            String devicePathPrefix,
+            char[] deviceCharacters,
+            double idleTimeThreshold) {
+        init(devicePathPrefix, deviceCharacters, idleTimeThreshold);
+    }
 
-	private Map<String, DiskState> initDiskStates(Collection<String> devicePaths) {
-		Map<String, DiskState> result = new HashMap<String, DiskState>();
-		for (String device : devicePaths) {
-			result.put(device, DiskState.IDLE);
-		}
-		return result;
-	}
+    private void init(
+            String devicePathPrefix,
+            char[] deviceCharacters,
+            double idleTimeThreshold) {
+        this.diskStates = new DiskState[deviceCharacters.length];
 
-	private Map<String, Long> initIdleInTimes(Collection<String> devicePaths) {
-		Map<String, Long> result = new HashMap<String, Long>();
-		long thisTime = System.currentTimeMillis();
-		for (String device : devicePaths) {
-			result.put(device, thisTime);
-		}
-		return result;
-	}
+        this.idleTimeThreshold = (int)(idleTimeThreshold * 1000);
 
-	private boolean devicePathCheck(String devicePath) {
-		boolean result = true;
-		if(devicePath == null || devicePath == "") {
-			result = false;
-		}
-		return result;
-	}
+        for (int i=0; i < deviceCharacters.length; i++) {
+            this.diskStates[i] = new DiskState(
+                    devicePathPrefix + deviceCharacters[i], DiskStateType.IDLE);
+            logger.info(
+                    "create DiskState. diskId: {}, device path: {}",
+                    i, this.diskStates[i].getDevicePath());
+        }
 
-	public void start() {
-		sct.start();
-	}
+        this.idleStateWatchdogTimer =
+                Executors.newScheduledThreadPool(deviceCharacters.length);
+    }
 
-	public boolean spinup(String devicePath) {
-		if(!devicePathCheck(devicePath)) return false;
-		setDiskState(devicePath, DiskState.IDLE);
+    public void addListener(IdleThresholdListener listener) {
+        this.idleThresholdListeners.add(listener);
+    }
 
-		String[] cmdarray = {"ls", devicePath};
-		int returnCode = execCommand(cmdarray);
-		if(returnCode == 0) {
-			return true;
-		}
-		setDiskState(devicePath, DiskState.STANDBY);
-		return false;
-	}
+    public DiskStateType getState(int diskId) {
+        return this.diskStates[diskId].getState();
+    }
 
-	public boolean spindown(String devicePath) {
-		if(!devicePathCheck(devicePath)) return false;
-		setDiskState(devicePath, DiskState.STANDBY);
-		
-		String[] sync = {"sync"};
-		int syncRet = execCommand(sync);
-		if(syncRet != 0) {
-			setDiskState(devicePath, DiskState.IDLE);
-			return false;
-		}
-		
-		String[] hdparm = {"hdparm", "-y", devicePath};
-		int hdparmRet = execCommand(hdparm);
-		if(hdparmRet == 0) {
-			return true;
-		}
-		setDiskState(devicePath, DiskState.IDLE);
-		return false;
-	}
+    public void setState(int diskId, DiskStateType state) {
+        DiskStateType oldState = this.diskStates[diskId].getState();
+        this.diskStates[diskId].setState(state);
+        logger.debug("Set state. diskId: {}, old: {}, new: {}", diskId, oldState, state);
 
-	private int execCommand(String[] cmd) {
-		int returnCode = 1;
-		try {
-			Runtime r = Runtime.getRuntime();
-			Process p = r.exec(cmd);
-			returnCode = p.waitFor();
+    }
 
-		} catch (IOException e) {
-//			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		return returnCode;
-	}
+    public void startIdleStateWatchDog(final int diskId) {
+        final Runnable watchdog = new Runnable () {
+            @Override
+            public void run() {
+                for (IdleThresholdListener listener : idleThresholdListeners) {
+                    listener.exceededIdleThreshold(diskId);
+                }
+            }
+        };
+        final Future<?> scheduledTask =
+                idleStateWatchdogTimer.schedule(
+                        watchdog, idleTimeThreshold, TimeUnit.SECONDS);
 
-	public boolean setDiskState(String devicePath, DiskState state) {
-		boolean result = true;
-		if(!devicePathCheck(devicePath))
-			result = false;
-		this.diskStates.put(devicePath, state);
-		return result;
-	}
+        this.scheduledTasks.putIfAbsent(diskId, scheduledTask);
+        logger.debug("start watchdog for diskId: {}", diskId);
+    }
 
-	public DiskState getDiskState(String devicePath) {
-		if(!devicePathCheck(devicePath)) return DiskState.NA;
-
-		DiskState state = diskStates.get(devicePath);
-		if (state == null) {
-			state = DiskState.NA;
-		}
-		return state;
-	}
-
-	public boolean setIdleIntime(String devicePath, long time) {
-		boolean result = true;
-		if(!devicePathCheck(devicePath)) {
-			result = false;
-		}
-		idleIntimes.put(devicePath, time);
-		return result;
-	}
-
-	public double getIdleIntime(String devicePath) {
-		if(!devicePathCheck(devicePath)) return -1.0;
-		return idleIntimes.get(devicePath);
-	}
-
-	class StateCheckThread extends Thread {
-		public void run() {
-			while(true) {
-				long now = System.currentTimeMillis();	// TODO long double
-
-				for (String devicePath : diskStates.keySet()) {
-					if (DiskState.IDLE.equals(getDiskState(devicePath)) &&
-						(now - getIdleIntime(devicePath)) > spindownThreshold) {
-						spindown(devicePath);
-					}
-				}
-
-				try {
-					sleep(interval);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
+    public void resetWatchDogTimer(int diskId) {
+        Future<?> canceledTask = this.scheduledTasks.remove(diskId);
+        if (canceledTask != null) {
+            canceledTask.cancel(true);
+            logger.debug("reset watchdog diskId: {}", diskId);
+        }
+    }
 }

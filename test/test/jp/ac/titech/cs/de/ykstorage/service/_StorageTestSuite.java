@@ -9,7 +9,7 @@ import test.jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManagerT
 import test.jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ReCacheDiskManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.ReDataDiskManagerTest;
-import test.jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManagerTest;
+import test.jp.ac.titech.cs.de.ykstorage.storage.diskstate.OLDStateManagerTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
@@ -18,7 +18,7 @@ import test.jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManagerTest;
 	StorageServiceTest.class,
 	ValueTest.class,
 	CacheMemoryManagerTest.class,
-	StateManagerTest.class,
+	OLDStateManagerTest.class,
 	MAIDStorageManagerTest.class,
 	MAIDCacheDiskManagerTest.class,
 	MAIDDataDiskManagerTest.class,

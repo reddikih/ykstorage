@@ -10,6 +10,6 @@ public interface IDataDiskManager {
 
     public boolean write(List<Block> blocks);
 
-    public int assginPrimaryDiskId(long blockId);
+    public int assignPrimaryDiskId(long blockId);
 
 }
