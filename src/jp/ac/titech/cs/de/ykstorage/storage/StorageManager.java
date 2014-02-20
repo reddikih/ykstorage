@@ -1,5 +1,6 @@
 package jp.ac.titech.cs.de.ykstorage.storage;
 
+import java.util.concurrent.ConcurrentHashMap;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
@@ -34,7 +35,7 @@ public abstract class StorageManager {
      * key; request key
      * value: a list of corresponding block ids
      */
-    protected ConcurrentMap<Long, List<Long>> key2blockIdMap;
+    protected ConcurrentMap<Long, List<Long>> key2blockIdMap = new ConcurrentHashMap<>();
 
     abstract public byte[] read(long key);
 

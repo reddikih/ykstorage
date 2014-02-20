@@ -23,7 +23,6 @@ public class NormalStorageManager extends StorageManager {
             IDataDiskManager dataDiskManager,
             Parameter parameter) {
         super(bufferManager, cacheDiskManager, dataDiskManager, parameter);
-        this.key2blockIdMap = new ConcurrentHashMap<>();
     }
 
     @Override
