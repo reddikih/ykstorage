@@ -14,7 +14,8 @@ import static org.junit.Assert.assertThat;
 public class StateManagerTest {
 
     private String devicePathPrefix = "/dev/sd";
-    private char[] deviceCharacters = new Parameter().driveCharacters;
+    private String configPath = "./config/config.properties";
+    private String[] deviceCharacters = new Parameter(configPath).driveCharacters;
 
     @Test
     public void getAStateFromStateManager() {

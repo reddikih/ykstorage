@@ -26,14 +26,14 @@ public class StateManager {
 
     public StateManager(
             String devicePathPrefix,
-            char[] deviceCharacters,
+            String[] deviceCharacters,
             double idleTimeThreshold) {
         init(devicePathPrefix, deviceCharacters, idleTimeThreshold);
     }
 
     private void init(
             String devicePathPrefix,
-            char[] deviceCharacters,
+            String[] deviceCharacters,
             double idleTimeThreshold) {
         this.diskStates = new DiskState[deviceCharacters.length];
 
