@@ -5,7 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.File;
 
-import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.OLDMAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
@@ -18,7 +18,7 @@ import org.junit.runners.JUnit4;
 
 
 @RunWith(JUnit4.class)
-public class MAIDCacheDiskManagerTest {
+public class OLDMAIDCacheDiskManagerTest {
 	private static final long CAPACITY_OF_CACHEDISK = 30;
 	private static final String[] CACHE_DISK_PATHS = {Parameter.CACHE_DISK_PATHS[0]};
 
@@ -28,7 +28,7 @@ public class MAIDCacheDiskManagerTest {
 	private Value value = new Value("value".getBytes());
 	private Value value2 = new Value("value2".getBytes());
 	private Value value3 = new Value("value3".getBytes());
-	private MAIDCacheDiskManager dm;
+	private OLDMAIDCacheDiskManager dm;
 	
 //	private String devicePaths[];
 
@@ -37,7 +37,7 @@ public class MAIDCacheDiskManagerTest {
 		MAIDCacheDiskStateManager sm = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
-		this.dm = new MAIDCacheDiskManager(
+		this.dm = new OLDMAIDCacheDiskManager(
 				Parameter.CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
@@ -131,7 +131,7 @@ public class MAIDCacheDiskManagerTest {
 		MAIDCacheDiskStateManager sm2 = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
-		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+		OLDMAIDCacheDiskManager dm2 = new OLDMAIDCacheDiskManager(
 				CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
@@ -152,7 +152,7 @@ public class MAIDCacheDiskManagerTest {
 		MAIDCacheDiskStateManager sm2 = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
-		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+		OLDMAIDCacheDiskManager dm2 = new OLDMAIDCacheDiskManager(
 				CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
@@ -175,7 +175,7 @@ public class MAIDCacheDiskManagerTest {
 		MAIDCacheDiskStateManager sm2 = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
-		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+		OLDMAIDCacheDiskManager dm2 = new OLDMAIDCacheDiskManager(
 				CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
@@ -199,7 +199,7 @@ public class MAIDCacheDiskManagerTest {
 		MAIDCacheDiskStateManager sm2 = new MAIDCacheDiskStateManager(Parameter.MOUNT_POINT_PATHS, Parameter.CACHE_DISK_PATHS,
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
-		MAIDCacheDiskManager dm2 = new MAIDCacheDiskManager(
+		OLDMAIDCacheDiskManager dm2 = new OLDMAIDCacheDiskManager(
 				CACHE_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,

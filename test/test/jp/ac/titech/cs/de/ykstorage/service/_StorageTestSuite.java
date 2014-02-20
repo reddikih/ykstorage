@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 
 import test.jp.ac.titech.cs.de.ykstorage.storage.*;
 import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManagerTest;
-import test.jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManagerTest;
+import test.jp.ac.titech.cs.de.ykstorage.storage.cachedisk.OLDMAIDCacheDiskManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ReCacheDiskManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.ReDataDiskManagerTest;
@@ -20,7 +20,7 @@ import test.jp.ac.titech.cs.de.ykstorage.storage.diskstate.OLDStateManagerTest;
 	CacheMemoryManagerTest.class,
 	OLDStateManagerTest.class,
 	OLDMAIDStorageManagerTest.class,
-	MAIDCacheDiskManagerTest.class,
+	OLDMAIDCacheDiskManagerTest.class,
 	OLDMAIDDataDiskManagerTest.class,
 	ReStorageManagerTest.class,
 	ReCacheDiskManagerTest.class,

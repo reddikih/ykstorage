@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.OLDMAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
 
 public class OLDMAIDStorageManager {
@@ -19,12 +19,12 @@ public class OLDMAIDStorageManager {
 
 	private CacheMemoryManager cmm;
 	private OLDMAIDDataDiskManager datadm;
-	private MAIDCacheDiskManager cachedm;
+	private OLDMAIDCacheDiskManager cachedm;
 
 	private AtomicInteger seqNum;
 	private Map<String, Integer> keyMap;
 
-	public OLDMAIDStorageManager(CacheMemoryManager cmm, MAIDCacheDiskManager cachedm, OLDMAIDDataDiskManager datadm) {
+	public OLDMAIDStorageManager(CacheMemoryManager cmm, OLDMAIDCacheDiskManager cachedm, OLDMAIDDataDiskManager datadm) {
 		this.cmm = cmm;
 		this.datadm = datadm;
 		this.cachedm = cachedm;

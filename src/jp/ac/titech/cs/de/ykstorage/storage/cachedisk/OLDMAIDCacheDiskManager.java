@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.SortedMap;
 
 
-public class MAIDCacheDiskManager {
-	private final static Logger logger = LoggerFactory.getLogger(MAIDCacheDiskManager.class);
+public class OLDMAIDCacheDiskManager {
+	private final static Logger logger = LoggerFactory.getLogger(OLDMAIDCacheDiskManager.class);
     private MAIDCacheDiskStateManager sm;
 	
 	/**
@@ -66,13 +66,13 @@ public class MAIDCacheDiskManager {
 	 */
 	private int diskIndex = 0;
 	
-	public MAIDCacheDiskManager(
-			String[] diskpaths,
-			String savePath,
-			SortedMap<String, String> mountPointPaths,
-			double spinDownThreshold,
-			long maxCapacity,
-			MAIDCacheDiskStateManager sm) {
+	public OLDMAIDCacheDiskManager(
+            String[] diskpaths,
+            String savePath,
+            SortedMap<String, String> mountPointPaths,
+            double spinDownThreshold,
+            long maxCapacity,
+            MAIDCacheDiskStateManager sm) {
 		this.diskpaths = diskpaths;
 //		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
@@ -85,7 +85,7 @@ public class MAIDCacheDiskManager {
 			this.sm = sm;
 			this.sm.start();
 		}
-		logger.trace("MAIDCacheDiskManager: Capacity: {}[B]", maxCapacity);
+		logger.trace("OLDMAIDCacheDiskManager: Capacity: {}[B]", maxCapacity);
 	}
 
 	public Value get(int key) {

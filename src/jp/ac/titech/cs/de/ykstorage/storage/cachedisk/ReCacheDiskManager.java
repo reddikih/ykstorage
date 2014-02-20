@@ -98,7 +98,7 @@ public class ReCacheDiskManager {
 			this.sm = sm;
 			this.sm.start();
 		}
-		logger.debug("MAIDCacheDiskManager: Capacity: " + maxCapacity + "[B]");
+		logger.debug("OLDMAIDCacheDiskManager: Capacity: " + maxCapacity + "[B]");
 	}
 
 	public Value get(int key) {

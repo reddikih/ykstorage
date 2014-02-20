@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import jp.ac.titech.cs.de.ykstorage.storage.OLDMAIDStorageManager;
-import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.OLDMAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
@@ -56,7 +56,7 @@ public class MAIDSimpleClient3 {
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
 		
-		MAIDCacheDiskManager cdm = new MAIDCacheDiskManager(
+		OLDMAIDCacheDiskManager cdm = new OLDMAIDCacheDiskManager(
 				cacheDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
