@@ -4,17 +4,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import jp.ac.titech.cs.de.ykstorage.storage.OLDMAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
 
 public class MAIDSimpleClient {
-	private MAIDStorageManager sm;
+	private OLDMAIDStorageManager sm;
 
 	public MAIDSimpleClient() {
 		init();
@@ -34,7 +34,7 @@ public class MAIDSimpleClient {
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
 				Parameter.ACC);
 		
-		MAIDDataDiskManager ddm = new MAIDDataDiskManager(
+		OLDMAIDDataDiskManager ddm = new OLDMAIDDataDiskManager(
 				dataDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
@@ -53,7 +53,7 @@ public class MAIDSimpleClient {
 				Parameter.CAPACITY_OF_CACHEDISK,
 				cdsm);
 
-		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
+		this.sm = new OLDMAIDStorageManager(cmm, cdm, ddm);
 	}
 
 	public boolean put(String key, String value) {

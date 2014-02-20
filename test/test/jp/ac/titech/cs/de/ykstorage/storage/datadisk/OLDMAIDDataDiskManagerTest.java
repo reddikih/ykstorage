@@ -5,7 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.File;
 
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
@@ -19,7 +19,7 @@ import org.junit.runners.JUnit4;
 
 
 @RunWith(JUnit4.class)
-public class MAIDDataDiskManagerTest {
+public class OLDMAIDDataDiskManagerTest {
 
 	private int key = 1;
 	private int key2 = 123;
@@ -27,7 +27,7 @@ public class MAIDDataDiskManagerTest {
 	private Value value = new Value("value".getBytes());
 	private Value value2 = new Value("value2".getBytes());
 	private Value value3 = new Value("value3".getBytes());
-	private MAIDDataDiskManager dm;
+	private OLDMAIDDataDiskManager dm;
 	private MAIDDataDiskStateManager ddsm;
 //	private String devicePaths[];
 
@@ -37,7 +37,7 @@ public class MAIDDataDiskManagerTest {
 				Parameter.SPIN_DOWN_THRESHOLD, Parameter.SPINDOWN_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
 				Parameter.ACC);
-		this.dm = new MAIDDataDiskManager(
+		this.dm = new OLDMAIDDataDiskManager(
 				Parameter.DATA_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
@@ -73,7 +73,7 @@ public class MAIDDataDiskManagerTest {
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
 				Parameter.ACC);
 		
-		MAIDDataDiskManager dm2 = new MAIDDataDiskManager(
+		OLDMAIDDataDiskManager dm2 = new OLDMAIDDataDiskManager(
 								Parameter.DATA_DISK_PATHS,
 								Parameter.DATA_DISK_SAVE_FILE_PATH,
 								Parameter.MOUNT_POINT_PATHS,

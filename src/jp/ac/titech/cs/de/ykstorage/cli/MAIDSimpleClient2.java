@@ -5,11 +5,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import jp.ac.titech.cs.de.ykstorage.storage.OLDMAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ public class MAIDSimpleClient2 {
 	private long totalResponseTime = 0L;
     private long totalRequestCount = 0L;
 	
-	private MAIDStorageManager sm;
+	private OLDMAIDStorageManager sm;
     private final static Logger logger = LoggerFactory.getLogger(MAIDSimpleClient2.class);
 
 	public MAIDSimpleClient2() {
@@ -45,7 +45,7 @@ public class MAIDSimpleClient2 {
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
 				Parameter.ACC);
 		
-		MAIDDataDiskManager ddm = new MAIDDataDiskManager(
+		OLDMAIDDataDiskManager ddm = new OLDMAIDDataDiskManager(
 				dataDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
@@ -64,7 +64,7 @@ public class MAIDSimpleClient2 {
 				Parameter.CAPACITY_OF_CACHEDISK,
 				sm);
 
-		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
+		this.sm = new OLDMAIDStorageManager(cmm, cdm, ddm);
 
         logger.debug("Starting Simple Client");
 	}

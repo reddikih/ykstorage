@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jp.ac.titech.cs.de.ykstorage.service.Value;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
 
-public class MAIDStorageManager {
+public class OLDMAIDStorageManager {
 	private static final int CACHEMEM = 0;
 	private static final int CACHEMEM_AND_DISK = 1;
 	private static final int CACHEDISK = 2;
@@ -18,13 +18,13 @@ public class MAIDStorageManager {
 	private static final long TIMEOUT = 10000;
 
 	private CacheMemoryManager cmm;
-	private MAIDDataDiskManager datadm;
+	private OLDMAIDDataDiskManager datadm;
 	private MAIDCacheDiskManager cachedm;
 
 	private AtomicInteger seqNum;
 	private Map<String, Integer> keyMap;
 
-	public MAIDStorageManager(CacheMemoryManager cmm, MAIDCacheDiskManager cachedm, MAIDDataDiskManager datadm) {
+	public OLDMAIDStorageManager(CacheMemoryManager cmm, MAIDCacheDiskManager cachedm, OLDMAIDDataDiskManager datadm) {
 		this.cmm = cmm;
 		this.datadm = datadm;
 		this.cachedm = cachedm;

@@ -6,11 +6,11 @@ import static org.hamcrest.CoreMatchers.*;
 import java.io.File;
 import java.util.Arrays;
 
+import jp.ac.titech.cs.de.ykstorage.storage.OLDMAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 
@@ -21,9 +21,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class MAIDStorageManagerTest {
+public class OLDMAIDStorageManagerTest {
 
-	private MAIDStorageManager sm;
+	private OLDMAIDStorageManager sm;
 
 	@Before
 	public void setUpClass() {
@@ -48,14 +48,14 @@ public class MAIDStorageManagerTest {
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
 				Parameter.ACC);
 		
-		MAIDDataDiskManager datadm = new MAIDDataDiskManager(
+		OLDMAIDDataDiskManager datadm = new OLDMAIDDataDiskManager(
 				Parameter.DATA_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD,
 				ddsm);
 
-		this.sm = new MAIDStorageManager(cmm, cachedm, datadm);
+		this.sm = new OLDMAIDStorageManager(cmm, cachedm, datadm);
 	}
 
 	@Test
@@ -103,14 +103,14 @@ public class MAIDStorageManagerTest {
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
 				Parameter.ACC);
 		
-		MAIDDataDiskManager datadm2 = new MAIDDataDiskManager(
+		OLDMAIDDataDiskManager datadm2 = new OLDMAIDDataDiskManager(
 				Parameter.DATA_DISK_PATHS,
 				Parameter.DATA_DISK_SAVE_FILE_PATH,
 				Parameter.MOUNT_POINT_PATHS,
 				Parameter.SPIN_DOWN_THRESHOLD,
 				ddsm2);
 
-		MAIDStorageManager sm2 = new MAIDStorageManager(cmm2, cachedm2, datadm2);
+		OLDMAIDStorageManager sm2 = new OLDMAIDStorageManager(cmm2, cachedm2, datadm2);
 		
 		String key1 = "key1";
 		byte[] value1 = {1,2,3};

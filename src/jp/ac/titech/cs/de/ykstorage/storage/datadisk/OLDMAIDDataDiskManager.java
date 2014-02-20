@@ -20,8 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class MAIDDataDiskManager {
-    private final static Logger logger = LoggerFactory.getLogger(MAIDDataDiskManager.class);
+public class OLDMAIDDataDiskManager {
+    private final static Logger logger = LoggerFactory.getLogger(OLDMAIDDataDiskManager.class);
 	private MAIDDataDiskStateManager sm;
 
     private native boolean write(String filePath, byte[] value);
@@ -64,12 +64,12 @@ public class MAIDDataDiskManager {
 	 */
 	private int diskIndex = 0;
 
-	public MAIDDataDiskManager(
-			String[] diskpaths,
-			String savePath,
-			SortedMap<String, String> mountPointPaths,
-			double spinDownThreshold,
-			MAIDDataDiskStateManager sm) {
+	public OLDMAIDDataDiskManager(
+            String[] diskpaths,
+            String savePath,
+            SortedMap<String, String> mountPointPaths,
+            double spinDownThreshold,
+            MAIDDataDiskStateManager sm) {
 		this.diskpaths = diskpaths;
 		this.savePath = savePath;
 		this.mountPointPaths = mountPointPaths;
