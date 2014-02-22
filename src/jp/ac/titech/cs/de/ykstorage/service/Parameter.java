@@ -42,6 +42,7 @@ public class Parameter {
         this.storageManagerFactory = config.getProperty("storage.manager.factory");
         this.numberOfCacheDisks = Integer.parseInt(config.getProperty("cachedisk.number"));
         this.numberOfDataDisks = Integer.parseInt(config.getProperty("datadisk.number"));
+        this.spindownThresholdTime = Double.parseDouble(config.getProperty("spindown.threshold.time"));
         this.serverPort = Integer.parseInt(config.getProperty("server.port"));
         this.driveCharacters = config.getProperty("device.characters").split(",");
         this.ykstorageHome = config.getProperty("ykstorage.home");
@@ -65,12 +66,14 @@ public class Parameter {
         sizeStr = sizeStr.toLowerCase();
         Matcher m = Pattern.compile("(?<number>[1-9][0-9]*)(?<unit>k|m|g|t)?b?").matcher(sizeStr);
         if (m.matches()) {
-            switch(m.group("unit")) {
-                case "t": result *= 1024;
-                case "g": result *= 1024;
-                case "m": result *= 1024;
-                case "k": result *= 1024;
-                default: break;
+            if(m.group("unit") != null) {
+                switch(m.group("unit")) {
+                    case "t": result *= 1024;
+                    case "g": result *= 1024;
+                    case "m": result *= 1024;
+                    case "k": result *= 1024;
+                    default: break;
+                }
             }
         } else {
             throw new IllegalArgumentException("the format of this parameter is invalid: " + sizeStr);
@@ -92,6 +95,7 @@ public class Parameter {
 
     public static final double MEMORY_THRESHOLD = 1.0;
 
+    @Deprecated
 	/** The disk spin down threshold time(second). */
 	public static final double SPIN_DOWN_THRESHOLD = 10.0;
 
@@ -123,6 +127,8 @@ public class Parameter {
     public int numberOfCacheDisks;
 
     public int numberOfDataDisks;
+
+    public double spindownThresholdTime ;
 
     /**
      * This value is one of them:

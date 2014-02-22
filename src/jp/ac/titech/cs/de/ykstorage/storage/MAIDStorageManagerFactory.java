@@ -1,10 +1,12 @@
 package jp.ac.titech.cs.de.ykstorage.storage;
 
+import java.util.Arrays;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 
 
 public class MAIDStorageManagerFactory extends StorageManagerFactory {
@@ -19,7 +21,7 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
 
             @Override
             public boolean write(Block block) {
-                return false;
+                return true;
             }
 
             @Override
@@ -39,14 +41,30 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
 
             @Override
             public boolean write(Block blocks) {
-                return false;
+                return true;
             }
         };
     }
 
     @Override
     protected IDataDiskManager createDataDiskManager() {
-        return new MAIDDataDiskManager();
+        StateManager stateManager =
+                new StateManager(
+                        parameter.devicePathPrefix,
+                        parameter.driveCharacters,
+                        parameter.spindownThresholdTime);
+
+        String[] dataDiskDriveChars = Arrays.copyOfRange(
+                parameter.driveCharacters,
+                parameter.numberOfCacheDisks == 0 ? 0 : parameter.numberOfCacheDisks - 1,
+                parameter.driveCharacters.length);
+
+        return new MAIDDataDiskManager(
+                parameter.numberOfDataDisks,
+                parameter.diskFilePathPrefix,
+                parameter.devicePathPrefix,
+                dataDiskDriveChars,
+                stateManager);
     }
 
     @Override
