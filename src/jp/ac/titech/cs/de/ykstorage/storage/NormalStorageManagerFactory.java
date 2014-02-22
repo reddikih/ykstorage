@@ -5,6 +5,9 @@ import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.NormalDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
+
+import java.util.Arrays;
 
 
 public class NormalStorageManagerFactory extends StorageManagerFactory {
@@ -46,10 +49,23 @@ public class NormalStorageManagerFactory extends StorageManagerFactory {
 
     @Override
     protected IDataDiskManager createDataDiskManager() {
+        StateManager stateManager =
+                new StateManager(
+                        parameter.devicePathPrefix,
+                        parameter.driveCharacters,
+                        parameter.spindownThresholdTime);
+
+        String[] dataDiskDriveChars = Arrays.copyOfRange(
+                parameter.driveCharacters,
+                parameter.numberOfCacheDisks == 0 ? 0 : parameter.numberOfCacheDisks - 1,
+                parameter.driveCharacters.length);
+
         return new NormalDataDiskManager(
                 this.parameter.NUMBER_OF_DATA_DISKS,
                 this.parameter.diskFilePathPrefix,
-                this.parameter.driveCharacters);
+                parameter.devicePathPrefix,
+                dataDiskDriveChars,
+                stateManager);
     }
 
     @Override

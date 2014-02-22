@@ -1,7 +1,5 @@
 package jp.ac.titech.cs.de.ykstorage.storage.datadisk;
 
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.IdleThresholdListener;
@@ -25,54 +23,50 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdListener {
 
     private final static Logger logger = LoggerFactory.getLogger(NormalDataDiskManager.class);
 
+    // TODO to be pull up field
     private boolean deleteOnExit = false;
 
-    private boolean startedWatchdog = false;
-
-    private String devicePrefix = "/dev/sd";
+    private String deviceFilePrefix;
     private String diskFilePrefix;
     private int numberOfDataDisks;
     private Map<Integer, DiskFileAndDevicePath> diskId2FilePath;
 
     private ExecutorService[] diskIOExecutors;
+
     private final ExecutorService diskOperationExecutor = Executors.newCachedThreadPool();
 
     private StateManager stateManager;
 
-    private ReadWriteLock[] diskStateLocks;
+    private ReentrantReadWriteLock[] diskStateLocks;
 
     public NormalDataDiskManager(
             int numberOfDataDisks,
             String diskFilePrefix,
-            String[] deviceCharacters) {
-
-        this(numberOfDataDisks, diskFilePrefix, deviceCharacters, null);
-    }
-
-    public NormalDataDiskManager(
-            int numberOfDataDisks,
-            String diskFilePrefix,
+            String deviceFilePrefix,
             String[] deviceCharacters,
             StateManager stateManager) {
 
         this.diskFilePrefix = diskFilePrefix;
         this.numberOfDataDisks = numberOfDataDisks;
+        this.deviceFilePrefix = deviceFilePrefix;
         this.stateManager = stateManager;
         init(deviceCharacters);
     }
 
+    // TODO this method may need to pull up
     private void init(String[] deviceCharacters) {
         this.diskId2FilePath = new HashMap<>();
 
         int diskId= 0;
         for (String deviceChar : deviceCharacters) {
             DiskFileAndDevicePath pathInfo = new DiskFileAndDevicePath(
-                    this.diskFilePrefix + deviceChar + "/", this.devicePrefix + deviceChar);
+                    this.diskFilePrefix + deviceChar + "/", this.deviceFilePrefix + deviceChar);
             diskId2FilePath.put(diskId++, pathInfo);
         }
 
@@ -88,14 +82,6 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
         // register watchdog of idleness of data disks.
         this.stateManager.addListener(this);
-    }
-
-    public void startWatchDog() {
-        if (this.startedWatchdog) return;
-
-        for (int i=0; i<numberOfDataDisks; i++) {
-            this.stateManager.startIdleStateWatchDog(i);
-        }
     }
 
     @Override
@@ -144,85 +130,45 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
         return result;
     }
 
-    private String getDiskFilePathPrefix(long blockId) {
-        int diskId = assignPrimaryDiskId(blockId);
-        DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
-        return pathInfo.getDiskFilePath();
+    // TODO pull up
+    public void checkDataDir(String dir) throws IOException {
+        File file = new File(dir);
+        if (deleteOnExit) file.deleteOnExit();
+
+        if (!file.exists()) {
+            if (!file.mkdirs())
+                logger.info("could not create dir:{}", file.getCanonicalPath());
+        }
+    }
+
+    @Override
+    public int assignPrimaryDiskId(long blockId) {
+        BigInteger numerator = BigInteger.valueOf(blockId);
+        BigInteger denominator = BigInteger.valueOf(this.numberOfDataDisks);
+        return numerator.mod(denominator).intValue();
+    }
+
+    // TODO pull up
+    private RuntimeException launderThrowable(Throwable t) {
+        if (t instanceof RuntimeException) return (RuntimeException) t;
+        else if (t instanceof Error) throw (Error) t;
+        else throw new IllegalStateException("Not unchecked", t);
+    }
+
+    // TODO pull up
+    public void setDeleteOnExit(boolean deleteOnExit) {
+        this.deleteOnExit = deleteOnExit;
     }
 
     @Override
     public void exceededIdleThreshold(int diskId) {
-        logger.debug("diskId: {} is exceeded idleness threshold time", diskId);
-        diskStateLocks[diskId].readLock().lock();
-        if (DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
-            diskStateLocks[diskId].readLock().unlock();
-            diskStateLocks[diskId].writeLock().lock();
-            try {
-                stateManager.setState(diskId, DiskStateType.SPINDOWN);
-                if (spinDown(diskId)) {
-                    stateManager.setState(diskId, DiskStateType.STANDBY);
-                    logger.debug("Spinning down diskId: {} is successful.", diskId);
-                } else {
-                    stateManager.setState(diskId, DiskStateType.IDLE);
-                    logger.debug("Spinning down diskId: {} is failed. and return state to IDLE", diskId);
-                }
-            } finally {
-                diskStateLocks[diskId].writeLock().unlock();
-            }
-        }
+        logger.debug("diskId: {} is exceeded idleness threshold time but Normal will no operation.", diskId);
     }
 
-    private boolean spinDown(int diskId) {
-        String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
-        if (!devicePathCheck(devicePath)) return false;
-
-        String command = "sync";
-        int rc = executeExternalCommand(command);
-        logger.debug("return value of [{}]: {}", command, rc);
-
-        command = "sudo hdparm -y " + devicePath;
-        rc = executeExternalCommand(command);
-        logger.debug("return value of [{}]: {}", command, rc);
-        if (rc != 0) return false;
-        // TODO increment spin down count.
-        // and the other some operation if needed.
-        return true;
-    }
-
-    private boolean spinUp(int diskId) {
-        String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
-        if (!devicePathCheck(devicePath)) return false;
-
-        String command = "ls " + devicePath;
-        int rc = executeExternalCommand(command);
-        logger.debug("return value of [{}]: {}", command, rc);
-        if (rc != 0) return false;
-        // TODO increment spin up count.
-        // and the other some operation if needed.
-        return true;
-    }
-
-    private int executeExternalCommand(String command) {
-        int returnCode = 1;
-
-        try {
-            Process process = Runtime.getRuntime().exec(command);
-            returnCode = process.waitFor();
-        } catch (IOException e) {
-            launderThrowable(e);
-        } catch (InterruptedException e) {
-            launderThrowable(e);
-        }
-        return returnCode;
-    }
-
-    private boolean devicePathCheck(String devicePath) {
-        if (devicePath == null || devicePath == "") {
-            return false;
-        }
-
-        File file = new File(devicePath);
-        return file.exists();
+    private String getDiskFilePathPrefix(long blockId) {
+        int diskId = assignPrimaryDiskId(blockId);
+        DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
+        return pathInfo.getDiskFilePath();
     }
 
 
@@ -294,71 +240,11 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
         @Override
         public byte[] call() throws Exception {
-            byte[] result;
-
-            File file = new File(this.diskFilePath + blockId);
-            if (!file.exists() || !file.isFile())
-                throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
-
-            result = new byte[(int)file.length()];
-
-            BufferedInputStream bis = null;
-            bis = new BufferedInputStream(new FileInputStream(file));
-            if (bis.available() < 1)
-                throw new IOException("[" + this.diskFilePath + "] is not available.");
-
-            bis.read(result);
-            bis.close();
-
-            return result;
-        }
-    }
-
-    private class ReadPrimitiveTaskWithStateManagement implements Callable<byte[]> {
-
-        private long blockId;
-        private String diskFilePath;
-
-        public ReadPrimitiveTaskWithStateManagement(long blockId, String diskFilePath) {
-            this.blockId = blockId;
-            this.diskFilePath = diskFilePath;
-        }
-
-        @Override
-        public byte[] call() throws Exception {
             byte[] result = null;
 
-            // check disk state either the disk is spinning or not.
             int diskId = assignPrimaryDiskId(blockId);
             diskStateLocks[diskId].readLock().lock();
-            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
-                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
-                diskStateLocks[diskId].readLock().unlock();
-                diskStateLocks[diskId].writeLock().lock();
-                try {
-                    // re-check state because another thread might have acquired
-                    // write lock and changed state before we did.
-                    if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
-                        stateManager.setState(diskId, DiskStateType.SPINUP);
-                        diskStateLocks[diskId].readLock().lock();
 
-                    }
-                } finally {
-                    // unlock write still folding read lock
-                    diskStateLocks[diskId].writeLock().unlock();
-                }
-
-                try {
-                    boolean isSuccess = spinUp(diskId);
-                    logger.debug("spinning up disk id:{} is {}", diskId, isSuccess);
-                } finally {
-                    diskStateLocks[diskId].readLock().unlock();
-                }
-            }
-
-            // when the disk is spinning then we can read the data from it.
-            // and update the disk status IDLE to ACTIVE
-            diskStateLocks[diskId].readLock().lock();
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
 
@@ -366,50 +252,40 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                 diskStateLocks[diskId].writeLock().lock();
 
                 try {
-                    if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
-                            DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
-                        stateManager.setState(diskId, DiskStateType.ACTIVE);
-                        diskStateLocks[diskId].readLock().lock();
-                    }
-                } finally {
-                    // unlock write still folding read lock
-                    diskStateLocks[diskId].writeLock().unlock();
-                }
-
-                try {
-                    // TODO 停止中ディスクのファイル情報もディスクを停止したまま取得できるか要確認
                     File file = new File(this.diskFilePath + blockId);
                     if (!file.exists() || !file.isFile())
                         throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
 
                     result = new byte[(int)file.length()];
 
-                    BufferedInputStream bis = null;
-                    bis = new BufferedInputStream(new FileInputStream(file));
+                    BufferedInputStream bis =
+                            new BufferedInputStream(new FileInputStream(file));
+
                     if (bis.available() < 1)
                         throw new IOException("[" + this.diskFilePath + "] is not available.");
 
+                    logger.info("Read blockId:{} from disk:{}", blockId, diskId);
+
+                    stateManager.setState(diskId, DiskStateType.ACTIVE);
+
                     bis.read(result);
                     bis.close();
-                } finally {
-                    diskStateLocks[diskId].readLock().unlock();
-                }
-            }
 
-            // when read is finished then we change the disk status from ACTIVE to IDLE
-            // and invoke idle time counter.
-            diskStateLocks[diskId].readLock().lock();
-            if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId))) {
-                diskStateLocks[diskId].readLock().unlock();
-                diskStateLocks[diskId].writeLock().lock();
-                try {
                     stateManager.setState(diskId, DiskStateType.IDLE);
-                    stateManager.resetWatchDogTimer(diskId);
-                    stateManager.startIdleStateWatchDog(diskId);
+
+                    logger.info("Read successfully. diskId:{} byte:{}",
+                            file.getCanonicalPath(), file.length());
+
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
-                    diskStateLocks[diskId].readLock().unlock();
                 }
+            } else {
+                logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk.", diskId);
+            }
+
+            try {} finally {
+                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                    diskStateLocks[diskId].readLock().unlock();
             }
 
             return result;
@@ -428,61 +304,17 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
         @Override
         public Boolean call() throws Exception {
-            boolean result;
-
-            File file = new File(diskFilePath + block.getBlockId());
-            if (deleteOnExit) file.deleteOnExit();
-
-            checkDataDir(file.getParent());
-
-            logger.info("write to: {}", file.getCanonicalPath());
-
-            if (!file.exists()) file.createNewFile();
-
-            BufferedOutputStream bos = null;
-            bos = new BufferedOutputStream(new FileOutputStream(file));
-
-            bos.write(this.block.getPayload());
-            bos.flush();
-            bos.close();
-
-            result = true;
-
-            logger.info("written successfully. to: {}, {}[byte]",
-                    file.getCanonicalPath(), this.block.getPayload().length);
-
-            return result;
-        }
-    }
-
-    private class WritePrimitiveTaskWithStateManagement implements Callable<Boolean> {
-
-        private Block block;
-        private String diskFilePath;
-
-        public WritePrimitiveTaskWithStateManagement(Block block, String diskFilePath) {
-            this.block = block;
-            this.diskFilePath = diskFilePath;
-        }
-
-        @Override
-        public Boolean call() throws Exception {
             boolean result = false;
 
             int diskId = block.getPrimaryDiskId();
             diskStateLocks[diskId].readLock().lock();
-            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
+            if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
+                    DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
+
                 diskStateLocks[diskId].readLock().unlock();
                 diskStateLocks[diskId].writeLock().lock();
 
                 try {
-                    stateManager.setState(diskId, DiskStateType.SPINUP);
-                    if (!spinUp(diskId))
-                        throw new IllegalStateException(
-                                "Couldn't spin up the disk id: " + diskId);
-
-                    stateManager.setState(diskId, DiskStateType.IDLE);
-
                     File file = new File(diskFilePath + block.getBlockId());
                     if (deleteOnExit) file.deleteOnExit();
 
@@ -492,8 +324,8 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
                     if (!file.exists()) file.createNewFile();
 
-                    BufferedOutputStream bos = null;
-                    bos = new BufferedOutputStream(new FileOutputStream(file));
+                    BufferedOutputStream bos =
+                            new BufferedOutputStream(new FileOutputStream(file));
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
                     bos.write(this.block.getPayload());
@@ -503,21 +335,27 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                     result = true;
 
                     stateManager.setState(diskId, DiskStateType.IDLE);
-                    stateManager.resetWatchDogTimer(diskId);
-                    stateManager.startIdleStateWatchDog(diskId);
 
-                    logger.info("written successfully. to: {}, {}[byte]",
+                    logger.info("Written successfully. diskId:{} byte:{}",
                             file.getCanonicalPath(), this.block.getPayload().length);
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
                 }
+            } else {
+                logger.debug("Disk {} is not IDLE state when to write to tha disk.", diskId);
             }
+
+            try {} finally {
+                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                    diskStateLocks[diskId].readLock().unlock();
+            }
+
             return result;
         }
     }
 
-
+    // TODO pull up or to be external class.
     private class DiskFileAndDevicePath {
         private final String diskFilePath;
         private final String devicePath;
@@ -531,36 +369,9 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
         public String getDevicePath() {return devicePath;}
     }
 
+    // TODO pull up or to be external class.
     private enum IOType {
         READ,
         WRITE,
     }
-
-    public void checkDataDir(String dir) throws IOException {
-        File file = new File(dir);
-        if (deleteOnExit) file.deleteOnExit();
-
-        if (!file.exists()) {
-            if (!file.mkdirs())
-                logger.info("could not create dir: {}", file.getCanonicalPath());
-        }
-    }
-
-    @Override
-    public int assignPrimaryDiskId(long blockId) {
-        BigInteger numerator = BigInteger.valueOf(blockId);
-        BigInteger denominator = BigInteger.valueOf(this.numberOfDataDisks);
-        return numerator.mod(denominator).intValue();
-    }
-
-    private RuntimeException launderThrowable(Throwable t) {
-        if (t instanceof RuntimeException) return (RuntimeException) t;
-        else if (t instanceof Error) throw (Error) t;
-        else throw new IllegalStateException("Not unchecked", t);
-    }
-
-    public void setDeleteOnExit(boolean deleteOnExit) {
-        this.deleteOnExit = deleteOnExit;
-    }
-
 }

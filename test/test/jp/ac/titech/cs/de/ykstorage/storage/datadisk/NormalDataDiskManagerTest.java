@@ -3,6 +3,7 @@ package test.jp.ac.titech.cs.de.ykstorage.storage.datadisk;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.NormalDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -17,14 +18,24 @@ import static org.junit.Assert.assertThat;
 @RunWith(JUnit4.class)
 public class NormalDataDiskManagerTest {
 
-    private final static String diskFilePrefix =
-            "./test/test/jp/ac/titech/cs/de/ykstorage/storage/datadisk/data/sd";
-    private Parameter parameter = new Parameter("./config/config.properties");
+    private Parameter parameter = new Parameter("./test/test/jp/ac/titech/cs/de/ykstorage/storage/datadisk/maidtest.properties");
 
-    private ArrayList<Block> blocks = new ArrayList<Block>();
+    private ArrayList<Block> blocks = new ArrayList<>();
+
+    private StateManager getStateManager() {
+        return new StateManager(
+                parameter.devicePathPrefix,
+                parameter.driveCharacters,
+                parameter.spindownThresholdTime);
+    }
 
     private NormalDataDiskManager getDataDiskManager(int numberOfDataDisks) {
-        return new NormalDataDiskManager(numberOfDataDisks, diskFilePrefix, parameter.driveCharacters);
+        return new NormalDataDiskManager(
+                numberOfDataDisks,
+                parameter.diskFilePathPrefix,
+                parameter.devicePathPrefix,
+                parameter.driveCharacters,
+                getStateManager());
     }
 
     private Block getBlock(long blockId, int diskId, String content) {

@@ -1,6 +1,5 @@
 package jp.ac.titech.cs.de.ykstorage.storage;
 
-import java.util.Iterator;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
@@ -10,8 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class NormalStorageManager extends StorageManager {
 
@@ -29,21 +28,8 @@ public class NormalStorageManager extends StorageManager {
     public byte[] read(long key) {
         List<Long> blockIds = getCorrespondingBlockIds(key);
         List<Block> result = new ArrayList<>();
-        List<Long> hitMissIds = new ArrayList<>();
 
-        for (Long blockId : blockIds) {
-            Block block = this.bufferManager.read(blockId);
-            if (block != null)
-                result.add(block);
-            else
-                hitMissIds.add(blockId);
-        }
-
-        if (hitMissIds.size() == 0) {
-            return convertBlocks2Bytes(result);
-        }
-
-        List<Block> fromDataDiskBlocks = this.dataDiskManager.read(hitMissIds);
+        List<Block> fromDataDiskBlocks = this.dataDiskManager.read(blockIds);
         result.addAll(fromDataDiskBlocks);
 
         return convertBlocks2Bytes(result);
