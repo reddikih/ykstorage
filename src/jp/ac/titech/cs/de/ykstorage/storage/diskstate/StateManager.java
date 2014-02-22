@@ -77,10 +77,10 @@ public class StateManager {
         };
         final Future<?> scheduledTask =
                 idleStateWatchdogTimer.schedule(
-                        watchdog, idleTimeThreshold, TimeUnit.SECONDS);
+                        watchdog, idleTimeThreshold, TimeUnit.MILLISECONDS);
 
         this.scheduledTasks.putIfAbsent(diskId, scheduledTask);
-        logger.debug("start watchdog for diskId: {}", diskId);
+        logger.debug("Start watchdog for diskId:{}. threshold time: {}[s]", diskId, idleTimeThreshold / 1000.0);
     }
 
     public void resetWatchDogTimer(int diskId) {
