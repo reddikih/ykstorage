@@ -191,7 +191,6 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
         return file.exists();
     }
 
-
     // TODO pull up
     public void checkDataDir(String dir) throws IOException {
         File file = new File(dir);
@@ -199,7 +198,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
         if (!file.exists()) {
             if (!file.mkdirs())
-                logger.info("could not create dir: {}", file.getCanonicalPath());
+                logger.info("could not create dir:{}", file.getCanonicalPath());
         }
     }
 
@@ -233,10 +232,10 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                 stateManager.setState(diskId, DiskStateType.SPINDOWN);
                 if (spinDown(diskId)) {
                     stateManager.setState(diskId, DiskStateType.STANDBY);
-                    logger.debug("Spinning down diskId: {} is successful.", diskId);
+                    logger.debug("Spinning down diskId:{} is successful.", diskId);
                 } else {
                     stateManager.setState(diskId, DiskStateType.IDLE);
-                    logger.debug("Spinning down diskId: {} is failed. and return state to IDLE", diskId);
+                    logger.debug("Spinning down diskId:{} is failed. and return state to IDLE", diskId);
                 }
             } finally {
                 diskStateLocks[diskId].writeLock().unlock();
@@ -247,7 +246,6 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             if (diskStateLocks[diskId].getReadLockCount() > 0)
                 diskStateLocks[diskId].readLock().unlock();
         }
-
     }
 
     private String getDiskFilePathPrefix(long blockId) {
@@ -376,7 +374,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     if (bis.available() < 1)
                         throw new IOException("[" + this.diskFilePath + "] is not available.");
 
-                    logger.info("Read blockId:{} from disk:{}", blockId, diskId);
+                    logger.info("Read blockId:{} from diskId:{}", blockId, diskId);
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
@@ -387,7 +385,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
 
-                    logger.info("read successfully. from: {}, {}[byte]",
+                    logger.info("Read successfully. diskId:{} byte:{}",
                             file.getCanonicalPath(), file.length());
 
                 } finally {
@@ -447,7 +445,9 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
 
             diskStateLocks[diskId].readLock().lock();
-            if (DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
+            if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
+                    DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
+
                 diskStateLocks[diskId].readLock().unlock();
                 diskStateLocks[diskId].writeLock().lock();
 
@@ -475,7 +475,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
 
-                    logger.info("written successfully. to: {}, {}[byte]",
+                    logger.info("written successfully. diskId:{} byte:{}",
                             file.getCanonicalPath(), this.block.getPayload().length);
 
                 } finally {
@@ -493,7 +493,6 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             return result;
         }
     }
-
 
     // TODO pull up or to be external class.
     private class DiskFileAndDevicePath {
