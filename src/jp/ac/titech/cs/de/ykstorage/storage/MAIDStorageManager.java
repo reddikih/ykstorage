@@ -8,6 +8,7 @@ import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,12 @@ public class MAIDStorageManager extends StorageManager {
             IDataDiskManager dataDiskManager,
             Parameter parameter) {
         super(bufferManager, cacheDiskManager, dataDiskManager, parameter);
+        watchdogStart();
+    }
+
+    public void watchdogStart() {
+        //TODO consider refactoring of following code: explicit type casting.
+        ((MAIDDataDiskManager)this.dataDiskManager).startWatchDog();
     }
 
     @Override
@@ -86,13 +93,13 @@ public class MAIDStorageManager extends StorageManager {
 
         // write to buffer
         for (Block block : blocks) {
-            if (this.bufferManager.write(block))
+            if (!this.bufferManager.write(block))
                 throw new IllegalStateException("Couldn't write to buffer. blockId:" + block.getBlockId());
         }
 
         // write to cache disks as write through policy due to keep reliability of data.
         for (Block block : blocks) {
-            if (this.cacheDiskManager.write(block))
+            if (!this.cacheDiskManager.write(block))
                 throw new IllegalStateException("Couldn't write to cache disk. blockId:" + block.getBlockId());
         }
 
