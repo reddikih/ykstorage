@@ -105,7 +105,7 @@ public class FrontEnd {
                 out.write(responseBuf.array());
                 out.flush();
                 logger.info("finished Write task Request Key:{}", request.getKey());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 try {
