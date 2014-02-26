@@ -1,6 +1,7 @@
 package jp.ac.titech.cs.de.ykstorage.storage.buffer;
 
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
+import net.jcip.annotations.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,7 @@ public class BufferManager implements IBufferManager {
 
     private long capacity;
 
+    @GuardedBy("this")
     private long size;
 
     double waterMark;
