@@ -3,6 +3,8 @@ package jp.ac.titech.cs.de.ykstorage.storage;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import net.jcip.annotations.GuardedBy;
 
+import java.util.Arrays;
+
 public class Block {
 
     public final static int BLOCK_SIZE = Parameter.BLOCK_SIZE;
@@ -40,5 +42,40 @@ public class Block {
     public synchronized byte[] getPayload() {return payload;}
 
     public synchronized void setPayload(byte[] payload) {this.payload = payload;}
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof Block) ) return false;
+
+        synchronized (this) {
+            Block bObj = (Block)obj;
+            if (bObj.getBlockId() != this.getBlockId()) return false;
+            if (bObj.getReplicaLevel() != this.getReplicaLevel()) return false;
+            if (bObj.getPrimaryDiskId() != this.getPrimaryDiskId()) return false;
+            if (bObj.getDiskGroupId() != this.getDiskGroupId()) return false;
+            if (!Arrays.equals(bObj.getPayload(), this.getPayload())) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        // refer to "Effective Java 2nd Edition", p.47
+        int result = 17;
+
+        synchronized (this) {
+            result = 31 * result + (int)(getBlockId() ^ (getBlockId() >>> 32));
+            result = 31 * result + getReplicaLevel();
+            result = 31 * result + getPrimaryDiskId();
+            result = 31 * result + getDiskGroupId();
+            if(this.payload != null) {
+                for (byte b : this.payload) {
+                    result = 31 * result + (int)b;
+                }
+            }
+        }
+        return result;
+    }
 
 }
