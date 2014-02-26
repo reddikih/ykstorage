@@ -31,15 +31,18 @@ public class FrontEndTest {
 
     @Before
     public void startUp() {
-        if (!isConfigured) try {
-            config.load(new FileInputStream("./test/test/jp/ac/titech/cs/de/ykstorage/frontend/server_info.properties"));
+        if (!isConfigured) {
+            try {
+                config.load(new FileInputStream("./test/test/jp/ac/titech/cs/de/ykstorage/frontend/server_info.properties"));
 
-            this.thread = Integer.parseInt(config.getProperty("server.info.threads"));
-            this.hostName = config.getProperty("server.info.hostname");
-            this.port = Integer.parseInt(config.getProperty("server.info.port"));
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
+                this.thread = Integer.parseInt(config.getProperty("server.info.threads"));
+                this.hostName = config.getProperty("server.info.hostname");
+                this.port = Integer.parseInt(config.getProperty("server.info.port"));
+                isConfigured = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
     }
 
