@@ -6,7 +6,7 @@ public interface IBufferManager {
 
     public Block read(long blockId);
 
-    public boolean write(Block block);
+    public Block write(Block block);
 
     public Block remove(long blockId);
 }

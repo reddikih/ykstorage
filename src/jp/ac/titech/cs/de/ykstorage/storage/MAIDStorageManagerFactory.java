@@ -2,6 +2,7 @@ package jp.ac.titech.cs.de.ykstorage.storage;
 
 import java.util.Arrays;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.BufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
@@ -13,22 +14,10 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
 
     @Override
     protected IBufferManager createBufferManager() {
-        return new IBufferManager() {
-            @Override
-            public Block read(long blockId) {
-                return null;
-            }
-
-            @Override
-            public boolean write(Block block) {
-                return true;
-            }
-
-            @Override
-            public Block remove(long blockId) {
-                return null;
-            }
-        };
+        return new BufferManager(
+                parameter.bufferCapacity,
+                parameter.BLOCK_SIZE,
+                parameter.bufferWaterMark);
     }
 
     @Override
@@ -40,8 +29,8 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
             }
 
             @Override
-            public boolean write(Block blocks) {
-                return true;
+            public Block write(Block blocks) {
+                return null;
             }
         };
     }

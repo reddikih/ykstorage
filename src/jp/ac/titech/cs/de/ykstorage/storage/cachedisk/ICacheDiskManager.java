@@ -6,5 +6,5 @@ public interface ICacheDiskManager {
 
     public Block read(Long blockId);
 
-    public boolean write(Block blocks);
+    public Block write(Block blocks);
 }

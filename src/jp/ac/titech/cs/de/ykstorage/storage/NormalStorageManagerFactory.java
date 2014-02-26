@@ -21,8 +21,8 @@ public class NormalStorageManagerFactory extends StorageManagerFactory {
             }
 
             @Override
-            public boolean write(Block block) {
-                return false;
+            public Block write(Block block) {
+                return null;
             }
 
             @Override
@@ -41,8 +41,8 @@ public class NormalStorageManagerFactory extends StorageManagerFactory {
             }
 
             @Override
-            public boolean write(Block blocks) {
-                return false;
+            public Block write(Block blocks) {
+                return null;
             }
         };
     }

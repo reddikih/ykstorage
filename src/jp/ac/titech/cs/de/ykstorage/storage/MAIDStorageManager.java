@@ -61,8 +61,7 @@ public class MAIDStorageManager extends StorageManager {
         if (hitMissIds.size() == 0) {
             // to cache the blocks read from cache disks into buffer.
             for (Block block : tobeCached) {
-               if(!this.bufferManager.write(block))
-                   throw new IllegalStateException("Couldn't cached to buffer. blockId:" + block.getBlockId());
+               this.bufferManager.write(block);
             }
             return convertBlocks2Bytes(result);
         }
@@ -71,11 +70,8 @@ public class MAIDStorageManager extends StorageManager {
 
         tobeCached.addAll(fromDataDiskBlocks);
         for (Block block : tobeCached) {
-            if (!this.bufferManager.write(block))
-                throw new IllegalStateException("Couldn't cached to buffer. blockId:" + block.getBlockId());
-
-            if (!this.cacheDiskManager.write(block))
-                throw new IllegalStateException("Couldn't cached to cache disks. blockId:" + block.getBlockId());
+            this.bufferManager.write(block);
+            this.cacheDiskManager.write(block);
         }
 
         result.addAll(fromDataDiskBlocks);
@@ -93,14 +89,12 @@ public class MAIDStorageManager extends StorageManager {
 
         // write to buffer
         for (Block block : blocks) {
-            if (!this.bufferManager.write(block))
-                throw new IllegalStateException("Couldn't write to buffer. blockId:" + block.getBlockId());
+            this.bufferManager.write(block);
         }
 
         // write to cache disks as write through policy due to keep reliability of data.
         for (Block block : blocks) {
-            if (!this.cacheDiskManager.write(block))
-                throw new IllegalStateException("Couldn't write to cache disk. blockId:" + block.getBlockId());
+            this.cacheDiskManager.write(block);
         }
 
         // write to data disks
