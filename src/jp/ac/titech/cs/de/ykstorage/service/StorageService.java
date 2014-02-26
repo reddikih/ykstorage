@@ -30,6 +30,8 @@ public class StorageService {
 
         StorageManager storageManager = smFactory.createStorageManager();
 
+        logger.debug("Create storage manager:{}", storageManager.getClass().getSimpleName());
+
         // Generate FrontEnd and start listening the client requests.
         try {
             this.frontend = FrontEnd.getInstance(parameter.serverPort, storageManager);
