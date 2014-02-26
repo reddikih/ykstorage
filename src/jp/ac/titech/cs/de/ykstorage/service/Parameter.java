@@ -49,6 +49,8 @@ public class Parameter {
         this.dataDir = config.getProperty("data.dir");
         this.diskFilePathPrefix = concatenatePathStrings(ykstorageHome, concatenatePathStrings(dataDir, config.getProperty("disk.file.prefix")));
         this.devicePathPrefix = config.getProperty("device.file.prefix");
+        this.bufferCapacity = convertSizeParameter(config.getProperty("buffer.size"));
+        this.bufferWaterMark = Double.parseDouble(config.getProperty("buffer.threshold"));
     }
 
     private String concatenatePathStrings(String parent, String child) {
@@ -140,6 +142,10 @@ public class Parameter {
     public String bufferAllocationPolicy = "cs";
 
     public String bufferManagerFactory = "NormalBufferManager";
+
+    public long bufferCapacity;
+
+    public double bufferWaterMark;
 
     public static int BLOCK_SIZE = 32 * 1024;
 
