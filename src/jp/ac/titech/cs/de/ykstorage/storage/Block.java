@@ -13,13 +13,20 @@ public class Block {
     @GuardedBy("this") private int replicaLevel;
     @GuardedBy("this") private int primaryDiskId;
     @GuardedBy("this") private int diskGroupId;
+    @GuardedBy("this") private int ownerDiskId;
     @GuardedBy("this") private byte[] payload;
 
+    //TODO to be deprecated
     public Block(long blockId, int replicaLevel, int primaryDiskId, int diskGroupId, byte[] payload) {
+        this(blockId, replicaLevel, primaryDiskId, diskGroupId, -1, payload);
+    }
+
+    public Block(long blockId, int replicaLevel, int primaryDiskId, int diskGroupId, int ownerDiskId, byte[] payload) {
         this.blockId = blockId;
         this.replicaLevel = replicaLevel;
         this.primaryDiskId = primaryDiskId;
         this.diskGroupId = diskGroupId;
+        this.ownerDiskId = ownerDiskId;
         this.payload = payload;
     }
 
@@ -39,6 +46,10 @@ public class Block {
 
     public synchronized void setDiskGroupId(int diskGroupId) {this.diskGroupId = diskGroupId;}
 
+    public int getOwnerDiskId() {return ownerDiskId;}
+
+    public void setOwnerDiskId(int ownerDiskId) {this.ownerDiskId = ownerDiskId;}
+
     public synchronized byte[] getPayload() {return payload;}
 
     public synchronized void setPayload(byte[] payload) {this.payload = payload;}
@@ -54,6 +65,7 @@ public class Block {
             if (bObj.getReplicaLevel() != this.getReplicaLevel()) return false;
             if (bObj.getPrimaryDiskId() != this.getPrimaryDiskId()) return false;
             if (bObj.getDiskGroupId() != this.getDiskGroupId()) return false;
+            if (bObj.getOwnerDiskId() != this.getOwnerDiskId()) return false;
             if (!Arrays.equals(bObj.getPayload(), this.getPayload())) return false;
         }
         return true;
@@ -69,6 +81,7 @@ public class Block {
             result = 31 * result + getReplicaLevel();
             result = 31 * result + getPrimaryDiskId();
             result = 31 * result + getDiskGroupId();
+            result = 31 * result + getOwnerDiskId();
             if(this.payload != null) {
                 for (byte b : this.payload) {
                     result = 31 * result + (int)b;
