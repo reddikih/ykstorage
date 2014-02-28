@@ -64,6 +64,7 @@ public class BufferRegion {
         Block result = blocksTable.get(block.getBlockId());
         if (result != null) {
             result.setPayload(block.getPayload());
+            logger.info("Buffer:{} Region:{} UPDATE blockId:{}", bufferId, regionId, block.getBlockId());
         } else {
             if (blocksTable.size() < this.capacity) {
                 blocksTable.put(block.getBlockId(), block);
