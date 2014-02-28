@@ -72,7 +72,7 @@ public class NormalStorageManager extends StorageManager {
 
             System.arraycopy(value, i * blockSize, payload, 0, length);
 
-            Block block = new Block(blockId, 0, assginPrimaryDisk(blockId), 0, payload);
+            Block block = new Block(blockId, 0, assignPrimaryDisk(blockId), 0, payload);
 
             logger.info("Create block. blockId:{}, length:{} ", blockId, payload.length);
 
@@ -97,7 +97,7 @@ public class NormalStorageManager extends StorageManager {
         this.key2blockIdMap.put(key, blockIds);
     }
 
-    private int assginPrimaryDisk(long blockId) {
+    private int assignPrimaryDisk(long blockId) {
         return this.dataDiskManager.assignPrimaryDiskId(blockId);
     }
 

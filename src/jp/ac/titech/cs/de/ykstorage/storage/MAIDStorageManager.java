@@ -130,7 +130,7 @@ public class MAIDStorageManager extends StorageManager {
 
             System.arraycopy(value, i * blockSize, payload, 0, length);
 
-            Block block = new Block(blockId, 0, assginPrimaryDisk(blockId), 0, payload);
+            Block block = new Block(blockId, 0, assignPrimaryDisk(blockId), 0, payload);
 
             logger.info("Create block. blockId:{}, length:{} ", blockId, payload.length);
 
@@ -160,7 +160,7 @@ public class MAIDStorageManager extends StorageManager {
     }
 
     // TODO pull up method
-    private int assginPrimaryDisk(long blockId) {
+    private int assignPrimaryDisk(long blockId) {
         return this.dataDiskManager.assignPrimaryDiskId(blockId);
     }
 
