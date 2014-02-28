@@ -5,20 +5,20 @@ import java.nio.ByteBuffer;
 
 public class Request {
 	private final byte[] type;
-	private final int arrival;
+	private final long delay;
     private final long id;
     private final int size;
     
-    public Request(byte[] type, int arrival, long id, int size) {
+    public Request(byte[] type, long delay, long id, int size) {
     	this.type = type;
-    	this.arrival = arrival;
+    	this.delay = delay;
     	this.id = id;
     	this.size = size;
     }
     
-    public Request(byte[] type, int arrival, long id) {
+    public Request(byte[] type, long delay, long id) {
     	this.type = type;
-    	this.arrival = arrival;
+    	this.delay = delay;
     	this.id = id;
     	this.size = 0;
     }
@@ -38,8 +38,8 @@ public class Request {
     	return request;
     }
     
-    public int getArrivalTime() {
-    	return arrival;
+    public long getDelay() {
+    	return delay;
     }
     
     private byte[] createReadRequest(long id) {

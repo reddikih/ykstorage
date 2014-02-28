@@ -24,16 +24,16 @@ public class WorkloadReaderTest {
 	@Test
 	public void getArrivalTimeTest() {
 		Request request = workload.getRequest();
-		assertThat(request.getArrivalTime(), is(1000));
+		assertThat(request.getDelay(), is(1000L));
 		
 		request = workload.getRequest();
-		assertThat(request.getArrivalTime(), is(3000));
+		assertThat(request.getDelay(), is(3000L));
 		
 		request = workload.getRequest();
-		assertThat(request.getArrivalTime(), is(500));
+		assertThat(request.getDelay(), is(500L));
 		
 		request = workload.getRequest();
-		assertThat(request.getArrivalTime(), is(1000));
+		assertThat(request.getDelay(), is(1000L));
 	}
 	
 	@Test

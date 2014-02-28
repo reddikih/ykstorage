@@ -31,15 +31,15 @@ public class WorkloadReader {
 				
 				if(cmd.length == 3 && (cmd[0].equalsIgnoreCase("GET"))) {
 					byte[] type = {0x00, 0x01};
-					int arrival = Integer.parseInt(cmd[1]);
+					long delay = Long.parseLong(cmd[1]);
 					long id = Long.parseLong(cmd[2]);
-					requests.add(new Request(type, arrival, id));
+					requests.add(new Request(type, delay, id));
 				} else if(cmd.length == 4 && (cmd[0].equalsIgnoreCase("PUT"))) {
 					byte[] type = {0x00, 0x10};
-					int arrival = Integer.parseInt(cmd[1]);
+					long delay = Long.parseLong(cmd[1]);
 					long id = Long.parseLong(cmd[2]);
 					int size = Integer.parseInt(cmd[3]);
-					requests.add(new Request(type, arrival, id, size));
+					requests.add(new Request(type, delay, id, size));
 				}			
 			}
 			

@@ -82,20 +82,20 @@ public class InputClient {
 		
 		if(cmd.length == 2 && (cmd[0].equalsIgnoreCase("GET"))) {
 			byte[] type = {0x00, 0x01};
-			int arrival = 0;
+			long delay = 0L;
 			long id = Long.parseLong(cmd[1]);
-			request = new Request(type, arrival, id);
+			request = new Request(type, delay, id);
 		} else if(cmd.length == 3 && (cmd[0].equalsIgnoreCase("PUT"))) {
 			byte[] type = {0x00, 0x10};
-			int arrival = 0;
+			long delay = 0L;
 			long id = Long.parseLong(cmd[1]);
 			int size = Integer.parseInt(cmd[2]);
-			request = new Request(type, arrival, id, size);
+			request = new Request(type, delay, id, size);
 		} else {
 			byte[] type = {0x00, 0x00};
-			int arrival = 0;
-			long id = 0;
-			request = new Request(type, arrival, id);
+			long delay = 0L;
+			long id = 0L;
+			request = new Request(type, delay, id);
 		}
 		
 		return request;

@@ -60,7 +60,7 @@ public class SingleClient {
 				ClientResponse response = new ClientResponse(conn);
 				conn.close();
 				
-				long delay = (long) req.getArrivalTime();
+				long delay = req.getDelay();
 				Thread.sleep(delay);
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
