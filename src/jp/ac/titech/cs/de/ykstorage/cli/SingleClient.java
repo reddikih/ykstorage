@@ -13,6 +13,8 @@ public class SingleClient {
 	private final static Properties config = new Properties();
 	private final boolean isConfigured = false;
 	
+	private static String path;
+	
 	private WorkloadReader workload;
 	private int thread;
     private int port;
@@ -24,7 +26,7 @@ public class SingleClient {
     
     private SingleClient() {
     	startUp();
-    	this.workload = new WorkloadReader("./test/test/jp/ac/titech/cs/de/ykstorage/client/WorkloadReaderTest.csv");
+    	this.workload = new WorkloadReader(path);
     }
     
 	private void startUp() {
@@ -49,17 +51,24 @@ public class SingleClient {
 				conn = new Socket(hostName, port);
 				out = conn.getOutputStream();
 				
-				byte[] request = workload.getRequest().getRequest();
+				Request req = workload.getRequest();
+				byte[] request = req.getRequest();
 				
 				out.write(request);
 				out.flush();
 				
 				ClientResponse response = new ClientResponse(conn);
 				conn.close();
+				
+				long delay = (long) req.getArrivalTime();
+				Thread.sleep(delay);
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 				System.exit(1);
 			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(1);
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 				System.exit(1);
 			}
@@ -67,6 +76,12 @@ public class SingleClient {
 	}
 	
 	public static void main(String[] args) {
+		if(args.length < 1) {
+			System.out.println("Usage: SingleClient <workload file>");
+			System.exit(1);
+		}
+		path = args[0];
+		
 		SingleClient client = SingleClient.getInstance();
 		client.start();
 	}
