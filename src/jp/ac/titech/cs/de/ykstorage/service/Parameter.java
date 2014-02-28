@@ -40,6 +40,7 @@ public class Parameter {
     private void initialize() {
         Parameter.BLOCK_SIZE = (int)convertSizeParameter(config.getProperty("block.size"));
         this.storageManagerFactory = config.getProperty("storage.manager.factory");
+        this.numberOfBuffers = Integer.parseInt(config.getProperty("buffer.number"));
         this.numberOfCacheDisks = Integer.parseInt(config.getProperty("cachedisk.number"));
         this.numberOfDataDisks = Integer.parseInt(config.getProperty("datadisk.number"));
         this.spindownThresholdTime = Double.parseDouble(config.getProperty("spindown.threshold.time"));
@@ -90,11 +91,14 @@ public class Parameter {
 	public static final boolean DEBUG = true;
 
 	/** Capacity of cache memory. It's unit is byte. */
+    @Deprecated
 	public static final int CAPACITY_OF_CACHEMEMORY = 64 * 1024 * 1024;
 
     /** Capacity of cache memory. It's unit is byte. */
+    @Deprecated
     public static final long CAPACITY_OF_CACHEDISK = 64 * 1024 * 1024;
 
+    @Deprecated
     public static final double MEMORY_THRESHOLD = 1.0;
 
     @Deprecated
@@ -104,8 +108,10 @@ public class Parameter {
     @Deprecated
     public static String YKSTORAGE_HOME = System.getProperty("user.dir");
 
+    @Deprecated
     public static final String DATA_DIR =YKSTORAGE_HOME + "/data";
 
+    @Deprecated
     public static final String LOG_DIR =YKSTORAGE_HOME + "/log";
 
     @Deprecated
@@ -114,17 +120,23 @@ public class Parameter {
     @Deprecated
     public static final String DEVICE_PREFIX = "/dev/sd%s";
 
+    @Deprecated
 	public static int NUMBER_OF_CACHE_DISKS = 2;
 
+    @Deprecated
 	public static int NUMBER_OF_DATA_DISKS = 18;
 
+    @Deprecated
     public static int NUMBER_OF_DISKS = NUMBER_OF_CACHE_DISKS + NUMBER_OF_DATA_DISKS;
 
     private static final int ORIGIN = 1;
 
     public static int NUMBER_OF_DISKS_PER_CACHE_GROUP = 2;
 
+    @Deprecated
     public static int NUMBER_OF_REPLICA = 3;
+
+    public int numberOfBuffers;
 
     public int numberOfCacheDisks;
 
