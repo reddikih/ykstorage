@@ -70,6 +70,7 @@ public class RAPoSDABufferManager implements IBufferManager {
     }
 
     @Override
+    @Deprecated
     public Block read(long blockId) {
         throw new IllegalAccessError("This method shouldn't be use in RAPoSDA storage.");
     }
@@ -100,6 +101,7 @@ public class RAPoSDABufferManager implements IBufferManager {
     }
 
     @Override
+    @Deprecated
     public Block remove(long blockId) {
         throw new IllegalAccessError("This method shouldn't be use in RAPoSDA storage.");
     }
@@ -128,4 +130,44 @@ public class RAPoSDABufferManager implements IBufferManager {
         return numberOfRegions;
     }
 
+    public int getCorrespondingBufferId(Block block) {
+        return assignor.assign(
+                block.getBlockId(),
+                block.getPrimaryDiskId(),
+                block.getReplicaLevel());
+    }
+
+    public int getMaximumBufferLengthDiskId(int overflowedBufferId, int replicaLevel) {
+        BufferRegion region = getBufferRegion(overflowedBufferId, replicaLevel);
+        return region.getMaximumBufferLengthDiskId();
+    }
+
+    public List<Block> getBlocksCorrespondingToSpecifiedDisk(int diskId) {
+        List<Block> result = new ArrayList<>();
+        for (List<BufferRegion> regions : regionTable.values()) {
+            for (BufferRegion region : regions) {
+                for (Block block : region.getBufferedBlocks()) {
+                    if (block.getOwnerDiskId() == diskId)
+                        result.add(block);
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<Block> getBlocksInTheSameRegion(Block block) {
+
+        int bufferId = assignor.assign(
+                block.getBlockId(),
+                block.getPrimaryDiskId(),
+                block.getReplicaLevel());
+
+        BufferRegion region = getBufferRegion(bufferId, block.getReplicaLevel());
+
+        return region.getBufferedBlocks();
+    }
+
+    public int getBufferLengthCorrespondingToSpecifiedDisk(int diskId) {
+        return getBlocksCorrespondingToSpecifiedDisk(diskId).size();
+    }
 }
