@@ -90,4 +90,8 @@ public class StateManager {
             logger.debug("reset watchdog diskId: {}", diskId);
         }
     }
+
+    public Long getStandbyStartTime(int diskId) {
+        return this.diskStates[diskId].getStandbyStartTime();
+    }
 }
