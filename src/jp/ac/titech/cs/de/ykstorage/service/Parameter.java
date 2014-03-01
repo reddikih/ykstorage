@@ -1,5 +1,7 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
+import org.streamspinner.InternalState;
+
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,9 +42,15 @@ public class Parameter {
     private void initialize() {
         Parameter.BLOCK_SIZE = (int)convertSizeParameter(config.getProperty("block.size"));
         this.storageManagerFactory = config.getProperty("storage.manager.factory");
+        this.dataDiskPlacementPolicy = config.getProperty("datadisk.placement.policy");
+        this.cacheDiskPlacementPolicy = config.getProperty("cachedisk.placement.policy");
+        this.dataDiskReplicationPolicy = config.getProperty("datadisk.replication.policy");
+        this.bufferAssignor = config.getProperty("buffer.assignor");
         this.numberOfBuffers = Integer.parseInt(config.getProperty("buffer.number"));
         this.numberOfCacheDisks = Integer.parseInt(config.getProperty("cachedisk.number"));
         this.numberOfDataDisks = Integer.parseInt(config.getProperty("datadisk.number"));
+        this.numberOfdisksPerDiskGroup = Integer.parseInt(config.getProperty("diskgroup.members"));
+        this.numberOfReplicas = Integer.parseInt(config.getProperty("replica.level"));
         this.spindownThresholdTime = Double.parseDouble(config.getProperty("spindown.threshold.time"));
         this.serverPort = Integer.parseInt(config.getProperty("server.port"));
         this.driveCharacters = config.getProperty("device.characters").split(",");
@@ -142,18 +150,35 @@ public class Parameter {
 
     public int numberOfDataDisks;
 
+    public int numberOfdisksPerDiskGroup;
+
+    public int numberOfReplicas;
+
     public double spindownThresholdTime ;
 
     /**
      * This value is one of them:
-     * NormalStorageManagerFactory, MAIDStorageManagerFactory, RAPoSDAStorageManagerFactory
+     *  - NormalStorageManagerFactory
+     *  - MAIDStorageManagerFactory
+     *  - RAPoSDAStorageManagerFactory
      */
     public String storageManagerFactory;
 
-    /** cs, dga, random  */
-    public String bufferAllocationPolicy = "cs";
+    /**
+     * This value is one of them;
+     * - CacheStriping
+     * - DiskGroupAggregation
+     * - Simple
+     */
+    public String bufferAssignor;
 
     public String bufferManagerFactory = "NormalBufferManager";
+
+    public String dataDiskPlacementPolicy ;
+
+    public String cacheDiskPlacementPolicy;
+
+    public String dataDiskReplicationPolicy;
 
     public long bufferCapacity;
 
