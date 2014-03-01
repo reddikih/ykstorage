@@ -91,6 +91,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
         for (int i=0; i<numberOfDataDisks; i++) {
             this.stateManager.startIdleStateWatchDog(i);
         }
+        this.startedWatchdog = true;
     }
 
     public List<Block> read(List<Long> blockIds) {
@@ -101,7 +102,9 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             operations.add(new OperationTask(blockId, IOType.READ));
 
         try {
-            List<Future<Object>> futures = this.diskOperationExecutor.invokeAll(operations);
+            List<Future<Object>> futures =
+                    this.diskOperationExecutor.invokeAll(operations);
+
             for (Future f : futures) {
                 result.add((Block)f.get());
             }
