@@ -46,19 +46,18 @@ public class InputClient {
 		
 		while(true) {
 			try {
-				conn = new Socket(hostName, port);
-				out = conn.getOutputStream();
-				
 				System.out.print("command: ");
 				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 				String line = br.readLine();
 				
 				if(line.equals("exit")) {
-					conn.close();
 					break;
 				}
 				
 				byte[] request = createRequest(line).getRequest();
+				
+				conn = new Socket(hostName, port);
+				out = conn.getOutputStream();
 				
 				out.write(request);
 				out.flush();
@@ -72,11 +71,13 @@ public class InputClient {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.exit(1);
+			} catch (InputClientException e) {
+				e.printStackTrace();
 			}
 		}
 	}
 	
-	private Request createRequest(String line) {
+	private Request createRequest(String line) throws InputClientException {
 		Request request;
 		String[] cmd = line.split(" ");
 		
@@ -92,10 +93,7 @@ public class InputClient {
 			int size = Integer.parseInt(cmd[2]);
 			request = new Request(type, delay, id, size);
 		} else {
-			byte[] type = {0x00, 0x00};
-			long delay = 0L;
-			long id = 0L;
-			request = new Request(type, delay, id);
+			throw new InputClientException("'" + line + "' is invalid command");
 		}
 		
 		return request;
