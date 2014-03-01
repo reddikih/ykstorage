@@ -40,7 +40,7 @@ public class WorkloadReader {
 					long id = Long.parseLong(cmd[2]);
 					int size = Integer.parseInt(cmd[3]);
 					requests.add(new Request(type, delay, id, size));
-				}			
+				}
 			}
 			
 			reader.close();
