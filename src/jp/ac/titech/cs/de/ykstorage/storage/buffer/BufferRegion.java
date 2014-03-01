@@ -4,7 +4,9 @@ import jp.ac.titech.cs.de.ykstorage.storage.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -89,6 +91,7 @@ public class BufferRegion {
         if (removed != null) {
             logger.info("Buffer:{} Region:{} REMOVED blockId:{}", bufferId, regionId, removed.getBlockId());
             decrementBufferLength(removed.getOwnerDiskId());
+            removed.setPayload(null);
         }
         return removed;
     }
@@ -129,4 +132,7 @@ public class BufferRegion {
         return diskId;
     }
 
+    public List<Block> getBufferedBlocks() {
+        return new ArrayList<>(blocksTable.values());
+    }
 }
