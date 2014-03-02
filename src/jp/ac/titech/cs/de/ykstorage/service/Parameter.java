@@ -60,6 +60,7 @@ public class Parameter {
         this.devicePathPrefix = config.getProperty("device.file.prefix");
         this.bufferCapacity = convertSizeParameter(config.getProperty("buffer.size"));
         this.bufferWaterMark = Double.parseDouble(config.getProperty("buffer.threshold"));
+        this.cachediskCapacity = convertSizeParameter(config.getProperty("cachedisk.size"));
     }
 
     private String concatenatePathStrings(String parent, String child) {
@@ -183,6 +184,8 @@ public class Parameter {
     public long bufferCapacity;
 
     public double bufferWaterMark;
+
+    public long cachediskCapacity;
 
     public static int BLOCK_SIZE = 32 * 1024;
 
