@@ -279,7 +279,11 @@ public class RAPoSDAStorageManager extends StorageManager {
                 for (Block block : toBeFlushedBlocks) {
                     // write the block which is only primary block.
                     if (block.getReplicaLevel() == 0)
-                        cacheDiskManager.write(block);
+                        try {
+                            cacheDiskManager.write(block);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                 }
             }
         };

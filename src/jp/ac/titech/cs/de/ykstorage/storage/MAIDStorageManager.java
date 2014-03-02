@@ -71,7 +71,11 @@ public class MAIDStorageManager extends StorageManager {
         tobeCached.addAll(fromDataDiskBlocks);
         for (Block block : tobeCached) {
             this.bufferManager.write(block);
-            this.cacheDiskManager.write(block);
+            try {
+                this.cacheDiskManager.write(block);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         result.addAll(fromDataDiskBlocks);
@@ -94,7 +98,11 @@ public class MAIDStorageManager extends StorageManager {
 
         // write to cache disks as write through policy due to keep reliability of data.
         for (Block block : blocks) {
-            this.cacheDiskManager.write(block);
+            try {
+                this.cacheDiskManager.write(block);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         // write to data disks
