@@ -151,8 +151,10 @@ public class CacheDiskManager implements ICacheDiskManager {
             try {
                 writeToCacheDisk(block);
             } catch (ExecutionException e) {
+                e.printStackTrace();
                 launderThrowable(e);
             } catch (InterruptedException e) {
+                e.printStackTrace();
                 launderThrowable(e);
             }
 
