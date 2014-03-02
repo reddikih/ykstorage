@@ -49,7 +49,9 @@ public class MAIDStorageManager extends StorageManager {
             return convertBlocks2Bytes(result);
         }
 
-        for (long blockId : hitMissIds) {
+        List<Long> copyHitMissIds = new ArrayList<>(hitMissIds);
+
+        for (long blockId : copyHitMissIds) {
             Block block = this.cacheDiskManager.read(blockId);
             if (block != null) {
                 result.add(block);
