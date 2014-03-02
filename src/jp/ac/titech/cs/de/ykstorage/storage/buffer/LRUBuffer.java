@@ -1,22 +1,21 @@
 package jp.ac.titech.cs.de.ykstorage.storage.buffer;
 
-import jp.ac.titech.cs.de.ykstorage.storage.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 
-public class LRUBuffer implements ReplacePolicy {
+public class LRUBuffer<K> implements ReplacePolicy<K> {
 
     private final static Logger logger = LoggerFactory.getLogger(LRUBuffer.class);
 
-    private final Entry nil = new Entry(null, null, new Block(-1, -1, -1, -1, null));
+    private final Entry nil = new Entry(null, null, null);
 
     private final int CAPACITY;
 
     private int size;
 
-    private HashMap<Block, Entry> hashMap = new HashMap<>();
+    private HashMap<K, Entry> hashMap = new HashMap<>();
 
     public LRUBuffer(int capacity) {
         this.CAPACITY = capacity;
@@ -25,7 +24,7 @@ public class LRUBuffer implements ReplacePolicy {
         logger.info("LRUBuffer created. Capacity:{}[entries]", this.CAPACITY);
     }
 
-    private Entry insert(Block key) {
+    private Entry insert(K key) {
         Entry e = new Entry(null, null, key);
         e.next = nil.next;
         nil.next.prev = e;
@@ -38,7 +37,7 @@ public class LRUBuffer implements ReplacePolicy {
         return null;
     }
 
-    private Entry delete(Block key) {
+    private Entry delete(K key) {
         Entry e = hashMap.remove(key);
         e.prev.next = e.next;
         e.next.prev = e.prev;
@@ -48,14 +47,14 @@ public class LRUBuffer implements ReplacePolicy {
         return e;
     }
 
-    private Entry replace(Block key) {
+    private Entry replace(K key) {
         insert(key);
         return delete(nil.prev.getKey());
     }
 
 
     @Override
-    public Block add(Block key) {
+    public K add(K key) {
         synchronized (this) {
             Entry t = hashMap.get(key);
             if (t != null) {
@@ -75,21 +74,21 @@ public class LRUBuffer implements ReplacePolicy {
     private class Entry {
         protected Entry prev;
         protected Entry next;
-        private Block key;
+        private K key;
 
-        public Entry(Entry prev, Entry next, Block key) {
+        public Entry(Entry prev, Entry next, K key) {
             this.prev = prev;
             this.next = next;
             this.key = key;
         }
 
-        public Block getKey() {return this.key;}
+        public K getKey() {return this.key;}
 
         @Override
         public boolean equals(Object obj) {
             if(obj == this) return true;
-            if (!(obj instanceof Entry)) return false;
-            return ((Entry)obj).getKey() == this.getKey();
+            if (!(obj instanceof LRUBuffer<?>.Entry)) return false;
+            return ((Entry)obj).getKey().equals(this.getKey());
         }
 
         @Override

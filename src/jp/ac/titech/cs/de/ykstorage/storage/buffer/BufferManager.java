@@ -20,7 +20,7 @@ public class BufferManager implements IBufferManager {
 
     private ConcurrentHashMap<Long, Block> hashMap = new ConcurrentHashMap<>();
 
-    private ReplacePolicy replacePolicy;
+    private ReplacePolicy<Block> replacePolicy;
 
     public BufferManager(long capacity, int blockSize, double waterMark) {
         init(capacity, blockSize, waterMark);
@@ -30,7 +30,7 @@ public class BufferManager implements IBufferManager {
         int bufferSize = (int)Math.ceil((double)capacity / blockSize);
         this.capacity = bufferSize;
         this.waterMark = waterMark;
-        this.replacePolicy = new LRUBuffer((int)this.capacity);
+        this.replacePolicy = new LRUBuffer<>((int)this.capacity);
 
         logger.debug(
                 "Setup buffer manager. capacity:{}[entries] frameSize:{}[byte], replacePolicy:{}",

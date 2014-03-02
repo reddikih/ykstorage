@@ -25,7 +25,7 @@ public class LRUBufferTest {
 
     @Test
     public void insert() {
-        LRUBuffer buffer = new LRUBuffer(3);
+        LRUBuffer<Block> buffer = new LRUBuffer(3);
         Block result;
 
         Block[] blocks = createBlocks(4, 0);
@@ -40,7 +40,7 @@ public class LRUBufferTest {
 
     @Test
     public void replace() {
-        LRUBuffer buffer = new LRUBuffer(3);
+        LRUBuffer<Block> buffer = new LRUBuffer(3);
         Block result;
 
         Block[] blocks = createBlocks(3, 0);
