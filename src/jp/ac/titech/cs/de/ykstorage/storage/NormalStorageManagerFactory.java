@@ -7,8 +7,6 @@ import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.NormalDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 
-import java.util.Arrays;
-
 
 public class NormalStorageManagerFactory extends StorageManagerFactory {
 
@@ -55,16 +53,11 @@ public class NormalStorageManagerFactory extends StorageManagerFactory {
                         parameter.driveCharacters,
                         parameter.spindownThresholdTime);
 
-        String[] dataDiskDriveChars = Arrays.copyOfRange(
-                parameter.driveCharacters,
-                parameter.numberOfCacheDisks == 0 ? 0 : parameter.numberOfCacheDisks - 1,
-                parameter.driveCharacters.length);
-
         return new NormalDataDiskManager(
-                this.parameter.NUMBER_OF_DATA_DISKS,
-                this.parameter.diskFilePathPrefix,
+                parameter.numberOfDataDisks,
+                parameter.diskFilePathPrefix,
                 parameter.devicePathPrefix,
-                dataDiskDriveChars,
+                getDataDiskDriveCharacters(),
                 stateManager);
     }
 

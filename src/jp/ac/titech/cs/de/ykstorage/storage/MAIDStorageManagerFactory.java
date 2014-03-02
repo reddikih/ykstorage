@@ -1,9 +1,9 @@
 package jp.ac.titech.cs.de.ykstorage.storage;
 
-import java.util.Arrays;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.BufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.CacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
@@ -22,17 +22,24 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
 
     @Override
     protected ICacheDiskManager createCacheDiskManager() {
-        return new ICacheDiskManager() {
-            @Override
-            public Block read(Long blockId) {
-                return null;
-            }
+        StateManager stateManager =
+                new StateManager(
+                        parameter.devicePathPrefix,
+                        getCacheDiskDriveCharacters(),
+                        parameter.spindownThresholdTime);
 
-            @Override
-            public Block write(Block blocks) {
-                return null;
-            }
-        };
+        CacheDiskManager cacheDiskManager =
+                new CacheDiskManager(
+                        parameter.cachediskCapacity,
+                        parameter.BLOCK_SIZE,
+                        parameter.numberOfCacheDisks,
+                        parameter.diskFilePathPrefix,
+                        parameter.devicePathPrefix,
+                        getCacheDiskDriveCharacters(),
+                        getPlacementPolicy(parameter.cacheDiskPlacementPolicy),
+                        stateManager);
+
+        return cacheDiskManager;
     }
 
     @Override
@@ -40,19 +47,14 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
         StateManager stateManager =
                 new StateManager(
                         parameter.devicePathPrefix,
-                        parameter.driveCharacters,
+                        getDataDiskDriveCharacters(),
                         parameter.spindownThresholdTime);
-
-        String[] dataDiskDriveChars = Arrays.copyOfRange(
-                parameter.driveCharacters,
-                parameter.numberOfCacheDisks == 0 ? 0 : parameter.numberOfCacheDisks - 1,
-                parameter.driveCharacters.length);
 
         return new MAIDDataDiskManager(
                 parameter.numberOfDataDisks,
                 parameter.diskFilePathPrefix,
                 parameter.devicePathPrefix,
-                dataDiskDriveChars,
+                getDataDiskDriveCharacters(),
                 stateManager);
     }
 
