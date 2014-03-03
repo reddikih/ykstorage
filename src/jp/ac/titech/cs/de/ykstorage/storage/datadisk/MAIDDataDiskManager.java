@@ -178,8 +178,10 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             Process process = Runtime.getRuntime().exec(command);
             returnCode = process.waitFor();
         } catch (IOException e) {
+            e.printStackTrace();
             launderThrowable(e);
         } catch (InterruptedException e) {
+            e.printStackTrace();
             launderThrowable(e);
         }
         return returnCode;
@@ -220,6 +222,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
     }
 
     // TODO pull up
+    @Override
     public void setDeleteOnExit(boolean deleteOnExit) {
         this.deleteOnExit = deleteOnExit;
     }

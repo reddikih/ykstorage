@@ -12,4 +12,6 @@ public interface IDataDiskManager {
 
     public int assignPrimaryDiskId(long blockId);
 
+    public void setDeleteOnExit(boolean deleteOnExit);
+
 }

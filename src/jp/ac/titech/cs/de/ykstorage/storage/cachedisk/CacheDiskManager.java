@@ -239,6 +239,10 @@ public class CacheDiskManager implements ICacheDiskManager {
         else throw new IllegalStateException("Not unchecked", t);
     }
 
+    // TODO pull up
+    public void setDeleteOnExit(boolean deleteOnExit) {
+        this.deleteOnExit = deleteOnExit;
+    }
 
 
     ///////////----------  These are callable tasks  ----------///////////

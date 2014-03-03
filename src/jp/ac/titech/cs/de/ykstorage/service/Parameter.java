@@ -1,7 +1,5 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
-import org.streamspinner.InternalState;
-
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -61,6 +59,7 @@ public class Parameter {
         this.bufferCapacity = convertSizeParameter(config.getProperty("buffer.size"));
         this.bufferWaterMark = Double.parseDouble(config.getProperty("buffer.threshold"));
         this.cachediskCapacity = convertSizeParameter(config.getProperty("cachedisk.size"));
+        this.deleteOnExit = Boolean.parseBoolean(config.getProperty("debug.flag"));
     }
 
     private String concatenatePathStrings(String parent, String child) {
@@ -97,6 +96,7 @@ public class Parameter {
     //--- these are the parameters ---//
 
     /** Debug flag */
+    @Deprecated
 	public static final boolean DEBUG = true;
 
 	/** Capacity of cache memory. It's unit is byte. */
@@ -144,6 +144,8 @@ public class Parameter {
 
     @Deprecated
     public static int NUMBER_OF_REPLICA = 3;
+
+    public boolean deleteOnExit;
 
     public int numberOfBuffers;
 

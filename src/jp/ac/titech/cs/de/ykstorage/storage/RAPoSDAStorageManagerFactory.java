@@ -44,6 +44,8 @@ public class RAPoSDAStorageManagerFactory extends StorageManagerFactory {
                         getPlacementPolicy(parameter.cacheDiskPlacementPolicy),
                         stateManager);
 
+        cacheDiskManager.setDeleteOnExit(parameter.deleteOnExit);
+
         return cacheDiskManager;
     }
 
@@ -55,7 +57,7 @@ public class RAPoSDAStorageManagerFactory extends StorageManagerFactory {
                         getDataDiskDriveCharacters(),
                         parameter.spindownThresholdTime);
 
-        return new RAPoSDADataDiskManager(
+        RAPoSDADataDiskManager dataDiskManager = new RAPoSDADataDiskManager(
                 parameter.numberOfDataDisks,
                 parameter.diskFilePathPrefix,
                 parameter.devicePathPrefix,
@@ -64,6 +66,10 @@ public class RAPoSDAStorageManagerFactory extends StorageManagerFactory {
                 getReplicationPolicy(parameter.dataDiskReplicationPolicy),
                 stateManager
         );
+
+        dataDiskManager.setDeleteOnExit(parameter.deleteOnExit);
+
+        return dataDiskManager;
     }
 
     @Override

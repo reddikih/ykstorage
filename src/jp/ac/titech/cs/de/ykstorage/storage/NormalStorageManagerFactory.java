@@ -53,12 +53,16 @@ public class NormalStorageManagerFactory extends StorageManagerFactory {
                         parameter.driveCharacters,
                         parameter.spindownThresholdTime);
 
-        return new NormalDataDiskManager(
+        NormalDataDiskManager dataDiskManager = new NormalDataDiskManager(
                 parameter.numberOfDataDisks,
                 parameter.diskFilePathPrefix,
                 parameter.devicePathPrefix,
                 getDataDiskDriveCharacters(),
                 stateManager);
+
+        dataDiskManager.setDeleteOnExit(parameter.deleteOnExit);
+
+        return dataDiskManager;
     }
 
     @Override

@@ -39,6 +39,8 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
                         getPlacementPolicy(parameter.cacheDiskPlacementPolicy),
                         stateManager);
 
+        cacheDiskManager.setDeleteOnExit(parameter.deleteOnExit);
+
         return cacheDiskManager;
     }
 
@@ -50,12 +52,16 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
                         getDataDiskDriveCharacters(),
                         parameter.spindownThresholdTime);
 
-        return new MAIDDataDiskManager(
-                parameter.numberOfDataDisks,
-                parameter.diskFilePathPrefix,
-                parameter.devicePathPrefix,
-                getDataDiskDriveCharacters(),
-                stateManager);
+        MAIDDataDiskManager dataDiskManager =
+                new MAIDDataDiskManager(
+                        parameter.numberOfDataDisks,
+                        parameter.diskFilePathPrefix,
+                        parameter.devicePathPrefix,
+                        getDataDiskDriveCharacters(),
+                        stateManager);
+        dataDiskManager.setDeleteOnExit(parameter.deleteOnExit);
+
+        return dataDiskManager;
     }
 
     @Override
