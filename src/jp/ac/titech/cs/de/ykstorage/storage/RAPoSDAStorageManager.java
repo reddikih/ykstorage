@@ -50,7 +50,7 @@ public class RAPoSDAStorageManager extends StorageManager {
         List<List<Long>> blockIds = getCorrespondingBlockIds(key);
 
         if (blockIds == null || blockIds.size() == 0) {
-            logger.debug("Requested key:{} is not registered this storage.", key);
+            logger.debug("Key:{} has not assigned to any blocks yet.", key);
             return null;
         }
 

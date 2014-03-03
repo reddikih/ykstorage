@@ -27,6 +27,11 @@ public class NormalStorageManager extends StorageManager {
     @Override
     public byte[] read(long key) {
         List<Long> blockIds = getCorrespondingBlockIds(key);
+        if (blockIds == null || blockIds.size() == 0) {
+            logger.debug("Key:{} has not assigned to any blocks yet.", key);
+            return null;
+        }
+
         List<Block> result = new ArrayList<>();
 
         List<Block> fromDataDiskBlocks = this.dataDiskManager.read(blockIds);
