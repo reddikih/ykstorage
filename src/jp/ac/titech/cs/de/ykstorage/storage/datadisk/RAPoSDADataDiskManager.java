@@ -257,6 +257,8 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             } finally {
                 diskStateLocks[diskId].writeLock().unlock();
             }
+        } else {
+            logger.debug("DiskId:{} is spinning now.", diskId);
         }
 
         try {} finally {
@@ -454,19 +456,17 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     if (bis.available() < 1)
                         throw new IOException("[" + this.diskFilePath + "] is not available.");
 
-                    logger.info("Read blockId:{} from diskId:{}", blockId, diskId);
-
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
                     bis.read(result);
                     bis.close();
 
+                    logger.info("Read a block from:{}. DataDiskId:{} Byte:{}",
+                            file.getCanonicalPath(), diskId, file.length());
+
                     stateManager.setState(diskId, DiskStateType.IDLE);
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
-
-                    logger.info("Read successfully. diskId:{} byte:{}",
-                            file.getCanonicalPath(), file.length());
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
@@ -539,8 +539,6 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
                     checkDataDir(file.getParent());
 
-                    logger.info("write to: {}", file.getCanonicalPath());
-
                     if (!file.exists()) file.createNewFile();
 
                     BufferedOutputStream bos =
@@ -553,12 +551,12 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
                     result = block;
 
+                    logger.info("Written a block to:{}. DataDiskId:{} byte:{}",
+                            file.getCanonicalPath(), diskId, this.block.getPayload().length);
+
                     stateManager.setState(diskId, DiskStateType.IDLE);
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
-
-                    logger.info("written successfully. diskId:{} byte:{}",
-                            file.getCanonicalPath(), this.block.getPayload().length);
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();

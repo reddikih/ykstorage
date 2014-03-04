@@ -41,8 +41,13 @@ public class RAPoSDAStorageManager extends StorageManager {
             int numberOfReplica) {
         super(bufferManager, cacheDiskManager, dataDiskManager, parameter);
         this.numberOfReplica = numberOfReplica;
+        watchdogStart();
     }
 
+    public void watchdogStart() {
+        //TODO consider refactoring of following code: explicit type casting.
+        ((RAPoSDADataDiskManager)this.dataDiskManager).startWatchDog();
+    }
 
     @Override
     public byte[] read(long key) {
@@ -234,19 +239,19 @@ public class RAPoSDAStorageManager extends StorageManager {
                             ((RAPoSDABufferManager)bufferManager)
                                     .getCorrespondingBufferId(block);
 
-                    int maximunBufferedDiskId =
+                    int maximumBufferedDiskId =
                             ((RAPoSDABufferManager)bufferManager)
                                     .getMaximumBufferLengthDiskId(
                                             overflowedBufferId, block.getReplicaLevel());
 
-                    ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(maximunBufferedDiskId);
+                    ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(maximumBufferedDiskId);
 
                     List<Block> toBeFlushedBlocks =
                             ((RAPoSDABufferManager)bufferManager).getBlocksInTheSameRegion(block);
 
                     List<Block> correspondingBlocks =
                             ((RAPoSDABufferManager)bufferManager)
-                                    .getBlocksCorrespondingToSpecifiedDisk(maximunBufferedDiskId);
+                                    .getBlocksCorrespondingToSpecifiedDisk(maximumBufferedDiskId);
 
                     toBeFlushedBlocks.addAll(correspondingBlocks);
 
@@ -257,10 +262,14 @@ public class RAPoSDAStorageManager extends StorageManager {
                         for (Block toRemove : toBeRemoved) {
                             Block removed = ((RAPoSDABufferManager)bufferManager).remove(toRemove);
                             if (removed == null) {
-                                logger.info("Removed block is missing in the buffer. blockId:{}", removed.getBlockId());
+                                logger.info("Removed block is missing in the buffer.");
                             }
                         }
                     }
+
+                    Block written = this.bufferManager.write(block);
+                    if (written == null)
+                        logger.debug("Write block(Id):{} is failed.", block.getBlockId());
 
                     // When the blocks is flushed to data disks, then these are
                     // written to the cache disks asynchronously.
