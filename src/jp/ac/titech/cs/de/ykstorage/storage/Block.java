@@ -91,4 +91,17 @@ public class Block {
         return result;
     }
 
+    @Override
+    public String toString() {
+        synchronized (this) {
+            return String.format("BlockID:%d RepLevel:%d PrimaryDiskId:%d DiskGroupId:%d OwnerDiskId:%d PayloadLen:%d",
+                    getBlockId(),
+                    getReplicaLevel(),
+                    getPrimaryDiskId(),
+                    getDiskGroupId(),
+                    getOwnerDiskId(),
+                    getPayload() != null ? getPayload().length : 0);
+        }
+    }
+
 }
