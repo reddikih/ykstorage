@@ -5,9 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BufferRegion {
@@ -26,7 +26,7 @@ public class BufferRegion {
      * key: block id
      * value: Block object
      */
-    private HashMap<Long, Block> blocksTable = new HashMap<>();
+    private ConcurrentHashMap<Long, Block> blocksTable = new ConcurrentHashMap<>();
 
     /**
      * Return a number of buffered blocks for each data disks.
@@ -34,7 +34,7 @@ public class BufferRegion {
      * key: disk id
      * value: A number of buffered blocks.
      */
-    private HashMap<Integer, AtomicInteger> bufferLengthPerDisk = new HashMap<>();
+    private ConcurrentHashMap<Integer, AtomicInteger> bufferLengthPerDisk = new ConcurrentHashMap<>();
 
 
     public BufferRegion(int regionId, int bufferId, int capacity) {
@@ -91,7 +91,6 @@ public class BufferRegion {
         if (removed != null) {
             logger.info("Buffer:{} Region:{} REMOVED blockId:{}", bufferId, regionId, removed.getBlockId());
             decrementBufferLength(removed.getOwnerDiskId());
-//            removed.setPayload(null);
         }
         return removed;
     }
