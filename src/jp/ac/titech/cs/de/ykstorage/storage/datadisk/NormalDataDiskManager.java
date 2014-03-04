@@ -1,6 +1,7 @@
 package jp.ac.titech.cs.de.ykstorage.storage.datadisk;
 
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.dataplacement.PlacementPolicy;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.IdleThresholdListener;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
@@ -13,7 +14,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,17 +45,21 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
     private ReentrantReadWriteLock[] diskStateLocks;
 
+    private PlacementPolicy placementPolicy;
+
     public NormalDataDiskManager(
             int numberOfDataDisks,
             String diskFilePrefix,
             String deviceFilePrefix,
             String[] deviceCharacters,
+            PlacementPolicy placementPolicy,
             StateManager stateManager) {
 
         this.diskFilePrefix = diskFilePrefix;
         this.numberOfDataDisks = numberOfDataDisks;
         this.deviceFilePrefix = deviceFilePrefix;
         this.stateManager = stateManager;
+        this.placementPolicy = placementPolicy;
         init(deviceCharacters);
     }
 
@@ -143,9 +147,7 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
     @Override
     public int assignPrimaryDiskId(long blockId) {
-        BigInteger numerator = BigInteger.valueOf(blockId);
-        BigInteger denominator = BigInteger.valueOf(this.numberOfDataDisks);
-        return numerator.mod(denominator).intValue();
+        return this.placementPolicy.assignDiskId(blockId);
     }
 
     // TODO pull up
@@ -265,17 +267,15 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                     if (bis.available() < 1)
                         throw new IOException("[" + this.diskFilePath + "] is not available.");
 
-                    logger.info("Read blockId:{} from disk:{}", blockId, diskId);
-
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
                     bis.read(result);
                     bis.close();
 
-                    stateManager.setState(diskId, DiskStateType.IDLE);
+                    logger.info("Read a block from:{}. DataDiskId:{} Byte:{}",
+                            file.getCanonicalPath(), diskId, file.length());
 
-                    logger.info("Read successfully. diskId:{} byte:{}",
-                            file.getCanonicalPath(), file.length());
+                    stateManager.setState(diskId, DiskStateType.IDLE);
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
@@ -321,8 +321,6 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
                     checkDataDir(file.getParent());
 
-                    logger.info("write to: {}", file.getCanonicalPath());
-
                     if (!file.exists()) file.createNewFile();
 
                     BufferedOutputStream bos =
@@ -335,10 +333,10 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
                     result = true;
 
-                    stateManager.setState(diskId, DiskStateType.IDLE);
+                    logger.info("Written a block to:{}. DataDiskId:{} byte:{}",
+                            file.getCanonicalPath(), diskId, this.block.getPayload().length);
 
-                    logger.info("Written successfully. diskId:{} byte:{}",
-                            file.getCanonicalPath(), this.block.getPayload().length);
+                    stateManager.setState(diskId, DiskStateType.IDLE);
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();

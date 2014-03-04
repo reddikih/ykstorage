@@ -50,7 +50,7 @@ public class NormalStorageManagerFactory extends StorageManagerFactory {
         StateManager stateManager =
                 new StateManager(
                         parameter.devicePathPrefix,
-                        parameter.driveCharacters,
+                        getDataDiskDriveCharacters(),
                         parameter.spindownThresholdTime);
 
         NormalDataDiskManager dataDiskManager = new NormalDataDiskManager(
@@ -58,6 +58,7 @@ public class NormalStorageManagerFactory extends StorageManagerFactory {
                 parameter.diskFilePathPrefix,
                 parameter.devicePathPrefix,
                 getDataDiskDriveCharacters(),
+                getPlacementPolicy(parameter.dataDiskPlacementPolicy, parameter.numberOfDataDisks),
                 stateManager);
 
         dataDiskManager.setDeleteOnExit(parameter.deleteOnExit);

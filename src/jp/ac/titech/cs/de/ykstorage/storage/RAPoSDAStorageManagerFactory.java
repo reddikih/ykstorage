@@ -41,7 +41,7 @@ public class RAPoSDAStorageManagerFactory extends StorageManagerFactory {
                         parameter.diskFilePathPrefix,
                         parameter.devicePathPrefix,
                         getCacheDiskDriveCharacters(),
-                        getPlacementPolicy(parameter.cacheDiskPlacementPolicy),
+                        getPlacementPolicy(parameter.cacheDiskPlacementPolicy, parameter.numberOfCacheDisks),
                         stateManager);
 
         cacheDiskManager.setDeleteOnExit(parameter.deleteOnExit);
@@ -62,7 +62,7 @@ public class RAPoSDAStorageManagerFactory extends StorageManagerFactory {
                 parameter.diskFilePathPrefix,
                 parameter.devicePathPrefix,
                 getDataDiskDriveCharacters(),
-                getPlacementPolicy(parameter.dataDiskPlacementPolicy),
+                getPlacementPolicy(parameter.dataDiskPlacementPolicy, parameter.numberOfDataDisks),
                 getReplicationPolicy(parameter.dataDiskReplicationPolicy),
                 stateManager
         );

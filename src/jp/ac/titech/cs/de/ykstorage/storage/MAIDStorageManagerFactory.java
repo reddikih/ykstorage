@@ -36,7 +36,7 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
                         parameter.diskFilePathPrefix,
                         parameter.devicePathPrefix,
                         getCacheDiskDriveCharacters(),
-                        getPlacementPolicy(parameter.cacheDiskPlacementPolicy),
+                        getPlacementPolicy(parameter.cacheDiskPlacementPolicy, parameter.numberOfCacheDisks),
                         stateManager);
 
         cacheDiskManager.setDeleteOnExit(parameter.deleteOnExit);
@@ -58,6 +58,7 @@ public class MAIDStorageManagerFactory extends StorageManagerFactory {
                         parameter.diskFilePathPrefix,
                         parameter.devicePathPrefix,
                         getDataDiskDriveCharacters(),
+                        getPlacementPolicy(parameter.dataDiskPlacementPolicy, parameter.numberOfDataDisks),
                         stateManager);
         dataDiskManager.setDeleteOnExit(parameter.deleteOnExit);
 

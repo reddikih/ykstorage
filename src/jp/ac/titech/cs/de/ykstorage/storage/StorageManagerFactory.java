@@ -66,7 +66,7 @@ public abstract class StorageManagerFactory {
                 parameter.numberOfCacheDisks + parameter.numberOfDataDisks);
     }
 
-    protected PlacementPolicy getPlacementPolicy(String placementPolicyName) {
+    protected PlacementPolicy getPlacementPolicy(String placementPolicyName, int numberOfDisks) {
         PlacementPolicy placementPolicy = null;
 
         try {
@@ -74,7 +74,7 @@ public abstract class StorageManagerFactory {
                     PlacementPolicy.class.getPackage().getName() + "." +
                     placementPolicyName + "Placement");
             Constructor constructor = clazz.getConstructor(int.class);
-            placementPolicy = (PlacementPolicy)constructor.newInstance(parameter.numberOfCacheDisks);
+            placementPolicy = (PlacementPolicy)constructor.newInstance(numberOfDisks);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);

@@ -6,6 +6,7 @@ import java.util.List;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.dataplacement.RoundRobinPlacement;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,7 @@ public class MAIDDataDiskManagerTest {
                 parameter.diskFilePathPrefix,
                 parameter.devicePathPrefix,
                 parameter.driveCharacters,
+                new RoundRobinPlacement(parameter.numberOfDataDisks),
                 getStateManager());
     }
 

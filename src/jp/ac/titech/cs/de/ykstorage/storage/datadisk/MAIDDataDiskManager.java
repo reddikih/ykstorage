@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.dataplacement.PlacementPolicy;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.IdleThresholdListener;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
@@ -42,6 +43,8 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
     private final ExecutorService diskOperationExecutor = Executors.newCachedThreadPool();
 
+    private PlacementPolicy placementPolicy;
+
     private StateManager stateManager;
 
     private ReentrantReadWriteLock[] diskStateLocks;
@@ -51,11 +54,13 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             String diskFilePrefix,
             String deviceFilePrefix,
             String[] deviceCharacters,
+            PlacementPolicy placementPolicy,
             StateManager stateManager) {
 
         this.numberOfDataDisks = numberOfDataDisks;
         this.diskFilePrefix = diskFilePrefix;
         this.deviceFilePrefix = deviceFilePrefix;
+        this.placementPolicy = placementPolicy;
         this.stateManager = stateManager;
         init(deviceCharacters);
     }
@@ -209,9 +214,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
     @Override
     public int assignPrimaryDiskId(long blockId) {
-        BigInteger numerator = BigInteger.valueOf(blockId);
-        BigInteger denominator = BigInteger.valueOf(this.numberOfDataDisks);
-        return numerator.mod(denominator).intValue();
+        return this.placementPolicy.assignDiskId(blockId);
     }
 
     // TODO pull up
@@ -380,19 +383,17 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     if (bis.available() < 1)
                         throw new IOException("[" + this.diskFilePath + "] is not available.");
 
-                    logger.info("Read blockId:{} from diskId:{}", blockId, diskId);
-
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
                     bis.read(result);
                     bis.close();
 
+                    logger.info("Read a block from:{}. DataDiskId:{} Byte:{}",
+                            file.getCanonicalPath(), diskId, file.length());
+
                     stateManager.setState(diskId, DiskStateType.IDLE);
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
-
-                    logger.info("Read successfully. diskId:{} byte:{}",
-                            file.getCanonicalPath(), file.length());
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
@@ -463,8 +464,6 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
                     checkDataDir(file.getParent());
 
-                    logger.info("write to: {}", file.getCanonicalPath());
-
                     if (!file.exists()) file.createNewFile();
 
                     BufferedOutputStream bos =
@@ -477,12 +476,12 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
                     result = true;
 
+                    logger.info("Written a block to:{}. DataDiskId:{} byte:{}",
+                            file.getCanonicalPath(), diskId, this.block.getPayload().length);
+
                     stateManager.setState(diskId, DiskStateType.IDLE);
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
-
-                    logger.info("written successfully. diskId:{} byte:{}",
-                            file.getCanonicalPath(), this.block.getPayload().length);
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
