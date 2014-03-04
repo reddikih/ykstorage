@@ -104,15 +104,10 @@ public class CacheDiskManager implements ICacheDiskManager {
 
     @Override
     public Block read(Long blockId) {
-        Block result = null;
 
-        try {
-            result = readFromCacheDisk(blockId);
-        } catch (ExecutionException e) {
-            launderThrowable(e);
-        } catch (InterruptedException e) {
-            launderThrowable(e);
-        }
+        logger.debug("Read from cache disk start. blockId:{}", blockId);
+
+        Block result = readFromCacheDisk(blockId);
 
         // Update internal LRU list
         if (result != null) {
@@ -124,11 +119,16 @@ public class CacheDiskManager implements ICacheDiskManager {
             return result;
         }
 
+        logger.debug("Read from cache disk end. blockId:{}", blockId);
+
         return result;
     }
 
     @Override
     public Block write(Block block) {
+
+        logger.debug("Write to cache disk start. blockId:{}", block.getBlockId());
+
         Block result;
 
         Long replaced;
@@ -143,76 +143,86 @@ public class CacheDiskManager implements ICacheDiskManager {
                 try {
                     removed = removeFromCacheDisk(replaced);
                 } catch (IOException e) {
+                    e.printStackTrace();
                     launderThrowable(e);
                 }
             }
+            writeToCacheDisk(block);
             result = removed;
         } else {
-            try {
-                writeToCacheDisk(block);
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-                launderThrowable(e);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                launderThrowable(e);
-            }
-
-            logger.info(
-                    "Write to CacheDisk:{}. blockId:{} without replace",
-                    assignPrimaryDiskId(block.getBlockId()), block.getBlockId());
-
-            result = block;
+            result = writeToCacheDisk(block);
         }
+
+        logger.debug("Write to cache disk end. blockId:{}", block.getBlockId());
 
         return result;
     }
 
-    private Block readFromCacheDisk(long blockId)
-            throws ExecutionException, InterruptedException {
+    private Block readFromCacheDisk(long blockId) {
 
         Callable readTask = new ReadPrimitiveTask(
                 blockId, getDiskFilePathPrefix(blockId));
 
         Future<byte[]> future =
-                diskIOExecutors[assignPrimaryDiskId(blockId)].submit(readTask);
-        byte[] payload = future.get();
+                diskIOExecutors[placementPolicy.assignDiskId(blockId)].submit(readTask);
+        byte[] payload = new byte[0];
+        try {
+            payload = future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
-        return new Block(blockId, 0, assignPrimaryDiskId(blockId), 0, payload);
-    }
-
-    private Block writeToCacheDisk(Block block)
-            throws ExecutionException, InterruptedException {
-
-        Callable writeTask = new WritePrimitiveTask(
-                block, getDiskFilePathPrefix(block.getBlockId()));
-
-        int diskId = assignPrimaryDiskId(block.getBlockId());
-
-        Future<Boolean> future = diskIOExecutors[diskId].submit(writeTask);
-        boolean result = future.get();
-
-        if (result) {
-            return block;
+        if (payload != null) {
+            return new Block(blockId, 0, placementPolicy.assignDiskId(blockId), 0, payload);
         } else {
             return null;
         }
     }
 
+    private Block writeToCacheDisk(Block block) {
+
+        Callable writeTask = new WritePrimitiveTask(
+                block, getDiskFilePathPrefix(block.getBlockId()));
+
+        int diskId = placementPolicy.assignDiskId(block.getBlockId());
+
+        Future<Boolean> future = diskIOExecutors[diskId].submit(writeTask);
+        boolean result = false;
+        try {
+            result = future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        if (result) {
+            logger.info(
+                    "Write to CacheDisk:{}. blockId:{} without replace",
+                    placementPolicy.assignDiskId(block.getBlockId()), block.getBlockId());
+
+            return block;
+        } else {
+            logger.info(
+                    "Could not write to CacheDisk:{}. blockId:{} without replace",
+                    placementPolicy.assignDiskId(block.getBlockId()), block.getBlockId());
+
+            return null;
+        }
+    }
+
     private Block removeFromCacheDisk(long blockId) throws IOException {
-        int diskId = assignPrimaryDiskId(blockId);
+        int diskId = placementPolicy.assignDiskId(blockId);
 
         File file = new File(getDiskFilePathPrefix(blockId) + blockId);
         if (!file.delete())
             throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
 
-        logger.info("Removed successfully. blockId:{} from cache diskId:{}", blockId, diskId);
+        logger.info("Removed blockId:{} from cache diskId:{} due to replacement policy", blockId, diskId);
 
-        return new Block(blockId, 0, assignPrimaryDiskId(blockId), 0, new byte[0]);
-    }
-
-    private int assignPrimaryDiskId(long blockId) {
-        return this.placementPolicy.assignDiskId(blockId);
+        return new Block(blockId, 0, placementPolicy.assignDiskId(blockId), 0, new byte[0]);
     }
 
     // TODO pull up
@@ -227,7 +237,7 @@ public class CacheDiskManager implements ICacheDiskManager {
     }
 
     private String getDiskFilePathPrefix(long blockId) {
-        int diskId = assignPrimaryDiskId(blockId);
+        int diskId = placementPolicy.assignDiskId(blockId);
         DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
         return pathInfo.getDiskFilePath();
     }
@@ -261,7 +271,7 @@ public class CacheDiskManager implements ICacheDiskManager {
         public byte[] call() throws Exception {
             byte[] result = null;
 
-            int diskId = assignPrimaryDiskId(blockId);
+            int diskId = placementPolicy.assignDiskId(blockId);
             diskStateLocks[diskId].readLock().lock();
 
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
@@ -272,8 +282,10 @@ public class CacheDiskManager implements ICacheDiskManager {
 
                 try {
                     File file = new File(this.diskFilePath + blockId);
-                    if (!file.exists() || !file.isFile())
-                        throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
+                    if (!file.exists() || !file.isFile()) {
+                        logger.debug("{} is not exist or not a file.", file.getCanonicalPath());
+                        return null;
+                    }
 
                     result = new byte[(int)file.length()];
 
@@ -283,8 +295,6 @@ public class CacheDiskManager implements ICacheDiskManager {
                     if (bis.available() < 1)
                         throw new IOException("[" + this.diskFilePath + "] is not available.");
 
-                    logger.info("Read blockId:{} from disk:{}", blockId, diskId);
-
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
                     bis.read(result);
@@ -292,8 +302,8 @@ public class CacheDiskManager implements ICacheDiskManager {
 
                     stateManager.setState(diskId, DiskStateType.IDLE);
 
-                    logger.info("Read successfully. diskId:{} byte:{}",
-                            file.getCanonicalPath(), file.length());
+                    logger.info("Read a block from:{}. CacheDiskId:{} Byte:{}",
+                            file.getCanonicalPath(), diskId, file.length());
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
@@ -324,9 +334,11 @@ public class CacheDiskManager implements ICacheDiskManager {
 
         @Override
         public Boolean call() throws Exception {
+            logger.info("WritePrimitiveTask is starting.");
+
             boolean result = false;
 
-            int diskId = block.getPrimaryDiskId();
+            int diskId = placementPolicy.assignDiskId(block.getBlockId());
             diskStateLocks[diskId].readLock().lock();
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
@@ -339,8 +351,6 @@ public class CacheDiskManager implements ICacheDiskManager {
                     if (deleteOnExit) file.deleteOnExit();
 
                     checkDataDir(file.getParent());
-
-                    logger.info("write to: {}", file.getCanonicalPath());
 
                     if (!file.exists()) file.createNewFile();
 
@@ -356,8 +366,8 @@ public class CacheDiskManager implements ICacheDiskManager {
 
                     stateManager.setState(diskId, DiskStateType.IDLE);
 
-                    logger.info("Written successfully. diskId:{} byte:{}",
-                            file.getCanonicalPath(), this.block.getPayload().length);
+                    logger.info("Written a block to:{}. CacheDiskId:{} byte:{}",
+                            file.getCanonicalPath(), diskId, this.block.getPayload().length);
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
@@ -370,6 +380,8 @@ public class CacheDiskManager implements ICacheDiskManager {
                 if (diskStateLocks[diskId].getReadLockCount() > 0)
                     diskStateLocks[diskId].readLock().unlock();
             }
+
+            logger.info("WritePrimitiveTask is end.");
 
             return result;
         }
