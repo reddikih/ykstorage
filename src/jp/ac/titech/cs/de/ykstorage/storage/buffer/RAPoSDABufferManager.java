@@ -144,6 +144,7 @@ public class RAPoSDABufferManager implements IBufferManager {
 
     public List<Block> getBlocksCorrespondingToSpecifiedDisk(int diskId) {
         List<Block> result = new ArrayList<>();
+
         for (List<BufferRegion> regions : regionTable.values()) {
             for (BufferRegion region : regions) {
                 for (Block block : region.getBufferedBlocks()) {

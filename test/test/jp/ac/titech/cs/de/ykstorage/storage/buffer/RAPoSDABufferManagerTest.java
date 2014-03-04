@@ -9,6 +9,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -115,5 +118,48 @@ public class RAPoSDABufferManagerTest {
         // this will be succeeded because there is free
         // space in the buffer region.
         assertThat(bufferManager.write(b2), is(b2));
+    }
+
+    @Test
+    public void getBlockIdsCorrespondingToDisk() {
+        int numberOfBuffer = 2;
+        int replicaLevel = 2;
+        int totalCapacity = 8;
+        int blockSize = 1;
+        IAssignor assignor = new CacheStripingAssignor(numberOfBuffer);
+
+        RAPoSDABufferManager bufferManager =
+                new RAPoSDABufferManager(numberOfBuffer, totalCapacity, blockSize, 1.0, replicaLevel, assignor);
+
+        Block p0 = new Block(0, 0, 0, 0, 0, new byte[0]);
+        Block p1 = new Block(1, 0, 1, 0, 1, new byte[0]);
+        Block p2 = new Block(2, 0, 2, 0, 2, new byte[0]);
+        Block p3 = new Block(3, 0, 3, 0, 3, new byte[0]);
+        assertThat(bufferManager.write(p0), is(p0));
+        assertThat(bufferManager.write(p1), is(p1));
+        assertThat(bufferManager.write(p2), is(p2));
+        assertThat(bufferManager.write(p3), is(p3));
+
+        Block b0 = new Block(4, 1, 0, 0, 1, new byte[0]);
+        Block b1 = new Block(5, 1, 1, 0, 2, new byte[0]);
+        Block b2 = new Block(6, 1, 2, 0, 3, new byte[0]);
+        Block b3 = new Block(7, 1, 3, 0, 0, new byte[0]);
+        assertThat(bufferManager.write(b0), is(b0));
+        assertThat(bufferManager.write(b1), is(b1));
+        assertThat(bufferManager.write(b2), is(b2));
+        assertThat(bufferManager.write(b3), is(b3));
+
+        Block p4 = new Block(8, 0, 0, 0, 0, new byte[0]);
+        assertThat(bufferManager.write(p4), nullValue());
+
+        List<Block> corresponds =
+                bufferManager.getBlocksCorrespondingToSpecifiedDisk(p4.getOwnerDiskId());
+        List<Long> blockIdsInTheSameDisk = new ArrayList<>();
+        blockIdsInTheSameDisk.add(0L);
+        blockIdsInTheSameDisk.add(7L);
+        for (Block b : corresponds) {
+            assertThat(blockIdsInTheSameDisk.contains(b.getBlockId()), is(true));
+        }
+        assertThat(corresponds.size(), is(blockIdsInTheSameDisk.size()));
     }
 }
