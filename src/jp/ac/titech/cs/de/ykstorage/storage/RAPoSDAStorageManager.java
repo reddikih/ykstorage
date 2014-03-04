@@ -15,8 +15,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -75,6 +77,11 @@ public class RAPoSDAStorageManager extends StorageManager {
             int length = 0;
             for (Future<Block> future : futures) {
                 Block block = future.get();
+
+                if (block.getPayload() == null) {
+                    throw new IllegalStateException("Read block's payload is null. BlockId:" + block.getBlockId());
+                }
+
                 length += block.getPayload().length;
                 readPayloads.add(block.getPayload());
             }
@@ -127,22 +134,33 @@ public class RAPoSDAStorageManager extends StorageManager {
             // read from data disks
             HashMap<Integer, Long> did2bid = new HashMap<>();
             List<Integer> diskIds = new ArrayList<>();
+            HashMap<Long, Integer> bid2repLevel = new HashMap<>();
             for (int i=0; i<blockIds.size(); i++) {
                 int diskId = assignReplicaDiskId(primaryDiskId, i);
                 diskIds.add(diskId);
                 did2bid.put(diskId, blockIds.get(i));
+                bid2repLevel.put(blockIds.get(i), i);
             }
 
-            List<Integer> activeDiskIds = checkStateOfDisks(diskIds, DiskStateType.ACTIVE);
+            List<Integer> activeDiskIds = getSpinningDiskIds(diskIds);
 
             // case 1. one of N disks is active or idle
             if (activeDiskIds.size() == 1) {
-                Block block = new Block(did2bid.get(activeDiskIds.get(0)), -1, primaryDiskId, -1, null);
+                logger.debug("[Read from DataDisk] case 1.one of N disks is active or idle. diskId:{}", activeDiskIds.get(0));
+
+                long blockId = did2bid.get(activeDiskIds.get(0));
+                Block block = new Block(
+                        blockId,
+                        bid2repLevel.get(blockId),
+                        primaryDiskId,
+                        -1,
+                        null);
                 result = ((RAPoSDADataDiskManager)dataDiskManager).read(block);
             }
 
-            // case 2. M of N disks are active or idle (M <= N)
-            else if (activeDiskIds.size() <= diskIds.size()) {
+            // case 2. M of N disks are active or idle (0 < M <= N)
+            else if (0 < activeDiskIds.size() && activeDiskIds.size() <= diskIds.size()) {
+                logger.debug("[Read from DataDisk] M of N disks are active or idle (0 < M <= N) M:{}", activeDiskIds.size());
 
                 int maximumLengthDiskId = -1;
                 int maximumBufferLength = -1;
@@ -159,9 +177,10 @@ public class RAPoSDAStorageManager extends StorageManager {
 
                 ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(maximumLengthDiskId);
 
+                long blockId = did2bid.get(maximumLengthDiskId);
                 Block block = new Block(
-                        did2bid.get(did2bid.get(maximumLengthDiskId)),
-                        -1,
+                        blockId,
+                        bid2repLevel.get(blockId),
                         primaryDiskId,
                         -1,
                         null);
@@ -170,6 +189,9 @@ public class RAPoSDAStorageManager extends StorageManager {
 
             // case 3. all of N disks are standby
             else {
+
+                logger.debug("[Read from DataDisk] case 3. all of N disks are standby", activeDiskIds.size());
+
                 // 停止期間の長いディスクから
                 int longestSleepingDiskId = -1;
                 long longestSleepingTime = -1L;
@@ -184,9 +206,10 @@ public class RAPoSDAStorageManager extends StorageManager {
 
                 ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(longestSleepingDiskId);
 
+                long blockId = did2bid.get(longestSleepingDiskId);
                 Block block = new Block(
-                        did2bid.get(did2bid.get(longestSleepingDiskId)),
-                        -1,
+                        blockId,
+                        bid2repLevel.get(blockId),
                         primaryDiskId,
                         -1,
                         null);
@@ -202,10 +225,11 @@ public class RAPoSDAStorageManager extends StorageManager {
         }
     }
 
-    private List<Integer> checkStateOfDisks(List<Integer> diskIds, DiskStateType state) {
+    private List<Integer> getSpinningDiskIds(List<Integer> diskIds) {
         List<Integer> result = new ArrayList<>();
         for (int diskId : diskIds) {
-            if (state.equals(((RAPoSDADataDiskManager)dataDiskManager).getState(diskId))) {
+            if (DiskStateType.IDLE.equals(((RAPoSDADataDiskManager)dataDiskManager).getState(diskId)) ||
+                    DiskStateType.ACTIVE.equals(((RAPoSDADataDiskManager)dataDiskManager).getState(diskId))) {
                 result.add(diskId);
             }
         }
@@ -246,8 +270,10 @@ public class RAPoSDAStorageManager extends StorageManager {
 
                     ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(maximumBufferedDiskId);
 
-                    List<Block> toBeFlushedBlocks =
-                            ((RAPoSDABufferManager)bufferManager).getBlocksInTheSameRegion(block);
+                    Set<Block> toBeFlushedBlocks = new HashSet<>();
+                    toBeFlushedBlocks.addAll(
+                            ((RAPoSDABufferManager)bufferManager).getBlocksInTheSameRegion(block)
+                    );
 
                     List<Block> correspondingBlocks =
                             ((RAPoSDABufferManager)bufferManager)

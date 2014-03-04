@@ -217,8 +217,10 @@ public class CacheDiskManager implements ICacheDiskManager {
         int diskId = placementPolicy.assignDiskId(blockId);
 
         File file = new File(getDiskFilePathPrefix(blockId) + blockId);
-        if (!file.delete())
-            throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
+        if (!file.delete()) {
+            logger.debug("To delete file:{} is not exist or not a file.", file.getCanonicalPath());
+//            throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
+        }
 
         logger.info("Removed blockId:{} from cache diskId:{} due to replacement policy", blockId, diskId);
 
@@ -283,7 +285,7 @@ public class CacheDiskManager implements ICacheDiskManager {
                 try {
                     File file = new File(this.diskFilePath + blockId);
                     if (!file.exists() || !file.isFile()) {
-                        logger.debug("{} is not exist or not a file.", file.getCanonicalPath());
+                        logger.debug("[Read primitive] {} is not exist or not a file.", file.getCanonicalPath());
                         return null;
                     }
 
@@ -300,10 +302,10 @@ public class CacheDiskManager implements ICacheDiskManager {
                     bis.read(result);
                     bis.close();
 
-                    stateManager.setState(diskId, DiskStateType.IDLE);
-
                     logger.info("Read a block from:{}. CacheDiskId:{} Byte:{}",
                             file.getCanonicalPath(), diskId, file.length());
+
+                    stateManager.setState(diskId, DiskStateType.IDLE);
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
@@ -364,10 +366,10 @@ public class CacheDiskManager implements ICacheDiskManager {
 
                     result = true;
 
-                    stateManager.setState(diskId, DiskStateType.IDLE);
-
                     logger.info("Written a block to:{}. CacheDiskId:{} byte:{}",
                             file.getCanonicalPath(), diskId, this.block.getPayload().length);
+
+                    stateManager.setState(diskId, DiskStateType.IDLE);
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();

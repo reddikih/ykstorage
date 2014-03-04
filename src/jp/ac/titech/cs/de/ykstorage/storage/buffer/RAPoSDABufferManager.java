@@ -6,14 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RAPoSDABufferManager implements IBufferManager {
 
     private final static Logger logger = LoggerFactory.getLogger(RAPoSDABufferManager.class);
 
-    private HashMap<Integer, List<BufferRegion>> regionTable = new HashMap<>();
+    private ConcurrentHashMap<Integer, List<BufferRegion>> regionTable = new ConcurrentHashMap<>();
 
     private IAssignor assignor;
 

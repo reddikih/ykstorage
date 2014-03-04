@@ -5,6 +5,7 @@ import test.jp.ac.titech.cs.de.ykstorage.storage.BlockTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.BufferManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.BufferRegionTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.LRUBufferTest;
+import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.RAPoSDABufferManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.NormalDataDiskManagerTest;
 
@@ -27,6 +28,7 @@ import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.NormalDataDiskManagerT
         MAIDDataDiskManagerTest.class,
         BlockTest.class,
         BufferRegionTest.class,
+        RAPoSDABufferManagerTest.class,
 })
 
 public class YKStorageTestSuite {

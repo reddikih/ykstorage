@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +143,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
      * @param blocks
      * @return A block list that includes blocks written to data disks successfully.
      */
-    public List<Block> writeBlocks(List<Block> blocks) {
+    public List<Block> writeBlocks(Collection<Block> blocks) {
         List<Block> result = new ArrayList<>();
 
         List<OperationTask> operations = new ArrayList<>();
@@ -361,12 +362,16 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             Object result = null;
             if (ioType.equals(IOType.READ)) {
                 Callable readTask = new ReadPrimitiveTask(
-                        blockId, block.getOwnerDiskId(),
+                        blockId,
+                        assignReplicaDiskId(block.getPrimaryDiskId(), block.getReplicaLevel()),
                         getDiskFilePathPrefix(blockId));
 
                 int diskId = assignReplicaDiskId(
                         block.getPrimaryDiskId(),
                         block.getReplicaLevel());
+
+                logger.debug("[Operation task] target DiskId:{}.  blockId:{} repLevel:{}",
+                        diskId, block.getPrimaryDiskId(), block.getReplicaLevel());
 
                 Future<byte[]> future = diskIOExecutors[diskId].submit(readTask);
                 byte[] payload = future.get();
