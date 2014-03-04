@@ -46,10 +46,14 @@ public class InputClient {
 		
 		while(true) {
 			try {
-				System.out.print("command: ");
+                System.out.print("command: ");
 				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 				String line = br.readLine();
-				
+
+                if (line == null || line.length() == 0) {
+                    continue;
+                }
+
 				if(line.equals("exit")) {
 					break;
 				}
@@ -72,7 +76,7 @@ public class InputClient {
 				e.printStackTrace();
 				System.exit(1);
 			} catch (InputClientException e) {
-				e.printStackTrace();
+                System.out.println(e.getMessage());
 			}
 		}
 	}
