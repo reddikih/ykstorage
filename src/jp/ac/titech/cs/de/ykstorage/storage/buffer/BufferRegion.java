@@ -91,7 +91,7 @@ public class BufferRegion {
         if (removed != null) {
             logger.info("Buffer:{} Region:{} REMOVED blockId:{}", bufferId, regionId, removed.getBlockId());
             decrementBufferLength(removed.getOwnerDiskId());
-            removed.setPayload(null);
+//            removed.setPayload(null);
         }
         return removed;
     }
@@ -99,12 +99,11 @@ public class BufferRegion {
     private void incrementBufferLength(int diskId) {
         AtomicInteger counter = this.bufferLengthPerDisk.get(diskId);
         if (counter != null) {
-            int incremented = counter.incrementAndGet();
-            logger.info("Buffer:{} Region:{} incremented length of diskId:{} to {}", bufferId, regionId, diskId, incremented);
+            logger.info("Buffer:{} Region:{} incremented length of diskId:{} size:{}", bufferId, regionId, diskId, counter.incrementAndGet());
         } else {
             this.bufferLengthPerDisk.put(diskId, new AtomicInteger(1));
             //log
-            logger.info("Buffer:{} Region:{} create buffer length counter of diskId:{}", bufferId, regionId, diskId);
+            logger.info("Buffer:{} Region:{} create buffer length counter of diskId:{} size:1", bufferId, regionId, diskId);
         }
     }
 
