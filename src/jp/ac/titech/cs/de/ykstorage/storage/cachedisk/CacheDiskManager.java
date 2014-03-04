@@ -90,6 +90,10 @@ public class CacheDiskManager implements ICacheDiskManager {
             diskId2FilePath.put(diskId++, pathInfo);
         }
 
+        for (DiskFileAndDevicePath pathInfo : diskId2FilePath.values()) {
+            logger.debug("[CacheDisk] {}", pathInfo.getDiskFilePath());
+        }
+
         this.diskIOExecutors = new ExecutorService[this.numberOfCacheDisks];
         for (int i=0; i < numberOfCacheDisks; i++) {
             diskIOExecutors[i] = Executors.newFixedThreadPool(1);

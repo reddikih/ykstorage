@@ -84,6 +84,10 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             diskId2FilePath.put(diskId++, pathInfo);
         }
 
+        for (DiskFileAndDevicePath pathInfo : diskId2FilePath.values()) {
+            logger.debug("[DataDisk] {}", pathInfo.getDiskFilePath());
+        }
+
         this.diskIOExecutors = new ExecutorService[this.numberOfDataDisks];
         for (int i=0; i < numberOfDataDisks; i++) {
             diskIOExecutors[i] = Executors.newFixedThreadPool(1);
@@ -312,9 +316,12 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
     }
 
     // TODO pull up
-    private String getDiskFilePathPrefix(long blockId) {
-        int diskId = assignPrimaryDiskId(blockId);
+    private String getDiskFilePathPrefix(Block block) {
+        int diskId = assignReplicaDiskId(
+                block.getPrimaryDiskId(), block.getReplicaLevel());
+
         DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
+
         return pathInfo.getDiskFilePath();
     }
 
@@ -364,7 +371,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                 Callable readTask = new ReadPrimitiveTask(
                         blockId,
                         assignReplicaDiskId(block.getPrimaryDiskId(), block.getReplicaLevel()),
-                        getDiskFilePathPrefix(blockId));
+                        getDiskFilePathPrefix(block));
 
                 int diskId = assignReplicaDiskId(
                         block.getPrimaryDiskId(),
@@ -385,7 +392,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             } else if (ioType.equals(IOType.WRITE)) {
                 Callable writeTask = new WritePrimitiveTask(
                         block,
-                        getDiskFilePathPrefix(block.getBlockId()));
+                        getDiskFilePathPrefix(block));
 
                 int diskId = assignReplicaDiskId(
                         block.getPrimaryDiskId(),
@@ -591,6 +598,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
         public String getDiskFilePath() {return diskFilePath;}
         public String getDevicePath() {return devicePath;}
+
     }
 
     // TODO pull up or to be external class.

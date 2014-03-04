@@ -76,6 +76,10 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             diskId2FilePath.put(diskId++, pathInfo);
         }
 
+        for (DiskFileAndDevicePath pathInfo : diskId2FilePath.values()) {
+            logger.debug("[DataDisk] {}", pathInfo.getDiskFilePath());
+        }
+
         this.diskIOExecutors = new ExecutorService[this.numberOfDataDisks];
         for (int i=0; i < numberOfDataDisks; i++) {
             diskIOExecutors[i] = Executors.newFixedThreadPool(1);
