@@ -1,6 +1,7 @@
 #!/bin/sh
 
 JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
+JVM_OPTION="-Xms12000m -Xmx12000m"
 
 echo "YKSTORAGE_HOME = " $YKSTORAGE_HOME
 
@@ -31,4 +32,6 @@ CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/slf4j-api-1.7.2.jar
 CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/logback-classic-1.0.9.jar
 CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/logback-core-1.0.9.jar
 
-java -cp $CLASSPATH jp.ac.titech.cs.de.ykstorage.service.StorageService $CONFIG_PATH
+# java -cp $CLASSPATH jp.ac.titech.cs.de.ykstorage.service.StorageService $CONFIG_PATH
+# run with JNI I/O
+java -Djava.library.path=$YKSTORAGE_HOME/lib -cp $CLASSPATH $JVM_OPTION jp.ac.titech.cs.de.ykstorage.service.StorageService $CONFIG_PATH
