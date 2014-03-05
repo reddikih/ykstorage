@@ -116,6 +116,11 @@ public class MAIDStorageManager extends StorageManager {
         return this.dataDiskManager.write(blocks);
     }
 
+    @Override
+    public void shutdown() {
+
+    }
+
     // TODO pull up method
     private List<Long> assignBlockIds(long key, int byteSize, int blockSize) {
         ArrayList<Long> blockIds = new ArrayList<>();

@@ -57,7 +57,7 @@ public class InputClient {
 				if(line.equals("exit")) {
 					break;
 				}
-				
+
 				byte[] request = createRequest(line).getRequest();
 				
 				conn = new Socket(hostName, port);
@@ -96,6 +96,8 @@ public class InputClient {
 			long id = Long.parseLong(cmd[1]);
 			int size = Integer.parseInt(cmd[2]);
 			request = new Request(type, delay, id, size);
+        } else if (cmd[0].equalsIgnoreCase("SHUTDOWN")) {
+            request = new Request(new byte[]{0x00, 0x11}, 0, 0, 0);
 		} else {
 			throw new InputClientException("'" + line + "' is invalid command");
 		}

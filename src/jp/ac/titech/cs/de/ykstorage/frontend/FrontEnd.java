@@ -1,5 +1,6 @@
 package jp.ac.titech.cs.de.ykstorage.frontend;
 
+import jp.ac.titech.cs.de.ykstorage.service.StorageService;
 import jp.ac.titech.cs.de.ykstorage.storage.DumStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
 import org.slf4j.Logger;
@@ -21,14 +22,19 @@ public class FrontEnd {
     private final ServerSocket socket;
     private final StorageManager storageManager;
 
-    public static FrontEnd getInstance(int port, StorageManager storageManager) throws IOException {
-        return new FrontEnd(port, storageManager);
+    private final StorageService storageService;
+
+    public static FrontEnd getInstance(int port, StorageManager storageManager, StorageService storageService) throws IOException {
+        return new FrontEnd(port, storageManager, storageService);
     }
 
-    private FrontEnd(int port, StorageManager storageManager) throws IOException {
-        this.service = Executors.newCachedThreadPool();
+    private FrontEnd(int port, StorageManager storageManager, StorageService storageService) throws IOException {
+//        this.service = Executors.newCachedThreadPool();
+        this.service = Executors.newFixedThreadPool(8);
+
         this.socket = new ServerSocket(port);
         this.storageManager = storageManager;
+        this.storageService = storageService;
 
         logger.info("Host:{} Port:{}",
                 socket.getInetAddress().toString(),
@@ -63,6 +69,10 @@ public class FrontEnd {
             result = new ReadTask(conn, request);
         else if (request.getCommand().equals(RequestCommand.WRITE))
             result = new WriteTask(conn, request);
+        else if (request.getCommand().equals(RequestCommand.EXIT)) {
+            this.storageManager.shutdown();
+            this.storageService.exit();
+        }
         else
             throw new IllegalStateException("request command is invalid.: " + request.getCommand());
 
@@ -158,7 +168,7 @@ public class FrontEnd {
 
     public static void main(String[] args) throws IOException {
         int port = 9999;
-        FrontEnd server = FrontEnd.getInstance(port, new DumStorageManager(null,null,null,null));
+        FrontEnd server = FrontEnd.getInstance(port, new DumStorageManager(null,null,null,null), null);
         logger.info("Starting FrontEnd as a DumServer");
         server.start();
     }

@@ -31,6 +31,13 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
     private final static Logger logger = LoggerFactory.getLogger(RAPoSDADataDiskManager.class);
 
+    // TODO clean up
+    private native boolean write(String filePath, byte[] value);
+    private native byte[] read(String filePath);
+    static {
+        System.loadLibrary("raposdadatadiskio");
+    }
+
     // TODO to be pull up field
     private boolean deleteOnExit = false;
 
@@ -462,16 +469,19 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
                     result = new byte[(int)file.length()];
 
-                    BufferedInputStream bis =
-                            new BufferedInputStream(new FileInputStream(file));
-
-                    if (bis.available() < 1)
-                        throw new IOException("[" + this.diskFilePath + "] is not available.");
+//                    BufferedInputStream bis =
+//                            new BufferedInputStream(new FileInputStream(file));
+//
+//                    if (bis.available() < 1)
+//                        throw new IOException("[" + this.diskFilePath + "] is not available.");
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
-                    bis.read(result);
-                    bis.close();
+//                    bis.read(result);
+//                    bis.close();
+
+                    // native read for avoid file system cache.
+                    result = read(file.getCanonicalPath());
 
                     logger.info("Read a block from:{}. DataDiskId:{} Byte:{}",
                             file.getCanonicalPath(), diskId, file.length());
@@ -553,13 +563,16 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
                     if (!file.exists()) file.createNewFile();
 
-                    BufferedOutputStream bos =
-                            new BufferedOutputStream(new FileOutputStream(file));
+//                    BufferedOutputStream bos =
+//                            new BufferedOutputStream(new FileOutputStream(file));
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
-                    bos.write(this.block.getPayload());
-                    bos.flush();
-                    bos.close();
+//                    bos.write(this.block.getPayload());
+//                    bos.flush();
+//                    bos.close();
+
+                    // native write to avoid file system cache.
+                    write(file.getCanonicalPath(), this.block.getPayload());
 
                     result = block;
 

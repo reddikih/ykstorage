@@ -5,11 +5,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Date;
+import java.util.Calendar;
 import java.util.Properties;
 
 import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
+import jp.ac.titech.cs.de.ykstorage.frontend.RequestCommand;
+import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
 
 public class SingleClient {
+
+    private final static int INITIAL_COUNT = 0;
+
 	private final static Properties config = new Properties();
 	private final boolean isConfigured = false;
 	
@@ -19,6 +26,9 @@ public class SingleClient {
 	private int thread;
     private int port;
     private String hostName;
+
+    private int requestCount;
+    private long totalResponseTime;
 	
     public static SingleClient getInstance() {
     	return new SingleClient();
@@ -45,7 +55,9 @@ public class SingleClient {
 	public void start() {
 		Socket conn;
 		OutputStream out;
-		
+
+        System.out.println("Start SingleClient. " + Calendar.getInstance().getTime().toString());
+		int reqCount = 0;
 		while(workload.size() > 0) {
 			try {
 				conn = new Socket(hostName, port);
@@ -53,14 +65,35 @@ public class SingleClient {
 				
 				Request req = workload.getRequest();
 				byte[] request = req.getRequest();
-				
+
+                if (RequestCommand.READ.equals(req.getType())) {
+                    System.out.print(String.format("[%s] key:%d --- ", req.getType(), req.getKey()));
+                } else if (RequestCommand.WRITE.equals(req.getType())) {
+                    System.out.print(String.format("[%s] key:%d size:%d --- ", req.getType(), req.getKey(), req.getSize()));
+                }
+
+                long start = System.nanoTime();
+                reqCount++;
+
 				out.write(request);
 				out.flush();
-				
-				ClientResponse response = new ClientResponse(conn);
+
+
+                ClientResponse response = new ClientResponse(conn);
+
+                long end = System.nanoTime();
+
+                if (reqCount > INITIAL_COUNT) {
+                    requestCount++;
+                    totalResponseTime += (end - start);
+                }
+
+                ResponseHeader respHeader = response.getHeader();
+                System.out.printf("%d ResponseTime: %.6f [s]\n", respHeader.getStatus(), (double)(end - start) / 1000000000);
+
 				conn.close();
-				
-				long delay = req.getDelay();
+
+                long delay = req.getDelay();
 				Thread.sleep(delay);
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
@@ -72,8 +105,23 @@ public class SingleClient {
 				e.printStackTrace();
 				System.exit(1);
 			}
-		}
-	}
+
+        }
+
+        try {
+            conn = new Socket(hostName, port);
+            out = conn.getOutputStream();
+            out.write(new byte[]{0x00, 0x11});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("----------------------------------------------------");
+        System.out.printf("Total request: %d\n", requestCount);
+        System.out.printf("Average response time: %.6f [s]\n", (double)totalResponseTime / requestCount / 1000000000);
+        System.out.println("----------------------------------------------------");
+        System.out.println("End of the SingleClient. " + Calendar.getInstance().getTime().toString());
+    }
 	
 	public static void main(String[] args) {
 		if(args.length < 1) {

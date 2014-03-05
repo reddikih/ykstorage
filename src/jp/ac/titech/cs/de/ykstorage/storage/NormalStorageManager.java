@@ -50,6 +50,11 @@ public class NormalStorageManager extends StorageManager {
         return this.dataDiskManager.write(blocks);
     }
 
+    @Override
+    public void shutdown() {
+
+    }
+
     private List<Long> assignBlockIds(long key, int byteSize, int blockSize) {
         ArrayList<Long> blockIds = new ArrayList<>();
 

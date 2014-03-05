@@ -41,4 +41,5 @@ public abstract class StorageManager {
 
     abstract public boolean write(long key, byte[] value);
 
+    abstract public void shutdown();
 }

@@ -11,6 +11,12 @@ import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +48,17 @@ public class RAPoSDAStorageManager extends StorageManager {
             Parameter parameter,
             int numberOfReplica) {
         super(bufferManager, cacheDiskManager, dataDiskManager, parameter);
+        init(numberOfReplica);
+    }
+
+    private void init(int numberOfReplica) {
         this.numberOfReplica = numberOfReplica;
+
+        HashMap<Long, List<List<Long>>> savedMap = new MetaDataSerializer<HashMap>().deSerializeObject();
+        if (savedMap != null) {
+            this.key2blockIdMap = savedMap;
+        }
+
         watchdogStart();
     }
 
@@ -307,6 +323,13 @@ public class RAPoSDAStorageManager extends StorageManager {
         return true;
     }
 
+    @Override
+    public void shutdown() {
+        MetaDataSerializer<HashMap> serializer = new MetaDataSerializer<>();
+        serializer.serializeObject(this.key2blockIdMap);
+        logger.info("Done the termination process.");
+    }
+
     private void writeToCacheDisk(final List<Block> toBeFlushedBlocks) {
         Runnable cacheDiskWriter = new Runnable() {
             @Override
@@ -431,6 +454,39 @@ public class RAPoSDAStorageManager extends StorageManager {
         if (t instanceof RuntimeException) return (RuntimeException) t;
         else if (t instanceof Error) throw (Error) t;
         else throw new IllegalStateException("Not unchecked", t);
+    }
+
+    private class MetaDataSerializer<V> {
+
+        private final String filePath = System.getProperty("user.dir") + "/serialized.dat";
+
+        private void serializeObject(V obj) {
+            ObjectOutputStream oos;
+            try {
+                 oos = new ObjectOutputStream(new FileOutputStream(filePath));
+                oos.writeObject(obj);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private V deSerializeObject() {
+            ObjectInputStream ois;
+            V obj = null;
+            try {
+                File file = new File(filePath);
+                if (!file.exists())
+                    return null;
+
+                ois = new ObjectInputStream(new FileInputStream(file));
+                obj = (V)ois.readObject();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            return obj;
+        }
     }
 
 }

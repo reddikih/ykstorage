@@ -33,8 +33,14 @@ public class RequestHeader {
                 throw new IOException("couldn't read request command");
 
             if (command[0] == 0x00) {
-                if (command[1] == 0x01) this.command = RequestCommand.READ;
-                else if (command[1] == 0x10) this.command = RequestCommand.WRITE;
+                if (command[1] == 0x01) {
+                    this.command = RequestCommand.READ;
+                } else if (command[1] == 0x10) {
+                    this.command = RequestCommand.WRITE;
+                } else if (command[1] == 0x11) {
+                    this.command = RequestCommand.EXIT;
+                    return;
+                }
             } else if (command[0] == 0x01) {
                 if (command[1] == 0x00) this.command = RequestCommand.DELETE;
             } else {

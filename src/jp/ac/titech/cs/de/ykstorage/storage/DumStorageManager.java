@@ -80,6 +80,11 @@ public class DumStorageManager extends StorageManager {
         return result;
     }
 
+    @Override
+    public void shutdown() {
+
+    }
+
     public void checkDataDir() {
         File file = new File(Parameter.DATA_DIR);
         if (!file.exists()) {

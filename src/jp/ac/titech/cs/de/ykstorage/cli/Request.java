@@ -1,5 +1,8 @@
 package jp.ac.titech.cs.de.ykstorage.cli;
 
+import jp.ac.titech.cs.de.ykstorage.frontend.RequestCommand;
+
+import java.net.Authenticator;
 import java.nio.ByteBuffer;
 
 
@@ -21,6 +24,25 @@ public class Request {
     	this.delay = delay;
     	this.id = id;
     	this.size = 0;
+    }
+
+    public RequestCommand getType() {
+        RequestCommand command = null;
+        if (type[0] == 0x00) {
+            if (type[1] == 0x01) command = RequestCommand.READ;
+            else if (type[1] == 0x10) command = RequestCommand.WRITE;
+        } else if (type[0] == 0x01) {
+            if (type[1] == 0x00) command = RequestCommand.DELETE;
+        }
+        return command;
+    }
+
+    public long getKey() {
+        return this.id;
+    }
+
+    public int getSize() {
+        return this.size;
     }
     
     public byte[] getRequest() {

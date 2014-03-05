@@ -34,7 +34,7 @@ public class StorageService {
 
         // Generate FrontEnd and start listening the client requests.
         try {
-            this.frontend = FrontEnd.getInstance(parameter.serverPort, storageManager);
+            this.frontend = FrontEnd.getInstance(parameter.serverPort, storageManager, storageService);
         } catch (IOException e) {
             e.printStackTrace();
             logger.error("Couldn't create FrontEnd server.");
@@ -93,4 +93,9 @@ public class StorageService {
         storageService.start();
    }
 
+    public void exit() {
+        System.out.println("-----------------------------------");
+        System.out.println("Storage Service is terminated. Bye.");
+        System.exit(0);
+    }
 }

@@ -4,4 +4,5 @@ public enum RequestCommand {
     READ,
     WRITE,
     DELETE,
+    EXIT,
 }
