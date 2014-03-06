@@ -16,7 +16,7 @@ fi
 echo "Data directory:" $DATA_DIR
 echo "User:" $USER "Group:" $GROUP
 
-
+sudo ls
 
 ###
 # target device letters:

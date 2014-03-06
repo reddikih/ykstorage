@@ -12,6 +12,8 @@ if [ ! -e ${CONFIG_PATH} -o ! -f ${CONFIG_PATH} ];then
     exit 1
 fi
 
+. $YKSTORAGE_HOME/tool/fsmount.sh
+
 if [ -f ${YKSTORAGE_HOME}/bin/logback.xml ];then
     mv ${YKSTORAGE_HOME}/bin/logback.xml ${YKSTORAGE_HOME}/bin/_logback.xml
 fi
@@ -32,6 +34,13 @@ CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/slf4j-api-1.7.2.jar
 CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/logback-classic-1.0.9.jar
 CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/logback-core-1.0.9.jar
 
+echo "start StorageService." `date` 1>&2
+
 # java -cp $CLASSPATH jp.ac.titech.cs.de.ykstorage.service.StorageService $CONFIG_PATH
 # run with JNI I/O
 java -Djava.library.path=$YKSTORAGE_HOME/lib -cp $CLASSPATH $JVM_OPTION jp.ac.titech.cs.de.ykstorage.service.StorageService $CONFIG_PATH
+
+echo "end StorageService.." `date` 1>&2
+
+tree data > /dev/null 2>&1
+
