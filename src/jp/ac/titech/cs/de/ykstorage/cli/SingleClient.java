@@ -4,8 +4,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.sql.Date;
 import java.util.Calendar;
 import java.util.Properties;
 
@@ -29,6 +29,8 @@ public class SingleClient {
 
     private int requestCount;
     private long totalResponseTime;
+
+    private int errorCount;
 	
     public static SingleClient getInstance() {
     	return new SingleClient();
@@ -95,6 +97,10 @@ public class SingleClient {
 
                 long delay = req.getDelay();
 				Thread.sleep(delay);
+            } catch (SocketException e) {
+                e.printStackTrace();
+                errorCount++;
+                System.err.println("Request count: " + reqCount);
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 				System.exit(1);
@@ -117,8 +123,9 @@ public class SingleClient {
         }
 
         System.out.println("----------------------------------------------------");
-        System.out.printf("Total request: %d\n", requestCount);
-        System.out.printf("Average response time: %.6f [s]\n", (double)totalResponseTime / requestCount / 1000000000);
+        System.out.printf("Total requests: %d\n", requestCount);
+        System.out.printf("Error requests: %d\n", errorCount);
+        System.out.printf("Average response time: %.6f [s]\n", (double) totalResponseTime / requestCount / 1000000000);
         System.out.println("----------------------------------------------------");
         System.out.println("End of the SingleClient. " + Calendar.getInstance().getTime().toString());
     }
