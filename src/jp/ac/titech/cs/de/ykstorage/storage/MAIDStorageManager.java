@@ -4,17 +4,22 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
+
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MAIDStorageManager extends StorageManager {
 
     private final static Logger logger = LoggerFactory.getLogger(MAIDStorageManager.class);
+
+    private final String KEY_2_BLOCKID_MAP_NAME = "normalkey2blockidmap";
 
     public MAIDStorageManager(
             IBufferManager bufferManager,
@@ -118,7 +123,10 @@ public class MAIDStorageManager extends StorageManager {
 
     @Override
     public void shutdown() {
-
+        ObjectSerializer<ConcurrentMap> serializer = new ObjectSerializer<>();
+        serializer.serializeObject(this.key2blockIdMap, KEY_2_BLOCKID_MAP_NAME);
+        this.dataDiskManager.termination();
+        logger.info("Done the termination process.");
     }
 
     // TODO pull up method

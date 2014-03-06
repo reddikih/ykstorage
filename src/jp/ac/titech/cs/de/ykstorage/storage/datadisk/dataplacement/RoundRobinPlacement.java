@@ -3,10 +3,11 @@ package jp.ac.titech.cs.de.ykstorage.storage.datadisk.dataplacement;
 
 import net.jcip.annotations.GuardedBy;
 
+import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class RoundRobinPlacement implements PlacementPolicy {
+public class RoundRobinPlacement implements PlacementPolicy, Serializable {
 
     private final int numberOfDisks;
 

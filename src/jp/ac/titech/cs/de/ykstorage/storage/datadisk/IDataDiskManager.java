@@ -14,4 +14,6 @@ public interface IDataDiskManager {
 
     public void setDeleteOnExit(boolean deleteOnExit);
 
+    public void termination();
+
 }

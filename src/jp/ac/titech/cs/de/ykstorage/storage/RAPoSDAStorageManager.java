@@ -8,6 +8,7 @@ import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.RAPoSDADataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
+import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,8 @@ public class RAPoSDAStorageManager extends StorageManager {
 
     private HashMap<Long, List<List<Long>>> key2blockIdMap = new HashMap<>();
 
+    private final String KEY_2_BLOCKID_MAP_NAME = "raposdakey2blockidmap";
+
     private int numberOfReplica;
 
     public RAPoSDAStorageManager(
@@ -54,9 +57,13 @@ public class RAPoSDAStorageManager extends StorageManager {
     private void init(int numberOfReplica) {
         this.numberOfReplica = numberOfReplica;
 
-        HashMap<Long, List<List<Long>>> savedMap = new MetaDataSerializer<HashMap>().deSerializeObject();
+        HashMap<Long, List<List<Long>>> savedMap =
+                new ObjectSerializer<HashMap>().deSerializeObject(KEY_2_BLOCKID_MAP_NAME);
         if (savedMap != null) {
             this.key2blockIdMap = savedMap;
+            logger.info("Saved key to blockId mapping file is reloaded: {}", KEY_2_BLOCKID_MAP_NAME);
+        } else {
+            logger.info("Unloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
         }
 
         watchdogStart();
@@ -95,7 +102,10 @@ public class RAPoSDAStorageManager extends StorageManager {
                 Block block = future.get();
 
                 if (block.getPayload() == null) {
-                    throw new IllegalStateException("Read block's payload is null. BlockId:" + block.getBlockId());
+                    logger.error("Read block's payload is null. BlockId:{} and set dummy payload to continue this process.", block.getBlockId());
+                    // TODO to be fixed this defect near future.
+//                    throw new IllegalStateException("Read block's payload is null. BlockId:" + block.getBlockId());
+                    block.setPayload(new byte[Block.BLOCK_SIZE]);
                 }
 
                 length += block.getPayload().length;
@@ -325,8 +335,9 @@ public class RAPoSDAStorageManager extends StorageManager {
 
     @Override
     public void shutdown() {
-        MetaDataSerializer<HashMap> serializer = new MetaDataSerializer<>();
-        serializer.serializeObject(this.key2blockIdMap);
+        ObjectSerializer<HashMap> serializer = new ObjectSerializer<>();
+        serializer.serializeObject(this.key2blockIdMap, KEY_2_BLOCKID_MAP_NAME);
+        this.dataDiskManager.termination();
         logger.info("Done the termination process.");
     }
 
@@ -454,39 +465,6 @@ public class RAPoSDAStorageManager extends StorageManager {
         if (t instanceof RuntimeException) return (RuntimeException) t;
         else if (t instanceof Error) throw (Error) t;
         else throw new IllegalStateException("Not unchecked", t);
-    }
-
-    private class MetaDataSerializer<V> {
-
-        private final String filePath = System.getProperty("user.dir") + "/serialized.dat";
-
-        private void serializeObject(V obj) {
-            ObjectOutputStream oos;
-            try {
-                 oos = new ObjectOutputStream(new FileOutputStream(filePath));
-                oos.writeObject(obj);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private V deSerializeObject() {
-            ObjectInputStream ois;
-            V obj = null;
-            try {
-                File file = new File(filePath);
-                if (!file.exists())
-                    return null;
-
-                ois = new ObjectInputStream(new FileInputStream(file));
-                obj = (V)ois.readObject();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            return obj;
-        }
     }
 
 }

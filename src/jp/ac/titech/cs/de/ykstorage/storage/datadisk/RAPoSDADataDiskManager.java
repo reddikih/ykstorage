@@ -6,6 +6,7 @@ import jp.ac.titech.cs.de.ykstorage.storage.datadisk.replication.ReplicationPoli
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.IdleThresholdListener;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
+import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdListener {
 
     private final static Logger logger = LoggerFactory.getLogger(RAPoSDADataDiskManager.class);
+
+    private final static String PLACEMENT_FILE_NAME = "raposdaddplacementpolicy";
 
     // TODO clean up
     private native boolean write(String filePath, byte[] value);
@@ -107,6 +110,16 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
         // register watchdog of idleness of data disks.
         this.stateManager.addListener(this);
+
+
+        PlacementPolicy savedPolicy =
+                new ObjectSerializer<PlacementPolicy>().deSerializeObject(PLACEMENT_FILE_NAME);
+        if (savedPolicy != null) {
+            this.placementPolicy = savedPolicy;
+            logger.info("Reloaded saved placement policy object: {}", PLACEMENT_FILE_NAME);
+        } else {
+            logger.info("Unloaded saved placement policy object: {}", PLACEMENT_FILE_NAME);
+        }
     }
 
     public void startWatchDog() {
@@ -345,6 +358,11 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         this.deleteOnExit = deleteOnExit;
     }
 
+    @Override
+    public void termination() {
+        ObjectSerializer<PlacementPolicy> serializer = new ObjectSerializer<>();
+        serializer.serializeObject(this.placementPolicy, PLACEMENT_FILE_NAME);
+    }
 
 
     ////////////---  These are tasks  ---////////////

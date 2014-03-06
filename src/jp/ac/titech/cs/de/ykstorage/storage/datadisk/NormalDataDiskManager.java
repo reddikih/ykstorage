@@ -5,6 +5,7 @@ import jp.ac.titech.cs.de.ykstorage.storage.datadisk.dataplacement.PlacementPoli
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.IdleThresholdListener;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
+import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdListener {
 
     private final static Logger logger = LoggerFactory.getLogger(NormalDataDiskManager.class);
+
+    private final static String PLACEMENT_FILE_NAME = "normalddplacementpolicy";
+
 
     // TODO to be pull up field
     private boolean deleteOnExit = false;
@@ -90,6 +94,16 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
         // register watchdog of idleness of data disks.
         this.stateManager.addListener(this);
+
+
+        PlacementPolicy savedPolicy =
+                new ObjectSerializer<PlacementPolicy>().deSerializeObject(PLACEMENT_FILE_NAME);
+        if (savedPolicy != null) {
+            this.placementPolicy = savedPolicy;
+            logger.info("Reloaded saved placement policy object: {}", PLACEMENT_FILE_NAME);
+        } else {
+            logger.info("Unloaded saved placement policy object: {}", PLACEMENT_FILE_NAME);
+        }
     }
 
     @Override
@@ -165,6 +179,12 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
     @Override
     public void setDeleteOnExit(boolean deleteOnExit) {
         this.deleteOnExit = deleteOnExit;
+    }
+
+    @Override
+    public void termination() {
+        ObjectSerializer<PlacementPolicy> serializer = new ObjectSerializer<>();
+        serializer.serializeObject(this.placementPolicy, PLACEMENT_FILE_NAME);
     }
 
     @Override
