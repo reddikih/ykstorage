@@ -298,8 +298,21 @@ public class CacheDiskManager implements ICacheDiskManager {
                     BufferedInputStream bis =
                             new BufferedInputStream(new FileInputStream(file));
 
-                    if (bis.available() < 1)
-                        throw new IOException("[" + this.diskFilePath + "] is not available.");
+                    int waitTimes = 0;
+                    while(true) {
+                        if (bis.available() < 1) {
+                            if (waitTimes >= 100) {
+                                // TODO to be fixed this problem.
+                                logger.error("[{}] is not available. waiting over 1000ms. but continue to this process as cache disk read miss.", this.diskFilePath + blockId);
+                                // throw new IOException("[" + this.diskFilePath + blockId + "] is not available. waiting over 1000ms");
+                                return null;
+                            }
+                            Thread.sleep(10);
+                            waitTimes++;
+                        } else {
+                            break;
+                        }
+                    }
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
@@ -364,6 +377,12 @@ public class CacheDiskManager implements ICacheDiskManager {
                             new BufferedOutputStream(new FileOutputStream(file));
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
+
+                    if (this.block.getPayload() == null) {
+                        logger.error("Payload of blockId:{} is null. ", this.block.getBlockId());
+                        return false;
+                    }
+
                     bos.write(this.block.getPayload());
                     bos.flush();
                     bos.close();

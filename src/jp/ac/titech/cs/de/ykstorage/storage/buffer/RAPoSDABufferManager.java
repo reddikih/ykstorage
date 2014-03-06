@@ -108,6 +108,9 @@ public class RAPoSDABufferManager implements IBufferManager {
 
     public Block remove(Block block) {
 
+        if (block == null)
+            return null;
+
         int bufferId = assignor.assign(
                 block.getBlockId(),
                 block.getPrimaryDiskId(),
