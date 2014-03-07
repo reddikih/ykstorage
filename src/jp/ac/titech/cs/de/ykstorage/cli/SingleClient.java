@@ -59,6 +59,8 @@ public class SingleClient {
 		OutputStream out;
 
         System.out.println("Start SingleClient. " + Calendar.getInstance().getTime().toString());
+        long execStartTime = System.currentTimeMillis();
+
 		int reqCount = 0;
 		while(workload.size() > 0) {
 			try {
@@ -69,9 +71,9 @@ public class SingleClient {
 				byte[] request = req.getRequest();
 
                 if (RequestCommand.READ.equals(req.getType())) {
-                    System.out.print(String.format("[%s] key:%d --- ", req.getType(), req.getKey()));
+                    System.out.printf("[%5d] [%s] key:%d --- ", reqCount, req.getType(), req.getKey());
                 } else if (RequestCommand.WRITE.equals(req.getType())) {
-                    System.out.print(String.format("[%s] key:%d size:%d --- ", req.getType(), req.getKey(), req.getSize()));
+                    System.out.printf("[%5d] [%s] key:%d size:%d --- ", reqCount, req.getType(), req.getKey(), req.getSize());
                 }
 
                 long start = System.nanoTime();
@@ -122,10 +124,13 @@ public class SingleClient {
             e.printStackTrace();
         }
 
+        long execEndTime = System.currentTimeMillis();
+
         System.out.println("----------------------------------------------------");
         System.out.printf("Total requests: %d\n", requestCount);
         System.out.printf("Error requests: %d\n", errorCount);
         System.out.printf("Average response time: %.6f [s]\n", (double) totalResponseTime / requestCount / 1000000000);
+        System.out.printf("Execution time: %,.2f [s]\n", ((double)(execEndTime - execStartTime)) / 1000);
         System.out.println("----------------------------------------------------");
         System.out.println("End of the SingleClient. " + Calendar.getInstance().getTime().toString());
     }
