@@ -367,6 +367,10 @@ public class CacheDiskManager implements ICacheDiskManager {
 
                 try {
                     File file = new File(diskFilePath + block.getBlockId());
+
+                    // Always delete blocks on cache disks.
+                    file.deleteOnExit();
+
                     if (deleteOnExit) file.deleteOnExit();
 
                     checkDataDir(file.getParent());
