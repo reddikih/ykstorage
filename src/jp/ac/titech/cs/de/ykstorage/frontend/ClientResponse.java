@@ -27,7 +27,7 @@ public class ClientResponse {
             if (readBytes == 0) {
                 throw new IOException("couldn't read any bytes.");
             }
-            logger.debug("request payload is incorrect. expected:{}[b] received:{}[b]",
+            logger.error("Response's payload is incorrect. expected:{}[b] received:{}[b]",
                     result.length, readBytes);
         }
         return result;
