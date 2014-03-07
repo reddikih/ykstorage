@@ -165,6 +165,8 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
     }
 
     private boolean spinDown(int diskId) {
+        logger.debug("Spin-down start. diskId:{}", diskId);
+
         String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
         if (!devicePathCheck(devicePath)) return false;
 
@@ -178,10 +180,15 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
         if (rc != 0) return false;
         // TODO increment spin down count.
         // and the other some operation if needed.
+
+        logger.debug("Spin-down end. diskId:{} path:{}", diskId, devicePath);
+
         return true;
     }
 
     private boolean spinUp(int diskId) {
+        logger.debug("Spin-up start. diskId:{}", diskId);
+
         String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
         if (!devicePathCheck(devicePath)) return false;
 
@@ -191,6 +198,9 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
         if (rc != 0) return false;
         // TODO increment spin up count.
         // and the other some operation if needed.
+
+        logger.debug("Spin-up end. diskId:{} path:{}", diskId, devicePath);
+
         return true;
     }
 
@@ -202,9 +212,13 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             returnCode = process.waitFor();
         } catch (IOException e) {
             e.printStackTrace();
+            logger.error("commnad:{} has faced exception:{} exception message: {}",
+                    command, e.getClass().getSimpleName(), e.getMessage());
             launderThrowable(e);
         } catch (InterruptedException e) {
             e.printStackTrace();
+            logger.error("commnad:{} has faced exception:{} exception message: {}",
+                    command, e.getClass().getSimpleName(), e.getMessage());
             launderThrowable(e);
         }
         return returnCode;
@@ -358,6 +372,9 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
         @Override
         public byte[] call() throws Exception {
+
+            logger.debug("[Read Primitive] start");
+
             byte[] result = null;
 
             int diskId = assignPrimaryDiskId(blockId);
@@ -423,13 +440,15 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     diskStateLocks[diskId].writeLock().unlock();
                 }
             } else {
-                logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk.", diskId);
+                logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
             }
 
             try {} finally {
                 if (diskStateLocks[diskId].getReadLockCount() > 0)
                     diskStateLocks[diskId].readLock().unlock();
             }
+
+            logger.debug("[Read Primitive] end");
 
             return result;
         }
@@ -448,6 +467,9 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
         @Override
         public Boolean call() throws Exception {
+
+            logger.debug("[Write Primitive] start");
+
             boolean result = false;
 
             int diskId = block.getPrimaryDiskId();
@@ -511,13 +533,15 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     diskStateLocks[diskId].writeLock().unlock();
                 }
             } else {
-                logger.debug("Disk {} is not IDLE state when to write to tha disk.", diskId);
+                logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
             }
 
             try {} finally {
                 if (diskStateLocks[diskId].getReadLockCount() > 0)
                     diskStateLocks[diskId].readLock().unlock();
             }
+
+            logger.debug("[Write Primitive] end");
 
             return result;
         }

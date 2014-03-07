@@ -191,6 +191,8 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
     }
 
     private boolean spinDown(int diskId) {
+        logger.debug("Spin-down start. diskId:{}", diskId);
+
         String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
         if (!devicePathCheck(devicePath)) return false;
 
@@ -204,10 +206,15 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         if (rc != 0) return false;
         // TODO increment spin down count.
         // and the other some operation if needed.
+
+        logger.debug("Spin-down end. diskId:{} path:{}", diskId, devicePath);
+
         return true;
     }
 
     private boolean spinUp(int diskId) {
+        logger.debug("Spin-up start. diskId:{}", diskId);
+
         String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
         if (!devicePathCheck(devicePath)) return false;
 
@@ -219,6 +226,9 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         }
         // TODO increment spin up count.
         // and the other some operation if needed.
+
+        logger.debug("Spin-up end. diskId:{} path:{}", diskId, devicePath);
+
         return true;
     }
 
@@ -229,8 +239,14 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             Process process = Runtime.getRuntime().exec(command);
             returnCode = process.waitFor();
         } catch (IOException e) {
+            e.printStackTrace();
+            logger.error("commnad:{} has faced exception:{} exception message: {}",
+                    command, e.getClass().getSimpleName(), e.getMessage());
             launderThrowable(e);
         } catch (InterruptedException e) {
+            e.printStackTrace();
+            logger.error("commnad:{} has faced exception:{} exception message: {}",
+                    command, e.getClass().getSimpleName(), e.getMessage());
             launderThrowable(e);
         }
         return returnCode;
@@ -445,6 +461,9 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
         @Override
         public byte[] call() throws Exception {
+
+            logger.debug("[Read Primitive] start");
+
             byte[] result = null;
 
             diskStateLocks[diskId].readLock().lock();
@@ -512,13 +531,15 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     diskStateLocks[diskId].writeLock().unlock();
                 }
             } else {
-                logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk.", diskId);
+                logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
             }
 
             try {} finally {
                 if (diskStateLocks[diskId].getReadLockCount() > 0)
                     diskStateLocks[diskId].readLock().unlock();
             }
+
+            logger.debug("[Read Primitive] end");
 
             return result;
         }
@@ -536,6 +557,9 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
         @Override
         public Block call() throws Exception {
+
+            logger.debug("[Write Primitive] start");
+
             Block result = null;
 
             int diskId = assignReplicaDiskId(
@@ -605,13 +629,15 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     diskStateLocks[diskId].writeLock().unlock();
                 }
             } else {
-                logger.debug("Disk {} is not IDLE state when to write to tha disk.", diskId);
+                logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
             }
 
             try {} finally {
                 if (diskStateLocks[diskId].getReadLockCount() > 0)
                     diskStateLocks[diskId].readLock().unlock();
             }
+
+            logger.debug("[Write Primitive] end");
 
             return result;
         }
