@@ -26,6 +26,18 @@ public class NormalStorageManager extends StorageManager {
             IDataDiskManager dataDiskManager,
             Parameter parameter) {
         super(bufferManager, cacheDiskManager, dataDiskManager, parameter);
+        init();
+    }
+
+    private void init() {
+        ConcurrentMap<Long, List<Long>> savedMap =
+                new ObjectSerializer<ConcurrentMap>().deSerializeObject(KEY_2_BLOCKID_MAP_NAME);
+        if (savedMap != null) {
+            this.key2blockIdMap = savedMap;
+            logger.info("Saved key to blockId mapping file is reloaded: {}", KEY_2_BLOCKID_MAP_NAME);
+        } else {
+            logger.info("Unloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
+        }
     }
 
     @Override

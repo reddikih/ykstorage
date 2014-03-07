@@ -19,7 +19,7 @@ public class MAIDStorageManager extends StorageManager {
 
     private final static Logger logger = LoggerFactory.getLogger(MAIDStorageManager.class);
 
-    private final String KEY_2_BLOCKID_MAP_NAME = "normalkey2blockidmap";
+    private final String KEY_2_BLOCKID_MAP_NAME = "maidkey2blockidmap";
 
     public MAIDStorageManager(
             IBufferManager bufferManager,
@@ -27,7 +27,19 @@ public class MAIDStorageManager extends StorageManager {
             IDataDiskManager dataDiskManager,
             Parameter parameter) {
         super(bufferManager, cacheDiskManager, dataDiskManager, parameter);
+        init();
         watchdogStart();
+    }
+
+    private void init() {
+        ConcurrentMap<Long, List<Long>> savedMap =
+                new ObjectSerializer<ConcurrentMap>().deSerializeObject(KEY_2_BLOCKID_MAP_NAME);
+        if (savedMap != null) {
+            this.key2blockIdMap = savedMap;
+            logger.info("Saved key to blockId mapping file is reloaded: {}", KEY_2_BLOCKID_MAP_NAME);
+        } else {
+            logger.info("Unloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
+        }
     }
 
     public void watchdogStart() {
@@ -82,6 +94,10 @@ public class MAIDStorageManager extends StorageManager {
 
         tobeCached.addAll(fromDataDiskBlocks);
         for (Block block : tobeCached) {
+            if (block == null) {
+                logger.error("To be cached block(Id):{} is null");
+                continue;
+            }
             this.bufferManager.write(block);
             try {
                 this.cacheDiskManager.write(block);
