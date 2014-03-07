@@ -60,6 +60,10 @@ public class BufferManager implements IBufferManager {
 
     @Override
     public Block write(Block block) {
+        if (block == null) {
+            throw new NullPointerException("To buffer block is null");
+        }
+
         long nowSize;
         synchronized (this) {
             nowSize = this.size;
@@ -77,11 +81,15 @@ public class BufferManager implements IBufferManager {
             return result;
         } else {
             Block removed = this.replacePolicy.add(block);
-            assert removed != null : "Replaced block is null!!";
-
-            logger.info("Write to buffer. replaced blockId:{} with blockId:{}", removed.getBlockId(), block.getBlockId());
 
             this.hashMap.put(block.getBlockId(), block);
+
+            if (removed == null) {
+                logger.debug("Write to buffer blockId:{} due to replaced. But replaced block is null.", block.getBlockId());
+                return null;
+            }
+
+            logger.info("Write to buffer blockId:{} replaced blockId:{}", block.getBlockId(), removed.getBlockId());
 
             return this.hashMap.remove(removed.getBlockId());
         }
