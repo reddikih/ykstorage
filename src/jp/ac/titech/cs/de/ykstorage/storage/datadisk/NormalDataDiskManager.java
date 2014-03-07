@@ -32,6 +32,12 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
     private final static String PLACEMENT_FILE_NAME = "normalddplacementpolicy";
 
+    // TODO clean up
+    private native boolean write(String filePath, byte[] value);
+    private native byte[] read(String filePath);
+    static {
+        System.loadLibrary("normaldatadiskio");
+    }
 
     // TODO to be pull up field
     private boolean deleteOnExit = false;
@@ -267,6 +273,9 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
         @Override
         public byte[] call() throws Exception {
+
+            logger.debug("[Read Primitive] start");
+
             byte[] result = null;
 
             int diskId = assignPrimaryDiskId(blockId);
@@ -285,16 +294,19 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
                     result = new byte[(int)file.length()];
 
-                    BufferedInputStream bis =
-                            new BufferedInputStream(new FileInputStream(file));
-
-                    if (bis.available() < 1)
-                        throw new IOException("[" + this.diskFilePath + "] is not available.");
+//                    BufferedInputStream bis =
+//                            new BufferedInputStream(new FileInputStream(file));
+//
+//                    if (bis.available() < 1)
+//                        throw new IOException("[" + this.diskFilePath + "] is not available.");
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
-                    bis.read(result);
-                    bis.close();
+//                    bis.read(result);
+//                    bis.close();
+
+                    // native read for avoid file system cache.
+                    result = read(file.getCanonicalPath());
 
                     logger.info("Read a block from:{}. DataDiskId:{} Byte:{}",
                             file.getCanonicalPath(), diskId, file.length());
@@ -313,6 +325,8 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                     diskStateLocks[diskId].readLock().unlock();
             }
 
+            logger.debug("[Read Primitive] end");
+
             return result;
         }
     }
@@ -329,6 +343,9 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
         @Override
         public Boolean call() throws Exception {
+
+            logger.debug("[Write Primitive] start");
+
             boolean result = false;
 
             int diskId = block.getPrimaryDiskId();
@@ -347,13 +364,16 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
                     if (!file.exists()) file.createNewFile();
 
-                    BufferedOutputStream bos =
-                            new BufferedOutputStream(new FileOutputStream(file));
+//                    BufferedOutputStream bos =
+//                            new BufferedOutputStream(new FileOutputStream(file));
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
-                    bos.write(this.block.getPayload());
-                    bos.flush();
-                    bos.close();
+//                    bos.write(this.block.getPayload());
+//                    bos.flush();
+//                    bos.close();
+
+                    // native write to avoid file system cache.
+                    write(file.getCanonicalPath(), this.block.getPayload());
 
                     result = true;
 
@@ -373,6 +393,8 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
                 if (diskStateLocks[diskId].getReadLockCount() > 0)
                     diskStateLocks[diskId].readLock().unlock();
             }
+
+            logger.debug("[Write Primitive] end");
 
             return result;
         }

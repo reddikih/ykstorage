@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CC_FILE_PREFIXIES="normaldatadiskio maiddatadiskio raposdadatadiskio"
+CC_FILE_PREFIXIES="normaldatadiskio maiddatadiskio raposdadatadiskio cachediskio"
 
 #CC_FILE=$CC_FILE_PREFIX.cc
 #OBJ_FILE=$CC_FILE_PREFIX.o
