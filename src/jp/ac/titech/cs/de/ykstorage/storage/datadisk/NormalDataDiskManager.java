@@ -228,7 +228,7 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
          * @param ioType
          */
         public OperationTask(Block block, IOType ioType) {
-            this(-1, block, ioType);
+            this(block.getBlockId(), block, ioType);
         }
 
         private OperationTask(long blockId, Block block, IOType ioType) {

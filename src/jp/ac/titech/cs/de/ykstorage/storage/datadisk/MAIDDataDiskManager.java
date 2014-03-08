@@ -145,6 +145,9 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
     }
 
     public Block read(Block block) {
+
+        logger.debug("Read start. blockId:{} ownerDiskId:{}", block.getBlockId(), block.getOwnerDiskId());
+
         Block result;
 
         Callable<Object> operation = new OperationTask(block, IOType.READ);
@@ -161,6 +164,8 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             logger.error(e.getMessage());
             throw launderThrowable(e);
         }
+
+        logger.debug("Read end. blockId:{} ownerDiskId:{}", block.getBlockId(), block.getOwnerDiskId());
 
         return result;
     }
@@ -409,7 +414,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
          * @param ioType
          */
         public OperationTask(Block block, IOType ioType) {
-            this(-1, block, ioType);
+            this(block.getBlockId(), block, ioType);
         }
 
         private OperationTask(long blockId, Block block, IOType ioType) {
