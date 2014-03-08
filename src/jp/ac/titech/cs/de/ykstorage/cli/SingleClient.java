@@ -120,6 +120,8 @@ public class SingleClient {
             conn = new Socket(hostName, port);
             out = conn.getOutputStream();
             out.write(new byte[]{0x00, 0x11});
+            out.flush();
+            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
