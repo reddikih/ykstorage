@@ -240,12 +240,12 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             returnCode = process.waitFor();
         } catch (IOException e) {
             e.printStackTrace();
-            logger.error("commnad:{} has faced exception:{} exception message: {}",
+            logger.error("command:{} has faced exception:{} exception message: {}",
                     command, e.getClass().getSimpleName(), e.getMessage());
             launderThrowable(e);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            logger.error("commnad:{} has faced exception:{} exception message: {}",
+            logger.error("command:{} has faced exception:{} exception message: {}",
                     command, e.getClass().getSimpleName(), e.getMessage());
             launderThrowable(e);
         }
@@ -467,7 +467,9 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             byte[] result = null;
 
             diskStateLocks[diskId].readLock().lock();
-            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
+            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
+                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
+
                 diskStateLocks[diskId].readLock().unlock();
                 diskStateLocks[diskId].writeLock().lock();
 
@@ -494,7 +496,8 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             // and update the disk status IDLE to ACTIVE
             diskStateLocks[diskId].readLock().lock();
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
-                    DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
+                    DiskStateType.IDLE.equals(stateManager.getState(diskId)) ||
+                    DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
                 diskStateLocks[diskId].writeLock().lock();
@@ -567,7 +570,9 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     block.getReplicaLevel());
 
             diskStateLocks[diskId].readLock().lock();
-            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
+            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
+                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
+
                 diskStateLocks[diskId].readLock().unlock();
                 diskStateLocks[diskId].writeLock().lock();
 
@@ -592,7 +597,8 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
             diskStateLocks[diskId].readLock().lock();
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
-                    DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
+                    DiskStateType.IDLE.equals(stateManager.getState(diskId)) ||
+                    DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
                 diskStateLocks[diskId].writeLock().lock();
