@@ -61,7 +61,7 @@ public class RAPoSDABufferManager implements IBufferManager {
             long capacity,
             int blockSize,
             int replicaLevel) {
-        double totalCapacity = Math.ceil((double)capacity / blockSize);
+        double totalCapacity = Math.floor((double)capacity / blockSize);
         return (int)Math.ceil(totalCapacity / (numberOfBuffers * replicaLevel));
     }
 

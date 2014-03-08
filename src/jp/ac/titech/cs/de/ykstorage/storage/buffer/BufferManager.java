@@ -27,7 +27,7 @@ public class BufferManager implements IBufferManager {
     }
 
     private void init(long capacity, int blockSize, double waterMark) {
-        int bufferSize = (int)Math.ceil((double)capacity / blockSize);
+        int bufferSize = (int)Math.floor((double)capacity / blockSize);
         this.capacity = bufferSize;
         this.waterMark = waterMark;
         this.replacePolicy = new LRUBuffer<>((int)this.capacity);

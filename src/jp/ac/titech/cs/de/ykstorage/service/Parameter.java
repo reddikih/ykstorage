@@ -75,7 +75,7 @@ public class Parameter {
     private long convertSizeParameter(String sizeStr) {
         long result = 1L;
         sizeStr = sizeStr.toLowerCase();
-        Matcher m = Pattern.compile("(?<number>[1-9][0-9]*)(?<unit>k|m|g|t)?b?").matcher(sizeStr);
+        Matcher m = Pattern.compile("(?<number>[0-9][0-9]*)(?<unit>k|m|g|t)?b?").matcher(sizeStr);
         if (m.matches()) {
             if(m.group("unit") != null) {
                 switch(m.group("unit")) {
