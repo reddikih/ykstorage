@@ -279,8 +279,10 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
     public void spinUpDiskIfSleeping(int diskId) {
         diskStateLocks[diskId].readLock().lock();
+        boolean readLocked = true;
         if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
             diskStateLocks[diskId].readLock().unlock();
+            readLocked = false;
             diskStateLocks[diskId].writeLock().lock();
 
             try {
@@ -303,7 +305,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         }
 
         try {} finally {
-            if (diskStateLocks[diskId].getReadLockCount() > 0)
+            if (readLocked)
                 diskStateLocks[diskId].readLock().unlock();
         }
     }
@@ -326,8 +328,10 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         logger.debug("diskId: {} is exceeded idleness threshold time", diskId);
 
         diskStateLocks[diskId].readLock().lock();
+        boolean readLocked = true;
         if (DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
             diskStateLocks[diskId].readLock().unlock();
+            readLocked = false;
             diskStateLocks[diskId].writeLock().lock();
 
             try {
@@ -346,7 +350,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         }
 
         try {} finally {
-            if (diskStateLocks[diskId].getReadLockCount() > 0)
+            if (readLocked)
                 diskStateLocks[diskId].readLock().unlock();
         }
     }
@@ -467,10 +471,12 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             byte[] result = null;
 
             diskStateLocks[diskId].readLock().lock();
+            boolean readLocked = true;
             if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
+                readLocked = false;
                 diskStateLocks[diskId].writeLock().lock();
 
                 try {
@@ -487,7 +493,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             }
 
             try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                if (readLocked)
                     diskStateLocks[diskId].readLock().unlock();
             }
 
@@ -495,11 +501,13 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             // when the disk is spinning then we can read the data from it.
             // and update the disk status IDLE to ACTIVE
             diskStateLocks[diskId].readLock().lock();
+            readLocked = true;
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.IDLE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
+                readLocked = false;
                 diskStateLocks[diskId].writeLock().lock();
 
                 try {
@@ -538,7 +546,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             }
 
             try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                if (readLocked)
                     diskStateLocks[diskId].readLock().unlock();
             }
 
@@ -570,10 +578,12 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     block.getReplicaLevel());
 
             diskStateLocks[diskId].readLock().lock();
+            boolean readLocked = true;
             if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
+                readLocked = false;
                 diskStateLocks[diskId].writeLock().lock();
 
                 try {
@@ -590,17 +600,19 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             }
 
             try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                if (readLocked)
                     diskStateLocks[diskId].readLock().unlock();
             }
 
 
             diskStateLocks[diskId].readLock().lock();
+            readLocked = true;
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.IDLE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
+                readLocked = false;
                 diskStateLocks[diskId].writeLock().lock();
 
                 try {
@@ -639,7 +651,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             }
 
             try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                if (readLocked)
                     diskStateLocks[diskId].readLock().unlock();
             }
 
