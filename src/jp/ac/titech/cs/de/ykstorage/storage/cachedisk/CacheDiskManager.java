@@ -31,6 +31,13 @@ public class CacheDiskManager implements ICacheDiskManager {
 
     private final static Logger logger = LoggerFactory.getLogger(CacheDiskManager.class);
 
+    // TODO clean up
+    private native boolean write(String filePath, byte[] value);
+    private native byte[] read(String filePath);
+    static {
+        System.loadLibrary("cachediskio");
+    }
+
     // TODO to be pull up field
     private boolean deleteOnExit = false;
 
@@ -295,29 +302,32 @@ public class CacheDiskManager implements ICacheDiskManager {
 
                     result = new byte[(int)file.length()];
 
-                    BufferedInputStream bis =
-                            new BufferedInputStream(new FileInputStream(file));
-
-                    int waitTimes = 0;
-                    while(true) {
-                        if (bis.available() < 1) {
-                            if (waitTimes >= 100) {
-                                // TODO to be fixed this problem.
-                                logger.error("[{}] is not available. waiting over 1000ms. but continue to this process as cache disk read miss.", this.diskFilePath + blockId);
-                                // throw new IOException("[" + this.diskFilePath + blockId + "] is not available. waiting over 1000ms");
-                                return null;
-                            }
-                            Thread.sleep(10);
-                            waitTimes++;
-                        } else {
-                            break;
-                        }
-                    }
+//                    BufferedInputStream bis =
+//                            new BufferedInputStream(new FileInputStream(file));
+//
+//                    int waitTimes = 0;
+//                    while(true) {
+//                        if (bis.available() < 1) {
+//                            if (waitTimes >= 100) {
+//                                // TODO to be fixed this problem.
+//                                logger.error("[{}] is not available. waiting over 1000ms. but continue to this process as cache disk read miss.", this.diskFilePath + blockId);
+//                                // throw new IOException("[" + this.diskFilePath + blockId + "] is not available. waiting over 1000ms");
+//                                return null;
+//                            }
+//                            Thread.sleep(10);
+//                            waitTimes++;
+//                        } else {
+//                            break;
+//                        }
+//                    }
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
-                    bis.read(result);
-                    bis.close();
+//                    bis.read(result);
+//                    bis.close();
+
+                    // native read for avoid file system cache.
+                    result = read(file.getCanonicalPath());
 
                     logger.info("Read a block from:{}. CacheDiskId:{} Byte:{}",
                             file.getCanonicalPath(), diskId, file.length());
@@ -377,8 +387,8 @@ public class CacheDiskManager implements ICacheDiskManager {
 
                     if (!file.exists()) file.createNewFile();
 
-                    BufferedOutputStream bos =
-                            new BufferedOutputStream(new FileOutputStream(file));
+//                    BufferedOutputStream bos =
+//                            new BufferedOutputStream(new FileOutputStream(file));
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
@@ -387,9 +397,12 @@ public class CacheDiskManager implements ICacheDiskManager {
                         return false;
                     }
 
-                    bos.write(this.block.getPayload());
-                    bos.flush();
-                    bos.close();
+//                    bos.write(this.block.getPayload());
+//                    bos.flush();
+//                    bos.close();
+
+                    // native write to avoid file system cache.
+                    write(file.getCanonicalPath(), this.block.getPayload());
 
                     result = true;
 
