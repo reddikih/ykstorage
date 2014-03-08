@@ -25,4 +25,4 @@ CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/slf4j-api-1.7.2.jar
 CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/logback-classic-1.0.9.jar
 CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/logback-core-1.0.9.jar
 
-java -cp $CLASSPATH $JVM_OPTION jp.ac.titech.cs.de.ykstorage.cli.MaltiClient $1
+java -cp $CLASSPATH $JVM_OPTION jp.ac.titech.cs.de.ykstorage.cli.MultiClient $1
