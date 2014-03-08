@@ -87,6 +87,8 @@ public class MAIDStorageManager extends StorageManager {
                 result.add(block);
                 hitMissIds.remove(blockId);
                 tobeCached.add(block);
+            } else {
+                logger.debug("Read miss at cache disk. blockId:{}", blockId);
             }
         }
 
