@@ -279,9 +279,15 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
     public void spinUpDiskIfSleeping(int diskId) {
         diskStateLocks[diskId].readLock().lock();
-        if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
+        logger.debug("Read lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+
+        if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
+                DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
             diskStateLocks[diskId].readLock().unlock();
+            logger.debug("Read unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+
             diskStateLocks[diskId].writeLock().lock();
+            logger.debug("Write lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
 
             try {
                 stateManager.setState(diskId, DiskStateType.SPINUP);
@@ -290,21 +296,24 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
 
-                    logger.debug("Spun up diskId:{} is successful.", diskId);
+                    logger.debug("Spin up diskId:{} is successful.", diskId);
                 } else {
                     stateManager.setState(diskId, DiskStateType.STANDBY);
-                    logger.debug("Spun up diskId:{} is failed. and return state to STANDBY", diskId);
+                    logger.debug("Spin up diskId:{} is failed. and return state to STANDBY", diskId);
                 }
             } finally {
                 diskStateLocks[diskId].writeLock().unlock();
+                logger.debug("Write unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
             }
         } else {
             logger.debug("DiskId:{} is spinning now.", diskId);
         }
 
         try {} finally {
-            if (diskStateLocks[diskId].getReadLockCount() > 0)
+            if (diskStateLocks[diskId].getReadLockCount() > 0) {
                 diskStateLocks[diskId].readLock().unlock();
+                logger.debug("Read unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+            }
         }
     }
 
