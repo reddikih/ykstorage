@@ -4,7 +4,13 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
@@ -59,6 +65,7 @@ public class MAIDStorageManager extends StorageManager {
         List<Long> hitMissIds = new ArrayList<>();
         List<Block> tobeCached = new ArrayList<>();
 
+        // Read from buffer
         for (long blockId : blockIds) {
             Block block = this.bufferManager.read(blockId);
             if (block != null)
@@ -73,6 +80,7 @@ public class MAIDStorageManager extends StorageManager {
 
         List<Long> copyHitMissIds = new ArrayList<>(hitMissIds);
 
+        // Read from cache disks.
         for (long blockId : copyHitMissIds) {
             Block block = this.cacheDiskManager.read(blockId);
             if (block != null) {
@@ -90,7 +98,8 @@ public class MAIDStorageManager extends StorageManager {
             return convertBlocks2Bytes(result);
         }
 
-        List<Block> fromDataDiskBlocks = this.dataDiskManager.read(hitMissIds);
+        // Read from data disks due to hit miss both on buffer and cache disks
+        List<Block> fromDataDiskBlocks = readFromDataDisks(hitMissIds);
 
         tobeCached.addAll(fromDataDiskBlocks);
         for (Block block : tobeCached) {
@@ -109,6 +118,46 @@ public class MAIDStorageManager extends StorageManager {
         result.addAll(fromDataDiskBlocks);
 
         return convertBlocks2Bytes(result);
+    }
+
+    private List<Block> readFromDataDisks(List<Long> blockIds) {
+        List<Block> results = new ArrayList<>();
+
+        ExecutorService executor = Executors.newCachedThreadPool();
+
+        List<Callable<Block>> readTasks = new ArrayList<>();
+        for (final long blockId : blockIds) {
+            Callable<Block> readTask = new Callable<Block>() {
+                @Override
+                public Block call() throws Exception {
+                    ((MAIDDataDiskManager)dataDiskManager)
+                            .spinUpDiskIfSleeping(getOwnerDiskId(blockId));
+                    Block result = ((MAIDDataDiskManager)dataDiskManager)
+                            .read(new Block(blockId, 0, assignPrimaryDisk(blockId), -1, null));
+
+                    return result;
+                }
+            };
+            readTasks.add(readTask);
+        }
+
+        try {
+            List<Future<Block>> futures =  executor.invokeAll(readTasks);
+            for (Future<Block> future : futures) {
+                Block readResult = future.get();
+                if (readResult != null) {
+                    results.add(readResult);
+                } else {
+                    logger.error("Result block is null. by reading from the data disk");
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return results;
     }
 
     @Override
@@ -134,7 +183,44 @@ public class MAIDStorageManager extends StorageManager {
         }
 
         // write to data disks
-        return this.dataDiskManager.write(blocks);
+//        return this.dataDiskManager.write(blocks);
+        return writeToDataDisk(blocks);
+    }
+
+    private boolean writeToDataDisk(List<Block> blocks) {
+        boolean result = true;
+
+        ExecutorService executor = Executors.newCachedThreadPool();
+
+        List<Callable<Boolean>> writeTasks = new ArrayList<>();
+        for (final Block block : blocks) {
+            Callable<Boolean> writeTask = new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    ((MAIDDataDiskManager)dataDiskManager)
+                            .spinUpDiskIfSleeping(getOwnerDiskId(block.getBlockId()));
+                    Boolean result = ((MAIDDataDiskManager)dataDiskManager).write(block);
+
+                    return result;
+                }
+            };
+            writeTasks.add(writeTask);
+        }
+
+        try {
+            List<Future<Boolean>> futures = executor.invokeAll(writeTasks);
+            for (Future<Boolean> future : futures) {
+                if (!future.get()) {
+                    result = false;
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 
     @Override
@@ -205,6 +291,10 @@ public class MAIDStorageManager extends StorageManager {
 
     // TODO pull up method
     private int assignPrimaryDisk(long blockId) {
+        return this.dataDiskManager.assignPrimaryDiskId(blockId);
+    }
+
+    private int getOwnerDiskId(long blockId) {
         return this.dataDiskManager.assignPrimaryDiskId(blockId);
     }
 

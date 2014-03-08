@@ -117,6 +117,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
         this.startedWatchdog = true;
     }
 
+    @Deprecated
     public List<Block> read(List<Long> blockIds) {
         List<Block> result = new ArrayList<>();
 
@@ -133,13 +134,37 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             }
 
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             throw launderThrowable(e);
         } catch (ExecutionException e) {
+            logger.error(e.getMessage());
             throw launderThrowable(e);
         }
 
         return result;
     }
+
+    public Block read(Block block) {
+        Block result;
+
+        Callable<Object> operation = new OperationTask(block, IOType.READ);
+
+        try {
+            Future<Object> future =
+                    this.diskOperationExecutor.submit(operation);
+            result = (Block)future.get();
+
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage());
+            throw launderThrowable(e);
+        } catch (ExecutionException e) {
+            logger.error(e.getMessage());
+            throw launderThrowable(e);
+        }
+
+        return result;
+    }
+
 
     @Override
     public boolean write(List<Block> blocks) {
@@ -156,8 +181,33 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     result = false;
 
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             throw launderThrowable(e);
         } catch (ExecutionException e) {
+            logger.error(e.getMessage());
+            throw launderThrowable(e);
+        }
+
+        return result;
+    }
+
+    public boolean write(Block block) {
+        boolean result = true;
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        OperationTask operation = new OperationTask(block, IOType.WRITE);
+
+        Future<Object> future = executor.submit(operation);
+        try {
+            if (!(Boolean)future.get()) {
+                result = false;
+            }
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage());
+            throw launderThrowable(e);
+        } catch (ExecutionException e) {
+            logger.error(e.getMessage());
             throw launderThrowable(e);
         }
 
@@ -301,6 +351,40 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
         return pathInfo.getDiskFilePath();
     }
 
+    public void spinUpDiskIfSleeping(int diskId) {
+        diskStateLocks[diskId].readLock().lock();
+
+        logger.debug("Read lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+
+        if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
+                DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
+            diskStateLocks[diskId].readLock().unlock();
+            diskStateLocks[diskId].writeLock().lock();
+
+            try {
+                stateManager.setState(diskId, DiskStateType.SPINUP);
+                if (spinUp(diskId)) {
+                    stateManager.setState(diskId, DiskStateType.IDLE);
+                    stateManager.resetWatchDogTimer(diskId);
+                    stateManager.startIdleStateWatchDog(diskId);
+
+                    logger.debug("Spin up diskId:{} is successful.", diskId);
+                } else {
+                    stateManager.setState(diskId, DiskStateType.STANDBY);
+                    logger.debug("Spin up diskId:{} is failed. and return state to STANDBY", diskId);
+                }
+            } finally {
+                diskStateLocks[diskId].writeLock().unlock();
+            }
+        } else {
+            logger.debug("DiskId:{} is spinning now.", diskId);
+        }
+
+        try {} finally {
+            if (diskStateLocks[diskId].getReadLockCount() > 0)
+                diskStateLocks[diskId].readLock().unlock();
+        }
+    }
 
     private class OperationTask implements Callable<Object> {
 
@@ -378,33 +462,33 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             byte[] result = null;
 
             int diskId = assignPrimaryDiskId(blockId);
-            diskStateLocks[diskId].readLock().lock();
-
-            logger.debug("Read lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-
-            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
-                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
-
-                diskStateLocks[diskId].readLock().unlock();
-                diskStateLocks[diskId].writeLock().lock();
-
-                try {
-                    stateManager.setState(diskId, DiskStateType.SPINUP);
-                    if (!spinUp(diskId))
-                        throw new IllegalStateException(
-                                "Couldn't spin up the disk id: " + diskId);
-
-                    stateManager.setState(diskId, DiskStateType.IDLE);
-
-                } finally {
-                    diskStateLocks[diskId].writeLock().unlock();
-                }
-            }
-
-            try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
-                    diskStateLocks[diskId].readLock().unlock();
-            }
+//            diskStateLocks[diskId].readLock().lock();
+//
+//            logger.debug("Read lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+//
+//            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
+//                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
+//
+//                diskStateLocks[diskId].readLock().unlock();
+//                diskStateLocks[diskId].writeLock().lock();
+//
+//                try {
+//                    stateManager.setState(diskId, DiskStateType.SPINUP);
+//                    if (!spinUp(diskId))
+//                        throw new IllegalStateException(
+//                                "Couldn't spin up the disk id: " + diskId);
+//
+//                    stateManager.setState(diskId, DiskStateType.IDLE);
+//
+//                } finally {
+//                    diskStateLocks[diskId].writeLock().unlock();
+//                }
+//            }
+//
+//            try {} finally {
+//                if (diskStateLocks[diskId].getReadLockCount() > 0)
+//                    diskStateLocks[diskId].readLock().unlock();
+//            }
 
 
             // when the disk is spinning then we can read the data from it.
@@ -418,7 +502,9 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
+                logger.debug("Read unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
                 diskStateLocks[diskId].writeLock().lock();
+                logger.debug("Write lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
 
                 try {
                     File file = new File(this.diskFilePath + blockId);
@@ -447,14 +533,17 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
+                    logger.debug("Write unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
                 }
             } else {
                 logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
             }
 
             try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                if (diskStateLocks[diskId].getReadLockCount() > 0) {
                     diskStateLocks[diskId].readLock().unlock();
+                    logger.debug("Read unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                }
             }
 
             logger.debug("[Read Primitive] end");
@@ -482,33 +571,33 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
             boolean result = false;
 
             int diskId = block.getPrimaryDiskId();
-            diskStateLocks[diskId].readLock().lock();
-
-            logger.debug("Read lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-
-            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
-                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
-
-                diskStateLocks[diskId].readLock().unlock();
-                diskStateLocks[diskId].writeLock().lock();
-
-                try {
-                    stateManager.setState(diskId, DiskStateType.SPINUP);
-                    if (!spinUp(diskId))
-                        throw new IllegalStateException(
-                                "Couldn't spin up the disk id: " + diskId);
-
-                    stateManager.setState(diskId, DiskStateType.IDLE);
-
-                } finally {
-                    diskStateLocks[diskId].writeLock().unlock();
-                }
-            }
-
-            try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
-                    diskStateLocks[diskId].readLock().unlock();
-            }
+//            diskStateLocks[diskId].readLock().lock();
+//
+//            logger.debug("Read lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+//
+//            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
+//                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
+//
+//                diskStateLocks[diskId].readLock().unlock();
+//                diskStateLocks[diskId].writeLock().lock();
+//
+//                try {
+//                    stateManager.setState(diskId, DiskStateType.SPINUP);
+//                    if (!spinUp(diskId))
+//                        throw new IllegalStateException(
+//                                "Couldn't spin up the disk id: " + diskId);
+//
+//                    stateManager.setState(diskId, DiskStateType.IDLE);
+//
+//                } finally {
+//                    diskStateLocks[diskId].writeLock().unlock();
+//                }
+//            }
+//
+//            try {} finally {
+//                if (diskStateLocks[diskId].getReadLockCount() > 0)
+//                    diskStateLocks[diskId].readLock().unlock();
+//            }
 
 
             diskStateLocks[diskId].readLock().lock();
@@ -520,7 +609,10 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
                     DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
+                logger.debug("Read unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+
                 diskStateLocks[diskId].writeLock().lock();
+                logger.debug("Write lock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
 
                 try {
                     File file = new File(diskFilePath + block.getBlockId());
@@ -549,14 +641,17 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
                 } finally {
                     diskStateLocks[diskId].writeLock().unlock();
+                    logger.debug("Write unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
                 }
             } else {
                 logger.debug("Disk {} is not ACTIVE or IDLE state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
             }
 
             try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                if (diskStateLocks[diskId].getReadLockCount() > 0) {
                     diskStateLocks[diskId].readLock().unlock();
+                    logger.debug("Read unlock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                }
             }
 
             logger.debug("[Write Primitive] end");
