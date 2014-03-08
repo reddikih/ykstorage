@@ -73,7 +73,7 @@ public class MultiClient {
 			Request req = workload.getRequest();
 			requestCount++;
 			
-			future.add(scheduler.schedule(new ClientTask(req, hostName, port), req.getDelay(), TimeUnit.MILLISECONDS));
+			future.add(scheduler.schedule(new ClientTask(req, requestCount, hostName, port), req.getDelay(), TimeUnit.MILLISECONDS));
 		}
 		
 		boolean isDone = false;

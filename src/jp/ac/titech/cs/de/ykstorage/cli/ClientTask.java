@@ -3,6 +3,7 @@ package jp.ac.titech.cs.de.ykstorage.cli;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
@@ -11,11 +12,13 @@ import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
 
 public class ClientTask implements Runnable {
 	private final Request req;
+	private int requestCount;
 	private int port;
 	private String hostName;
 	
-	public ClientTask(Request req, String hostName, int port) {
+	public ClientTask(Request req, int requestCount, String hostName, int port) {
 		this.req = req;
+		this.requestCount = requestCount;
 		this.hostName = hostName;
 		this.port = port;
 	}
@@ -33,10 +36,10 @@ public class ClientTask implements Runnable {
 			
 			if (RequestCommand.READ.equals(req.getType())) {
 				//System.out.printf("[%s] thread: %ld key:%d --- ", req.getType(), Thread.currentThread().getId(), req.getKey());
-				System.out.printf("[%s] key:%d --- ", req.getType(), req.getKey());
+				System.out.printf("%5d [%s] key:%d --- ", requestCount, req.getType(), req.getKey());
 			} else if (RequestCommand.WRITE.equals(req.getType())) {
 				//System.out.printf("[%s] thread: %ld key:%d size:%d --- ", req.getType(), Thread.currentThread().getId(), req.getKey(), req.getSize());
-				System.out.printf("[%s] key:%d size:%d --- ", req.getType(), req.getKey(), req.getSize());
+				System.out.printf("%5d [%s] key:%d size:%d --- ", requestCount, req.getType(), req.getKey(), req.getSize());
 			}
 			
 			long start = System.nanoTime();
@@ -49,9 +52,11 @@ public class ClientTask implements Runnable {
 			long end = System.nanoTime();
 			
 			ResponseHeader respHeader = response.getHeader();
-			System.out.printf("%d ResponseTime: %.6f [s]\n", respHeader.getStatus(), (double)(end - start) / 1000000000);
+			System.out.printf("[%5d] %d ResponseTime: %.6f [s]\n", requestCount, respHeader.getStatus(), (double)(end - start) / 1000000000);
 			
 			conn.close();
+		} catch (SocketException e) {
+			e.printStackTrace();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 			System.exit(1);
