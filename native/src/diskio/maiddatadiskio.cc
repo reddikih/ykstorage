@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager.h"
+#include "jp_ac_titech_cs_de_ykstorage_storage_datadisk_MAIDDataDiskManager.h"
 
 #define BLOCK_SIZE 512
 
@@ -27,12 +27,12 @@ void debug_buffer_contents(jbyte* buffer, long size)
 }
 
 /*
- * Class:     jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager
+ * Class:     jp_ac_titech_cs_de_ykstorage_storage_datadisk_MAIDDataDiskManager
  * Method:    write
  * Signature: (Ljava/lang/String;[B)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager_write
+Java_jp_ac_titech_cs_de_ykstorage_storage_datadisk_MAIDDataDiskManager_write
 (JNIEnv *env, jobject thisObj, jstring filePath, jbyteArray byteArray)
 {
   int fd;
@@ -57,23 +57,23 @@ Java_jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager_write
   memset(buf, 0, buf_size);
   // debug_buffer_contents(buf, buf_size);
   env->GetByteArrayRegion(
-      byteArray,
-      0,
-      env->GetArrayLength(byteArray),
-      buf);
+			  byteArray,
+			  0,
+			  env->GetArrayLength(byteArray),
+			  buf);
 
   ret = write(fd, buf, buf_size);
   if (ret >= 0) {
     // printf("write successful. written bytes: %ld\n", ret);
     retVal = JNI_TRUE;
   } else {
-    printf("write failed: %s\n", strerror(errno));
+    printf("[JNI] write failed: %s\n", strerror(errno));
     retVal = JNI_FALSE;
   }
 
   ret = close(fd);
   if (ret < 0) {
-    printf("couldn't close the file: %s\n", strerror(errno));
+    printf("[JNI] couldn't close the file: %s\n", strerror(errno));
     retVal = JNI_FALSE;
   }
 
@@ -82,12 +82,12 @@ Java_jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager_write
 }
 
 /*
- * Class:     jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager
+ * Class:     jp_ac_titech_cs_de_ykstorage_storage_datadisk_MAIDDataDiskManager
  * Method:    read
  * Signature: (Ljava/lang/String;)[B
  */
 JNIEXPORT jbyteArray JNICALL
-Java_jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager_read
+Java_jp_ac_titech_cs_de_ykstorage_storage_datadisk_MAIDDataDiskManager_read
 (JNIEnv *env, jobject thisObj, jstring filePath)
 {
   long file_size, buf_size, ret;
@@ -125,12 +125,12 @@ Java_jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager_read
     // convert native byte array to java byte array
     retVal = env->NewByteArray(buf_size / sizeof(jbyte));
     env->SetByteArrayRegion(
-  	(jbyteArray)retVal,
-  	0,
-  	buf_size / sizeof(jbyte),
-  	buf);
+			    (jbyteArray)retVal,
+			    0,
+			    buf_size / sizeof(jbyte),
+			    buf);
   } else {
-    printf("read failed: %s\n", strerror(errno));
+    printf("[JNI] read failed: %s\n", strerror(errno));
     retVal = env->NewByteArray(0);
   }
 
@@ -138,7 +138,7 @@ Java_jp_ac_titech_cs_de_ykstorage_service_MAIDDataDiskManager_read
 
   ret = close(fd);
   if (ret < 0) {
-    printf("couldn't close the file: %s\n", strerror(errno));
+    printf("[JNI] couldn't close the file: %s\n", strerror(errno));
   }
 
   free(buf);

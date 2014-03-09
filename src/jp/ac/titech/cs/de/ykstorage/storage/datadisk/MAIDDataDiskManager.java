@@ -38,7 +38,7 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
     private native boolean write(String filePath, byte[] value);
     private native byte[] read(String filePath);
     static {
-        System.loadLibrary("raposdadatadiskio");
+        System.loadLibrary("maiddatadiskio");
     }
 
     // TODO to be pull up field
