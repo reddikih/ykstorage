@@ -30,11 +30,6 @@ public class MultiClient {
 	private int port;
 	private String hostName;
 	
-	private int requestCount;
-	private long totalResponseTime;
-	
-	private int errorCount;
-	
 	private ScheduledExecutorService scheduler;
 	
 	public static MultiClient getInstance() {
@@ -54,8 +49,8 @@ public class MultiClient {
 			this.hostName = config.getProperty("server.info.hostname");
 			this.port = Integer.parseInt(config.getProperty("server.info.port"));
 			
-			this.scheduler = Executors.newScheduledThreadPool(this.thread);
-			
+			//this.scheduler = Executors.newScheduledThreadPool(this.thread);
+			this.scheduler = Executors.newScheduledThreadPool(3);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -64,7 +59,10 @@ public class MultiClient {
 	
 	public void start() {
 		ArrayList<ScheduledFuture> future = new ArrayList<ScheduledFuture>(workload.size());
-		requestCount = 0;
+		int requestCount = 0;
+		int errorCount = 0;
+		long totalDelay = 0L;
+		long totalResponseTime = 0L;
 		
 		System.out.println("Start MultiClient. " + Calendar.getInstance().getTime().toString());
 		long execStartTime = System.currentTimeMillis();
@@ -72,8 +70,9 @@ public class MultiClient {
 		while(workload.size() > 0) {
 			Request req = workload.getRequest();
 			requestCount++;
+			totalDelay += req.getDelay();
 			
-			future.add(scheduler.schedule(new ClientTask(req, requestCount, hostName, port), req.getDelay(), TimeUnit.MILLISECONDS));
+			future.add(scheduler.schedule(new ClientTask(req, requestCount, hostName, port), totalDelay, TimeUnit.MILLISECONDS));
 		}
 		
 		boolean isDone = false;
