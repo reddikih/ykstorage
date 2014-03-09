@@ -61,7 +61,7 @@ public class RAPoSDAStorageManager extends StorageManager {
                 new ObjectSerializer<HashMap>().deSerializeObject(KEY_2_BLOCKID_MAP_NAME);
         if (savedMap != null) {
             this.key2blockIdMap = savedMap;
-            logger.info("Saved key to blockId mapping file is reloaded: {}", KEY_2_BLOCKID_MAP_NAME);
+            logger.info("Reloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
         } else {
             logger.info("Unloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
         }
