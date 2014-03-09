@@ -5,7 +5,7 @@ JVM_OPTION="-Xms12000m -Xmx12000m"
 
 echo "YKSTORAGE_HOME = " $YKSTORAGE_HOME
 
-CONFIG_PATH=$YKSTORAGE_HOME/config/client_test/initial.properties
+CONFIG_PATH=$YKSTORAGE_HOME/config/client_test/initialNormal.properties
 
 if [ ! -e ${CONFIG_PATH} -o ! -f ${CONFIG_PATH} ];then
     echo ${CONFIG_PATH} "is not exist or not a file!"
@@ -34,7 +34,7 @@ CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/slf4j-api-1.7.2.jar
 CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/logback-classic-1.0.9.jar
 CLASSPATH=$CLASSPATH$SEPARATOR${YKSTORAGE_HOME}/lib/logback-core-1.0.9.jar
 
-rm -rf ${YKSTORAGE_HOME}/raposda*
+rm -rf ${YKSTORAGE_HOME}/normal*
 rm -rf ${YKSTORAGE_HOME}/data
 
 echo "start StorageService." `date` 1>&2
