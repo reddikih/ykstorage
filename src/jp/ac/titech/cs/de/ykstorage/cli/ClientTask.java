@@ -38,10 +38,10 @@ public class ClientTask implements Callable<Response> {
 			byte[] request = req.getRequest();
 			
 			if (RequestCommand.READ.equals(req.getType())) {
-				message += requestCount + "[" + req.getType() + "] key:" + req.getKey() + " --- \n";
+				message += requestCount + "[" + req.getType() + "] key:" + req.getKey() + " --- ";
 //				System.out.printf("%5d [%s] key:%d --- ", requestCount, req.getType(), req.getKey());
 			} else if (RequestCommand.WRITE.equals(req.getType())) {
-				message += requestCount + "[" + req.getType() + "] key:" + req.getKey() + " size:" + req.getSize() + " --- \n";
+				message += requestCount + "[" + req.getType() + "] key:" + req.getKey() + " size:" + req.getSize() + " --- ";
 //				System.out.printf("%5d [%s] key:%d size:%d --- ", requestCount, req.getType(), req.getKey(), req.getSize());
 			}
 			
@@ -63,7 +63,7 @@ public class ClientTask implements Callable<Response> {
 		} catch (SocketException e) {
 			e.printStackTrace();
 			error = true;
-			message += "Request count: " + requestCount;
+//			message += "Request count: " + requestCount;
 //			System.err.println("Request count: " + requestCount);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
