@@ -281,6 +281,7 @@ public class RAPoSDAStorageManager extends StorageManager {
                 createReplicatedBlocks(blockIds, value, Block.BLOCK_SIZE);
 
         // Write to the buffer for each block
+        //TODO to be concurrent process for each blocks.
         for (List<Block> replicas : blocks) {
             for (Block block : replicas) {
                 Block result = this.bufferManager.write(block);
@@ -318,6 +319,9 @@ public class RAPoSDAStorageManager extends StorageManager {
 
                     toBeFlushedBlocks.addAll(correspondingBlocks);
 
+                    // add the momentum block to blocks list to be flushed.
+                    toBeFlushedBlocks.add(block);
+
                     List<Block> toBeRemoved =
                             ((RAPoSDADataDiskManager) dataDiskManager).writeBlocks(toBeFlushedBlocks);
 
@@ -332,7 +336,7 @@ public class RAPoSDAStorageManager extends StorageManager {
 
                     Block written = this.bufferManager.write(block);
                     if (written == null)
-                        logger.debug("Write block(Id):{} is failed.", block.getBlockId());
+                        logger.debug("Write to buffer failed. block(Id):{}.", block.getBlockId());
 
                     // When the blocks is flushed to data disks, then these are
                     // written to the cache disks asynchronously.

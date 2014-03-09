@@ -34,6 +34,8 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
     private final static String PLACEMENT_FILE_NAME = "raposdaddplacementpolicy";
 
+    private final static String SPINUP_OBJ_NAME = "spinup.object";
+
     // TODO clean up
     private native boolean write(String filePath, byte[] value);
     private native byte[] read(String filePath);
@@ -215,21 +217,47 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
     private boolean spinUp(int diskId) {
         logger.debug("Spin-up start. diskId:{}", diskId);
 
+        boolean result;
         String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
-        if (!devicePathCheck(devicePath)) return false;
-
-        String command = "ls " + devicePath;
-        int rc = executeExternalCommand(command);
-        logger.debug("return value of [{}]: {}", command, rc);
-        if (rc != 0) {
-            return false;
-        }
+//        if (!devicePathCheck(devicePath)) return false;
+//
+//        String command = "ls " + devicePath;
+//        int rc = executeExternalCommand(command);
+//        logger.debug("return value of [{}]: {}", command, rc);
+//        if (rc != 0) {
+//            return false;
+//        }
         // TODO increment spin up count.
         // and the other some operation if needed.
 
-        logger.debug("Spin-up end. diskId:{} path:{}", diskId, devicePath);
+        result = spinUpProcess(diskId);
 
-        return true;
+        logger.debug("Spin-up end. diskId:{} path:{} result:{}", diskId, devicePath, result);
+
+        return result;
+    }
+
+    private boolean spinUpProcess(int diskId) {
+        boolean result = false;
+
+        String diskFilePath =
+                this.diskId2FilePath.get(diskId).getDiskFilePath();
+        File file = new File(diskFilePath + SPINUP_OBJ_NAME);
+        try {
+            if (deleteOnExit) file.deleteOnExit();
+            checkDataDir(file.getParent());
+            if (!file.exists()) file.createNewFile();
+
+            // native write to avoid file system cache.
+            write(file.getCanonicalPath(), new byte[]{0x7F});
+
+            result = true;
+        } catch (IOException e) {
+            logger.error("To spinUp access is faild. path:{} error:{}",
+                    diskFilePath + SPINUP_OBJ_NAME, e.getMessage());
+        }
+
+        return result;
     }
 
     private int executeExternalCommand(String command) {
