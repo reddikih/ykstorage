@@ -139,7 +139,7 @@ public class SingleClient {
     }
 	
 	public static void main(String[] args) {
-		if(args.length < 1) {
+		if(args.length < 2) {
 			System.out.println("Usage: SingleClient <config file> <workload file>");
 			System.exit(1);
 		}
