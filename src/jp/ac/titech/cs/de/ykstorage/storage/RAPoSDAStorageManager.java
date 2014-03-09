@@ -172,7 +172,7 @@ public class RAPoSDAStorageManager extends StorageManager {
 
             // case 1. one of N disks is active or idle
             if (activeDiskIds.size() == 1) {
-                logger.debug("[Read from DataDisk] case 1.one of N disks is active or idle. diskId:{}", activeDiskIds.get(0));
+                logger.debug("[Read from DataDisk] case 1.one of N disks is active or idle. diskId:{} N:{}", activeDiskIds.get(0), parameter.numberOfDataDisks);
 
                 long blockId = did2bid.get(activeDiskIds.get(0));
                 Block block = new Block(
@@ -181,12 +181,16 @@ public class RAPoSDAStorageManager extends StorageManager {
                         primaryDiskId,
                         -1,
                         null);
+
+                ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(
+                        assignReplicaDiskId(block.getPrimaryDiskId(), block.getReplicaLevel()));
+
                 result = ((RAPoSDADataDiskManager)dataDiskManager).read(block);
             }
 
             // case 2. M of N disks are active or idle (0 < M <= N)
             else if (0 < activeDiskIds.size() && activeDiskIds.size() <= diskIds.size()) {
-                logger.debug("[Read from DataDisk] M of N disks are active or idle (0 < M <= N) M:{}", activeDiskIds.size());
+                logger.debug("[Read from DataDisk] M of N disks are active or idle (0 < M <= N) M:{} N:{}", activeDiskIds.size(), parameter.numberOfDataDisks);
 
                 int maximumLengthDiskId = -1;
                 int maximumBufferLength = -1;
@@ -216,7 +220,7 @@ public class RAPoSDAStorageManager extends StorageManager {
             // case 3. all of N disks are standby
             else {
 
-                logger.debug("[Read from DataDisk] case 3. all of N disks are standby", activeDiskIds.size());
+                logger.debug("[Read from DataDisk] case 3. all of N disks are standby. N:{}", activeDiskIds.size(), parameter.numberOfDataDisks);
 
                 // 停止期間の長いディスクから
                 int longestSleepingDiskId = -1;
@@ -293,6 +297,13 @@ public class RAPoSDAStorageManager extends StorageManager {
                             ((RAPoSDABufferManager)bufferManager)
                                     .getMaximumBufferLengthDiskId(
                                             overflowedBufferId, block.getReplicaLevel());
+
+                    if (maximumBufferedDiskId < 0) {
+                        logger.debug(
+                                "maximumBufferedDiskId is invalid:{} set its value to block's ownerDiskId:{}",
+                                maximumBufferedDiskId, block.getOwnerDiskId());
+                        maximumBufferedDiskId = block.getOwnerDiskId();
+                    }
 
                     ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(maximumBufferedDiskId);
 
