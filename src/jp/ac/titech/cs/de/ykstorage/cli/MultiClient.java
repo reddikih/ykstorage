@@ -4,19 +4,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
-import jp.ac.titech.cs.de.ykstorage.frontend.RequestCommand;
-import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
 
 public class MultiClient {
 	
@@ -49,8 +44,7 @@ public class MultiClient {
 			this.hostName = config.getProperty("server.info.hostname");
 			this.port = Integer.parseInt(config.getProperty("server.info.port"));
 			
-			//this.scheduler = Executors.newScheduledThreadPool(this.thread);
-			this.scheduler = Executors.newScheduledThreadPool(3);
+			this.scheduler = Executors.newScheduledThreadPool(this.thread);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -58,7 +52,7 @@ public class MultiClient {
 	}
 	
 	public void start() {
-		ArrayList<ScheduledFuture> future = new ArrayList<ScheduledFuture>(workload.size());
+		ArrayList<ScheduledFuture<Response>> future = new ArrayList<ScheduledFuture<Response>>(workload.size());
 		int requestCount = 0;
 		int errorCount = 0;
 		long totalDelay = 0L;
@@ -78,18 +72,36 @@ public class MultiClient {
 		boolean isDone = false;
 		while(!isDone) {
 			isDone = true;
-			for(ScheduledFuture f : future) {
+			for(ScheduledFuture<Response> f : future) {
 				isDone &= f.isDone();
 			}
-//			ResponseHeader respHeader = response.getHeader();
+		}
+		
+		for(ScheduledFuture<Response> f : future) {
+			try {
+				Response res = (Response) f.get();
+				
+				if(res.isError()) {
+					errorCount++;
+				} else {
+					totalResponseTime += res.getResponseTime();
+				}
+				
+				System.out.println(res.getMessage());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		try {
 			scheduler.shutdown();
-			boolean await = scheduler.awaitTermination(10, TimeUnit.SECONDS);
-			System.out.println("await: " + await);
+			boolean await = scheduler.awaitTermination(30, TimeUnit.SECONDS);
 			boolean terminate = scheduler.isTerminated();
-			System.out.println("terminate: " + terminate);
+			if(!(await && terminate)) {
+				scheduler.shutdownNow();
+			}
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
@@ -108,6 +120,7 @@ public class MultiClient {
 		long execEndTime = System.currentTimeMillis();
 
 		System.out.println("----------------------------------------------------");
+		System.out.printf("Number of threads: %d\n", thread);
 		System.out.printf("Total requests: %d\n", requestCount);
 		System.out.printf("Error requests: %d\n", errorCount);
 		System.out.printf("Average response time: %.6f [s]\n", (double) totalResponseTime / requestCount / 1000000000);

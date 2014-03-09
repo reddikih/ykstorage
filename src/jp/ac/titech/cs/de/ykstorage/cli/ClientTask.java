@@ -5,12 +5,13 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.concurrent.Callable;
 
 import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
 import jp.ac.titech.cs.de.ykstorage.frontend.RequestCommand;
 import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
 
-public class ClientTask implements Runnable {
+public class ClientTask implements Callable<Response> {
 	private final Request req;
 	private int requestCount;
 	private int port;
@@ -24,22 +25,24 @@ public class ClientTask implements Runnable {
 	}
 	
 	@Override
-	public void run() {
-		Socket conn;
-		OutputStream out;
+	public Response call() {
+		ClientResponse response = null;
+		String message = "";
+		long responseTime = 0L;
+		boolean error = false;
 		
 		try {
-			conn = new Socket(hostName, port);
-			out = conn.getOutputStream();
+			Socket conn = new Socket(hostName, port);
+			OutputStream out = conn.getOutputStream();
 			
 			byte[] request = req.getRequest();
 			
 			if (RequestCommand.READ.equals(req.getType())) {
-				//System.out.printf("[%s] thread: %ld key:%d --- ", req.getType(), Thread.currentThread().getId(), req.getKey());
-				System.out.printf("%5d [%s] key:%d --- ", requestCount, req.getType(), req.getKey());
+				message += requestCount + "[" + req.getType() + "] key:" + req.getKey() + " --- \n";
+//				System.out.printf("%5d [%s] key:%d --- ", requestCount, req.getType(), req.getKey());
 			} else if (RequestCommand.WRITE.equals(req.getType())) {
-				//System.out.printf("[%s] thread: %ld key:%d size:%d --- ", req.getType(), Thread.currentThread().getId(), req.getKey(), req.getSize());
-				System.out.printf("%5d [%s] key:%d size:%d --- ", requestCount, req.getType(), req.getKey(), req.getSize());
+				message += requestCount + "[" + req.getType() + "] key:" + req.getKey() + " size:" + req.getSize() + " --- \n";
+//				System.out.printf("%5d [%s] key:%d size:%d --- ", requestCount, req.getType(), req.getKey(), req.getSize());
 			}
 			
 			long start = System.nanoTime();
@@ -47,16 +50,21 @@ public class ClientTask implements Runnable {
 			out.write(request);
 			out.flush();
 			
-			ClientResponse response = new ClientResponse(conn);
+			response = new ClientResponse(conn);
 			
 			long end = System.nanoTime();
+			responseTime = end - start;
 			
 			ResponseHeader respHeader = response.getHeader();
-			System.out.printf("[%5d] %d ResponseTime: %.6f [s]\n", requestCount, respHeader.getStatus(), (double)(end - start) / 1000000000);
+			message += requestCount + " [" + respHeader.getStatus() + "] ResponseTime: " + (double) responseTime / 1000000000 + "[s]";
+//			System.out.printf("[%5d] %d ResponseTime: %.6f [s]\n", requestCount, respHeader.getStatus(), responseTime);
 			
 			conn.close();
 		} catch (SocketException e) {
 			e.printStackTrace();
+			error = true;
+			message += "Request count: " + requestCount;
+//			System.err.println("Request count: " + requestCount);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -64,5 +72,7 @@ public class ClientTask implements Runnable {
 			e.printStackTrace();
 			System.exit(1);
 		}
+		
+		return new Response(response, message, responseTime, error);
 	}
 }
