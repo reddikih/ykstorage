@@ -46,9 +46,9 @@ public class Block {
 
     public synchronized void setDiskGroupId(int diskGroupId) {this.diskGroupId = diskGroupId;}
 
-    public int getOwnerDiskId() {return ownerDiskId;}
+    public synchronized int getOwnerDiskId() {return ownerDiskId;}
 
-    public void setOwnerDiskId(int ownerDiskId) {this.ownerDiskId = ownerDiskId;}
+    public synchronized void setOwnerDiskId(int ownerDiskId) {this.ownerDiskId = ownerDiskId;}
 
     public synchronized byte[] getPayload() {return payload;}
 
