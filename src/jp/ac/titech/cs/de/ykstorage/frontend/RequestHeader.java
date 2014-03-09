@@ -63,7 +63,7 @@ public class RequestHeader {
             for (byte b : lengthVal)
                 this.length = (this.length << 8) + (b & 0xff);
 
-            logger.debug("Request command:{}, key:{}, length:{}", getCommand(), getKey(), getLength());
+            logger.trace("Request command:{}, key:{}, length:{}", getCommand(), getKey(), getLength());
 
         } catch (IOException e) {
             e.printStackTrace();

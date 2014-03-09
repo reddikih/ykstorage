@@ -43,7 +43,7 @@ public class ResponseHeader {
         for (byte b : lengthByte)
             this.length = (this.length << 8) + (b & 0xff);
 
-        logger.debug("Response key:{}, status:{}, length:{}", getKey(), getStatus(), getLength());
+        logger.trace("Response key:{}, status:{}, length:{}", getKey(), getStatus(), getLength());
     }
 
     public int getStatus() {return status;}
