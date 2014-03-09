@@ -88,7 +88,7 @@ public class MultiClient {
 					totalResponseTime += res.getResponseTime();
 				}
 				
-				System.out.println(res.getMessage());
+//				System.out.println(res.getMessage());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ExecutionException e) {

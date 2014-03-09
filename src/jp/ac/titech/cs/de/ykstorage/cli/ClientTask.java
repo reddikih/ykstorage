@@ -73,6 +73,7 @@ public class ClientTask implements Callable<Response> {
 			System.exit(1);
 		}
 		
+		System.out.println(message);
 		return new Response(response, message, responseTime, error);
 	}
 }
