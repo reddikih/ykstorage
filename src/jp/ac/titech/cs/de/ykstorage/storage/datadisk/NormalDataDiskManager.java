@@ -280,11 +280,13 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
             int diskId = assignPrimaryDiskId(blockId);
             diskStateLocks[diskId].readLock().lock();
+            boolean readLocked = true;
 
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
+                readLocked = false;
                 diskStateLocks[diskId].writeLock().lock();
 
                 try {
@@ -321,7 +323,7 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
             }
 
             try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                if (readLocked)
                     diskStateLocks[diskId].readLock().unlock();
             }
 
@@ -350,10 +352,13 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
 
             int diskId = block.getPrimaryDiskId();
             diskStateLocks[diskId].readLock().lock();
+            boolean readLocked = true;
+
             if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
 
                 diskStateLocks[diskId].readLock().unlock();
+                readLocked = false;
                 diskStateLocks[diskId].writeLock().lock();
 
                 try {
@@ -390,7 +395,7 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
             }
 
             try {} finally {
-                if (diskStateLocks[diskId].getReadLockCount() > 0)
+                if (readLocked)
                     diskStateLocks[diskId].readLock().unlock();
             }
 
