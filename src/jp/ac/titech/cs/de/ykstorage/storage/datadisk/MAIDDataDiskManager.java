@@ -32,6 +32,15 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
     private final static String PLACEMENT_FILE_NAME = "maidddplacementpolicy";
 
+    private final static String SPINUP_OBJ_NAME = "spinup.object";
+
+    // TODO clean up
+    private native boolean write(String filePath, byte[] value);
+    private native byte[] read(String filePath);
+    static {
+        System.loadLibrary("raposdadatadiskio");
+    }
+
     // TODO to be pull up field
     private boolean deleteOnExit = false;
 
@@ -244,19 +253,45 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
     private boolean spinUp(int diskId) {
         logger.debug("Spin-up start. diskId:{}", diskId);
 
+        boolean result;
         String devicePath = this.diskId2FilePath.get(diskId).getDevicePath();
-        if (!devicePathCheck(devicePath)) return false;
-
-        String command = "ls " + devicePath;
-        int rc = executeExternalCommand(command);
-        logger.debug("return value of [{}]: {}", command, rc);
-        if (rc != 0) return false;
+//        if (!devicePathCheck(devicePath)) return false;
+//
+//        String command = "ls " + devicePath;
+//        int rc = executeExternalCommand(command);
+//        logger.debug("return value of [{}]: {}", command, rc);
+//        if (rc != 0) return false;
         // TODO increment spin up count.
         // and the other some operation if needed.
 
-        logger.debug("Spin-up end. diskId:{} path:{}", diskId, devicePath);
+        result = spinUpProcess(diskId);
+
+        logger.debug("Spin-up end. diskId:{} path:{} result:{}", diskId, devicePath, result);
 
         return true;
+    }
+
+    private boolean spinUpProcess(int diskId) {
+        boolean result = false;
+
+        String diskFilePath =
+                this.diskId2FilePath.get(diskId).getDiskFilePath();
+        File file = new File(diskFilePath + SPINUP_OBJ_NAME);
+        try {
+            if (deleteOnExit) file.deleteOnExit();
+            checkDataDir(file.getParent());
+            if (!file.exists()) file.createNewFile();
+
+            // native write to avoid file system cache.
+            write(file.getCanonicalPath(), new byte[]{0x7F});
+
+            result = true;
+        } catch (IOException e) {
+            logger.error("To spinUp access is faild. path:{} error:{}",
+                    diskFilePath + SPINUP_OBJ_NAME, e.getMessage());
+        }
+
+        return result;
     }
 
     private int executeExternalCommand(String command) {
@@ -523,16 +558,19 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
                     result = new byte[(int)file.length()];
 
-                    BufferedInputStream bis =
-                            new BufferedInputStream(new FileInputStream(file));
-
-                    if (bis.available() < 1)
-                        throw new IOException("[" + this.diskFilePath + "] is not available.");
+//                    BufferedInputStream bis =
+//                            new BufferedInputStream(new FileInputStream(file));
+//
+//                    if (bis.available() < 1)
+//                        throw new IOException("[" + this.diskFilePath + "] is not available.");
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
 
-                    bis.read(result);
-                    bis.close();
+//                    bis.read(result);
+//                    bis.close();
+
+                    // native read for avoid file system cache.
+                    result = read(file.getCanonicalPath());
 
                     logger.info("Read a block from:{}. DataDiskId:{} Byte:{}",
                             file.getCanonicalPath(), diskId, file.length());
@@ -630,13 +668,16 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
 
                     if (!file.exists()) file.createNewFile();
 
-                    BufferedOutputStream bos =
-                            new BufferedOutputStream(new FileOutputStream(file));
+//                    BufferedOutputStream bos =
+//                            new BufferedOutputStream(new FileOutputStream(file));
 
                     stateManager.setState(diskId, DiskStateType.ACTIVE);
-                    bos.write(this.block.getPayload());
-                    bos.flush();
-                    bos.close();
+//                    bos.write(this.block.getPayload());
+//                    bos.flush();
+//                    bos.close();
+
+                    // native write to avoid file system cache.
+                    write(file.getCanonicalPath(), this.block.getPayload());
 
                     result = true;
 
