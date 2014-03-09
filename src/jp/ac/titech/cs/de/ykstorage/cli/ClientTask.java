@@ -38,10 +38,10 @@ public class ClientTask implements Callable<Response> {
 			byte[] request = req.getRequest();
 			
 			if (RequestCommand.READ.equals(req.getType())) {
-				message += requestCount + "[" + req.getType() + "] key:" + req.getKey() + " --- ";
+				message += requestCount + " [" + req.getType() + "] key:" + req.getKey() + " size:" + req.getSize() + " --- ";
 //				System.out.printf("%5d [%s] key:%d --- ", requestCount, req.getType(), req.getKey());
 			} else if (RequestCommand.WRITE.equals(req.getType())) {
-				message += requestCount + "[" + req.getType() + "] key:" + req.getKey() + " size:" + req.getSize() + " --- ";
+				message += requestCount + " [" + req.getType() + "] key:" + req.getKey() + " size:" + req.getSize() + " --- ";
 //				System.out.printf("%5d [%s] key:%d size:%d --- ", requestCount, req.getType(), req.getKey(), req.getSize());
 			}
 			
@@ -56,7 +56,7 @@ public class ClientTask implements Callable<Response> {
 			responseTime = end - start;
 			
 			ResponseHeader respHeader = response.getHeader();
-			message += requestCount + " [" + respHeader.getStatus() + "] ResponseTime: " + (double) responseTime / 1000000000 + "[s]";
+			message += "[" + respHeader.getStatus() + "] ResponseTime: " + (double) responseTime / 1000000000 + "[s]";
 //			System.out.printf("[%5d] %d ResponseTime: %.6f [s]\n", requestCount, respHeader.getStatus(), responseTime);
 			
 			conn.close();
