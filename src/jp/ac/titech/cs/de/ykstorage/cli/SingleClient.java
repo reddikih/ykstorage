@@ -21,6 +21,7 @@ public class SingleClient {
 	private final boolean isConfigured = false;
 	
 	private static String path;
+	private static String configfile;
 	
 	private WorkloadReader workload;
 	private int thread;
@@ -43,7 +44,7 @@ public class SingleClient {
     
 	private void startUp() {
         if (!isConfigured) try {
-            config.load(new FileInputStream("./test/test/jp/ac/titech/cs/de/ykstorage/frontend/server_info.properties"));
+            config.load(new FileInputStream(configfile));
 
             this.thread = Integer.parseInt(config.getProperty("server.info.threads"));
             this.hostName = config.getProperty("server.info.hostname");
@@ -139,10 +140,11 @@ public class SingleClient {
 	
 	public static void main(String[] args) {
 		if(args.length < 1) {
-			System.out.println("Usage: SingleClient <workload file>");
+			System.out.println("Usage: SingleClient <config file> <workload file>");
 			System.exit(1);
 		}
-		path = args[0];
+		configfile = args[0];
+		path = args[1];
 		
 		SingleClient client = SingleClient.getInstance();
 		client.start();
