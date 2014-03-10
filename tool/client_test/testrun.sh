@@ -73,7 +73,7 @@ then
   
   rm -rf ${YKSTORAGE_HOME}/data/sdb ${YKSTORAGE_HOME}/data/sdc
   
-  ${YKSTORAGE_HOME}/tool/client_test/server/start_Normal.sh > ${YKSTORAGE_HOME}/log/RAPoSDA_server_${TIME}.log &
+  ${YKSTORAGE_HOME}/tool/client_test/server/start_RAPoSDA.sh > ${YKSTORAGE_HOME}/log/RAPoSDA_server_${TIME}.log &
   sleep 3s
   
   if test $2 = "5"
