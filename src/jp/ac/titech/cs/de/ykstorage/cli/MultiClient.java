@@ -84,6 +84,7 @@ public class MultiClient {
 				
 				if(res.isError()) {
 					errorCount++;
+					requestCount--;
 				} else {
 					totalResponseTime += res.getResponseTime();
 				}
