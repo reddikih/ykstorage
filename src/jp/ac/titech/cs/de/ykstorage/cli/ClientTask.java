@@ -1,15 +1,14 @@
 package jp.ac.titech.cs.de.ykstorage.cli;
 
+import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
+import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
-
-import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
-import jp.ac.titech.cs.de.ykstorage.frontend.RequestCommand;
-import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
 
 public class ClientTask implements Callable<Response> {
 	private final Request req;
@@ -27,7 +26,7 @@ public class ClientTask implements Callable<Response> {
 	@Override
 	public Response call() {
 		ClientResponse response = null;
-		String message = "";
+        StringBuffer message = new StringBuffer();
 		long responseTime = 0L;
 		boolean error = false;
 		
@@ -36,15 +35,9 @@ public class ClientTask implements Callable<Response> {
 			OutputStream out = conn.getOutputStream();
 			
 			byte[] request = req.getRequest();
-			
-			if (RequestCommand.READ.equals(req.getType())) {
-				message += requestCount + " [" + req.getType() + "] key:" + req.getKey() + " size:" + req.getSize() + " --- ";
-//				System.out.printf("%5d [%s] key:%d --- ", requestCount, req.getType(), req.getKey());
-			} else if (RequestCommand.WRITE.equals(req.getType())) {
-				message += requestCount + " [" + req.getType() + "] key:" + req.getKey() + " size:" + req.getSize() + " --- ";
-//				System.out.printf("%5d [%s] key:%d size:%d --- ", requestCount, req.getType(), req.getKey(), req.getSize());
-			}
-			
+
+            message.append(String.format("[ %6d] [%s] key:%d size:%d --- ", requestCount, req.getType(), req.getKey(), req.getSize()));
+
 			long start = System.nanoTime();
 			
 			out.write(request);
@@ -56,15 +49,12 @@ public class ClientTask implements Callable<Response> {
 			responseTime = end - start;
 			
 			ResponseHeader respHeader = response.getHeader();
-			message += "[" + respHeader.getStatus() + "] ResponseTime: " + (double) responseTime / 1000000000 + "[s]";
-//			System.out.printf("[%5d] %d ResponseTime: %.6f [s]\n", requestCount, respHeader.getStatus(), responseTime);
-			
+            message.append(String.format("[%d] ResponseTime: %.6f [s]", respHeader.getStatus(), (double) responseTime / 1000000000));
+
 			conn.close();
 		} catch (SocketException e) {
 			e.printStackTrace();
 			error = true;
-//			message += "Request count: " + requestCount;
-//			System.err.println("Request count: " + requestCount);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -74,6 +64,6 @@ public class ClientTask implements Callable<Response> {
 		}
 		
 		System.out.println(message);
-		return new Response(response, message, responseTime, error);
+		return new Response(response, message.toString(), responseTime, error);
 	}
 }
