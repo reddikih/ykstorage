@@ -115,6 +115,8 @@ public class CacheDiskManager implements ICacheDiskManager {
 
     @Override
     public Block read(Long blockId) {
+        if (this.numberOfCacheDisks == 0)
+            return null;
 
         logger.debug("Read from cache disk start. blockId:{}", blockId);
 
@@ -137,6 +139,8 @@ public class CacheDiskManager implements ICacheDiskManager {
 
     @Override
     public Block write(Block block) {
+        if (this.numberOfCacheDisks == 0)
+            return null;
 
         logger.debug("Write to cache disk start. blockId:{}", block.getBlockId());
 
