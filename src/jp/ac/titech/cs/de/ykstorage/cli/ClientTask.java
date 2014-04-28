@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
 
 import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
+import jp.ac.titech.cs.de.ykstorage.frontend.RequestCommand;
 import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
 
 public class ClientTask implements Callable<Response> {
@@ -50,13 +51,11 @@ public class ClientTask implements Callable<Response> {
 			
 			ResponseHeader respHeader = response.getHeader();
 			message.append(String.format("%d ResponseTime: %.6f [s]", respHeader.getStatus(), (double) responseTime / 1000000000));
-			
+
 			conn.close();
 		} catch (SocketException e) {
 			e.printStackTrace();
 			error = true;
-//			message += "Request count: " + requestCount;
-//			System.err.println("Request count: " + requestCount);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 			System.exit(1);

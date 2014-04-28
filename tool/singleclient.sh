@@ -3,6 +3,10 @@
 JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
 JVM_OPTION="-Xms1000m -Xmx1500m"
 
+if [ -z "$YKSTORAGE_HOME" ]; then
+    YKSTORAGE_HOME=.
+fi
+
 echo "YKSTORAGE_HOME = " $YKSTORAGE_HOME
 
 if [ -f ${YKSTORAGE_HOME}/bin/logback.xml ];then

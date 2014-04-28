@@ -394,41 +394,43 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
     public void spinUpDiskIfSleeping(int diskId) {
         diskStateLocks[diskId].readLock().lock();
         boolean readLocked = true;
-        logger.debug("Locked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+        logger.debug("Locked readLock. diskId:{} state:{}", diskId, stateManager.getState(diskId));
 
         if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
                 DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
 
             diskStateLocks[diskId].readLock().unlock();
             readLocked = false;
-            logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+            logger.debug("Unlocked readLock. diskId:{} state:{}", diskId, stateManager.getState(diskId));
             diskStateLocks[diskId].writeLock().lock();
-            logger.debug("Locked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+            logger.debug("Locked writeLock. diskId:{} state:{}", diskId, stateManager.getState(diskId));
 
             try {
-                stateManager.setState(diskId, DiskStateType.SPINUP);
-                if (spinUp(diskId)) {
-                    stateManager.setState(diskId, DiskStateType.IDLE);
-                    stateManager.resetWatchDogTimer(diskId);
-                    stateManager.startIdleStateWatchDog(diskId);
+                if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
+                    stateManager.setState(diskId, DiskStateType.SPINUP);
+                    if (spinUp(diskId)) {
+                        stateManager.setState(diskId, DiskStateType.IDLE);
+                        stateManager.resetWatchDogTimer(diskId);
+                        stateManager.startIdleStateWatchDog(diskId);
 
-                    logger.debug("Spin up diskId:{} is successful.", diskId);
-                } else {
-                    stateManager.setState(diskId, DiskStateType.STANDBY);
-                    logger.debug("Spin up diskId:{} is failed. and return state to STANDBY", diskId);
+                        logger.debug("Spin up diskId:{} is successful.", diskId);
+                    } else {
+                        stateManager.setState(diskId, DiskStateType.STANDBY);
+                        logger.debug("Spin up diskId:{} is failed. and return state to STANDBY", diskId);
+                    }
                 }
             } finally {
                 diskStateLocks[diskId].writeLock().unlock();
-                logger.debug("Unlocked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                logger.debug("Unlocked writeLock. diskId:{} state:{}", diskId, stateManager.getState(diskId));
             }
         } else {
-            logger.debug("DiskId:{} is spinning now.", diskId);
+            logger.debug("diskId:{} is spinning now.", diskId);
         }
 
         try {} finally {
             if (readLocked) {
                 diskStateLocks[diskId].readLock().unlock();
-                logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                logger.debug("Unlocked readLock. diskId:{} state:{}", diskId, stateManager.getState(diskId));
             }
         }
     }
