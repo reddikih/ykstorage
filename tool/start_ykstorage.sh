@@ -12,7 +12,7 @@ echo "YKSTORAGE_HOME = " $YKSTORAGE_HOME
 CONFIG_PATH=$YKSTORAGE_HOME/$1
 
 if [ ! -e ${CONFIG_PATH} -o ! -f ${CONFIG_PATH} ];then
-    echo ${CONFIG_PATH} "is not exist or not a file!"
+    echo "config file:" ${CONFIG_PATH} " is missing!"
     exit 1
 fi
 

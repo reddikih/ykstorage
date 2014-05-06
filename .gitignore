@@ -6,3 +6,6 @@ junit/
 .settings/
 data/
 *.iml
+*.so
+*.dat
+log/
