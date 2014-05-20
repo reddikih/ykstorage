@@ -5,13 +5,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.OLDMAIDStorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.OLDMAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +24,7 @@ public class MAIDSimpleClient2 {
 	private long totalResponseTime = 0L;
     private long totalRequestCount = 0L;
 	
-	private MAIDStorageManager sm;
+	private OLDMAIDStorageManager sm;
     private final static Logger logger = LoggerFactory.getLogger(MAIDSimpleClient2.class);
 
 	public MAIDSimpleClient2() {
@@ -45,7 +45,7 @@ public class MAIDSimpleClient2 {
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
 				Parameter.ACC);
 		
-		MAIDDataDiskManager ddm = new MAIDDataDiskManager(
+		OLDMAIDDataDiskManager ddm = new OLDMAIDDataDiskManager(
 				dataDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
@@ -56,7 +56,7 @@ public class MAIDSimpleClient2 {
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
 		
-		MAIDCacheDiskManager cdm = new MAIDCacheDiskManager(
+		OLDMAIDCacheDiskManager cdm = new OLDMAIDCacheDiskManager(
 				cacheDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
@@ -64,7 +64,7 @@ public class MAIDSimpleClient2 {
 				Parameter.CAPACITY_OF_CACHEDISK,
 				sm);
 
-		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
+		this.sm = new OLDMAIDStorageManager(cmm, cdm, ddm);
 
         logger.debug("Starting Simple Client");
 	}
@@ -155,7 +155,7 @@ public class MAIDSimpleClient2 {
 		System.out.println("finished");
 
         logger.debug("[Access] response time(millisecond): {}", totalResponseTime);
-        logger.debug("[Access] average response time {}[s]", String.format("%.6f", ((double)totalResponseTime / totalRequestCount) / 1000000000) );
+        logger.debug("[Access] average response time {}[s]", String.format("%.6f", ((double) totalResponseTime / totalRequestCount) / 1000000000));
 		logger.debug("MAIDSimpleClient [END]: {}", System.currentTimeMillis());
 	}
 	

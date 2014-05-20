@@ -4,18 +4,19 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.logging.Logger;
 
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager;
-import jp.ac.titech.cs.de.ykstorage.service.MAIDStorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.OLDMAIDStorageManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.OLDMAIDCacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.OLDMAIDDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager;
-import jp.ac.titech.cs.de.ykstorage.util.StorageLogger;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager;
+import org.slf4j.LoggerFactory;
 
 public class MAIDSimpleClient3 {
+    private final static org.slf4j.Logger logger = LoggerFactory.getLogger(MAIDSimpleClient3.class);
+
 	private static final int cmdIndex = 0;
 	private static final int intervalIndex = 1;
 	private static final int keylIndex = 2;
@@ -23,8 +24,8 @@ public class MAIDSimpleClient3 {
 	
 	private long responseTime = 0L;
 	
-	private MAIDStorageManager sm;
-	private Logger logger = StorageLogger.getLogger();
+	private OLDMAIDStorageManager sm;
+
 
 	public MAIDSimpleClient3() {
 		init();
@@ -44,7 +45,7 @@ public class MAIDSimpleClient3 {
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS,
 				Parameter.ACC);
 		
-		MAIDDataDiskManager ddm = new MAIDDataDiskManager(
+		OLDMAIDDataDiskManager ddm = new OLDMAIDDataDiskManager(
 				dataDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
@@ -55,7 +56,7 @@ public class MAIDSimpleClient3 {
 				Parameter.ACCESS_THRESHOLD, Parameter.ACCESS_INTERVAL, Parameter.RMI_URL,
 				Parameter.IS_CACHEDISK, Parameter.NUMBER_OF_CACHE_DISKS, Parameter.NUMBER_OF_DATA_DISKS);
 		
-		MAIDCacheDiskManager cdm = new MAIDCacheDiskManager(
+		OLDMAIDCacheDiskManager cdm = new OLDMAIDCacheDiskManager(
 				cacheDiskPaths,
 				savePath,
 				Parameter.MOUNT_POINT_PATHS,
@@ -63,9 +64,7 @@ public class MAIDSimpleClient3 {
 				Parameter.CAPACITY_OF_CACHEDISK,
 				sm);
 
-		this.sm = new MAIDStorageManager(cmm, cdm, ddm);
-
-		StorageLogger.getLogger().config("Starting Simple Clinet.");
+		this.sm = new OLDMAIDStorageManager(cmm, cdm, ddm);
 	}
 
 	public boolean put(String key, String value) {
@@ -97,7 +96,7 @@ public class MAIDSimpleClient3 {
 		long startTime = 0L;
 		long endTime = 0L;
 
-		logger.fine("MAIDSimpleClient [START]: " + System.currentTimeMillis());
+		logger.debug("MAIDSimpleClient [START]: " + System.currentTimeMillis());
 		int i = 0;
 		while((line = br.readLine()) != null) {
 			interval = 0;
@@ -147,11 +146,11 @@ public class MAIDSimpleClient3 {
 			Thread.sleep(interval);
 		}
 		
-		logger.fine("[Access] response time(millisecond): " + responseTime);
+        logger.debug("[Access] response time(millisecond): " + responseTime);
 		br.close();
 		
 		System.out.println("finished");
-		logger.fine("MAIDSimpleClient [END]: " + System.currentTimeMillis());
+		logger.debug("MAIDSimpleClient [END]: " + System.currentTimeMillis());
 	}
 	
 	public static void main(String[] args) throws IOException, InterruptedException {

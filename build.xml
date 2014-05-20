@@ -1,157 +1,166 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- WARNING: Eclipse auto-generated file.
-              Any modifications will be overwritten.
-              To include a user specific buildfile here, simply create one in the same
-              directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. -->
-<project basedir="." default="build" name="ykstorage">
-    <property environment="env"/>
-    <property name="ECLIPSE_HOME" value="../../eclipse"/>
-    <property name="junit.output.dir" value="junit"/>
-    <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.6"/>
-    <property name="source" value="1.6"/>
-    <path id="ykstorage.classpath">
-        <pathelement location="bin"/>
-        <pathelement location="lib/junit-4.10.jar"/>
-        <pathelement location="lib/logback-classic-1.0.9.jar"/>
-        <pathelement location="lib/logback-core-1.0.9.jar"/>
-        <pathelement location="lib/slf4j-api-1.7.2.jar"/>
-    </path>
-    <target name="init">
-        <mkdir dir="bin"/>
-        <copy includeemptydirs="false" todir="bin">
-            <fileset dir="src">
-                <exclude name="**/*.launch"/>
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-        <copy includeemptydirs="false" todir="bin">
-            <fileset dir="test">
-                <exclude name="**/*.launch"/>
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-    </target>
-    <target name="clean">
-        <delete dir="bin"/>
-    </target>
-    <target depends="clean" name="cleanall"/>
-    <target depends="build-subprojects,build-project" name="build"/>
-    <target name="build-subprojects"/>
-    <target depends="init" name="build-project">
-        <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
-            <src path="src"/>
-            <src path="test"/>
-            <classpath refid="ykstorage.classpath"/>
-        </javac>
-    </target>
-    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
-    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
-        <copy todir="${ant.library.dir}">
-            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
-        </copy>
-        <unzip dest="${ant.library.dir}">
-            <patternset includes="jdtCompilerAdapter.jar"/>
-            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
-        </unzip>
-    </target>
-    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
-        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
-        <antcall target="build"/>
-    </target>
-    <target name="_StorageTestSuite">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service._StorageTestSuite" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="CacheMemoryManagerTest">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="DiskManagerTest">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.DiskManagerTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="StorageManagerTest">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.StorageManagerTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="StorageServiceTest">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.StorageServiceTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="ValueTest">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.ValueTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="ParameterTest">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.ParameterTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="ParameterTest.printMountPointPathsTest">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.ParameterTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="CacheMemoryManagerTest.updateTheSameKeys">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="CacheMemoryManagerTest.testPutAndGet">
-        <mkdir dir="${junit.output.dir}"/>
-        <junit fork="yes" printsummary="withOutAndErr">
-            <formatter type="xml"/>
-            <test name="test.jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManagerTest" todir="${junit.output.dir}"/>
-            <classpath refid="ykstorage.classpath"/>
-        </junit>
-    </target>
-    <target name="SimpleClient">
-        <java classname="jp.ac.titech.cs.de.ykstorage.cli.SimpleClient" failonerror="true" fork="yes">
-            <classpath refid="ykstorage.classpath"/>
-        </java>
-    </target>
-    <target name="junitreport">
-        <junitreport todir="${junit.output.dir}">
-            <fileset dir="${junit.output.dir}">
-                <include name="TEST-*.xml"/>
-            </fileset>
-            <report format="frames" todir="${junit.output.dir}"/>
-        </junitreport>
-    </target>
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ykstorage" default="all">
+  
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="128m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/.pyc/**"/>
+    <exclude name="**/.pyo/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/*.lib/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/.bundle/**"/>
+    <exclude name="**/*.rbc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.zip"/>
+    <include name="*.apk"/>
+    <include name="*.war"/>
+    <include name="*.egg"/>
+    <include name="*.ear"/>
+    <include name="*.ane"/>
+    <include name="*.swc"/>
+    <include name="*.jar"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+  </patternset>
+  
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.jcip-annotations.classpath">
+    <pathelement location="${basedir}/lib/jcip-annotations.jar"/>
+    <pathelement location="${basedir}/lib/junit-4.10.jar"/>
+    <pathelement location="${basedir}/lib/logback-classic-1.0.9.jar"/>
+    <pathelement location="${basedir}/lib/logback-core-1.0.9.jar"/>
+    <pathelement location="${basedir}/lib/slf4j-api-1.7.2.jar"/>
+  </path>
+  
+  <!-- Modules -->
+  
+  
+  <!-- Module ykstorage -->
+  
+  <dirname property="module.ykstorage.basedir" file="${ant.file}"/>
+  
+  
+  
+  <property name="compiler.args.ykstorage" value="${compiler.args}"/>
+  
+  <property name="ykstorage.output.dir" value="${module.ykstorage.basedir}/bin"/>
+  <property name="ykstorage.testoutput.dir" value="${module.ykstorage.basedir}/bin"/>
+  
+  <path id="ykstorage.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="ykstorage.module.production.classpath">
+    <pathelement location="${basedir}/lib/junit-4.10.jar"/>
+    <path refid="library.jcip-annotations.classpath"/>
+  </path>
+  
+  <path id="ykstorage.runtime.production.module.classpath">
+    <pathelement location="${ykstorage.output.dir}"/>
+    <pathelement location="${basedir}/lib/junit-4.10.jar"/>
+    <path refid="library.jcip-annotations.classpath"/>
+  </path>
+  
+  <path id="ykstorage.module.classpath">
+    <pathelement location="${ykstorage.output.dir}"/>
+    <pathelement location="${basedir}/lib/junit-4.10.jar"/>
+    <path refid="library.jcip-annotations.classpath"/>
+  </path>
+  
+  <path id="ykstorage.runtime.module.classpath">
+    <pathelement location="${ykstorage.output.dir}"/>
+    <pathelement location="${basedir}/lib/junit-4.10.jar"/>
+    <path refid="library.jcip-annotations.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.ykstorage">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.ykstorage">
+    <patternset refid="excluded.from.module.ykstorage"/>
+  </patternset>
+  
+  <path id="ykstorage.module.sourcepath">
+    <dirset dir="${module.ykstorage.basedir}">
+      <include name="src"/>
+      <include name="test"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.ykstorage" depends="compile.module.ykstorage.production,compile.module.ykstorage.tests" description="Compile module ykstorage"/>
+  
+  <target name="compile.module.ykstorage.production" description="Compile module ykstorage; production classes">
+    <mkdir dir="${ykstorage.output.dir}"/>
+    <javac destdir="${ykstorage.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" encoding="utf-8">
+      <compilerarg line="${compiler.args.ykstorage}"/>
+      <bootclasspath refid="ykstorage.module.bootclasspath"/>
+      <classpath refid="ykstorage.module.production.classpath"/>
+      <src refid="ykstorage.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.ykstorage"/>
+    </javac>
+    
+    <copy todir="${ykstorage.output.dir}">
+      <fileset dir="${module.ykstorage.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.ykstorage.basedir}/test">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.ykstorage.tests" depends="compile.module.ykstorage.production" description="compile module ykstorage; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.ykstorage" description="cleanup module">
+    <delete dir="${ykstorage.output.dir}"/>
+    <delete dir="${ykstorage.testoutput.dir}"/>
+  </target>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.ykstorage" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.ykstorage" description="build all modules"/>
+  
+  <target name="all" depends="build.modules" description="build all"/>
 </project>

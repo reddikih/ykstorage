@@ -1,7 +1,13 @@
 package jp.ac.titech.cs.de.ykstorage.service;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 起動パラメータ用の一時的なクラス．最終的にはXMLやプロパティファイル
@@ -14,126 +20,252 @@ import java.util.TreeMap;
  */
 public class Parameter {
 
-	/**
-	 * Debug flag
-	 */
+    private static Properties config;
+
+    public Parameter(String configPath) {
+
+        this.config = new Properties(System.getProperties());
+
+        if (configPath != null)
+            try {
+                config.load(new BufferedInputStream(new FileInputStream(configPath)));
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+
+        initialize();
+    }
+
+    private void initialize() {
+        Parameter.BLOCK_SIZE = (int)convertSizeParameter(config.getProperty("block.size"));
+        this.storageManagerFactory = config.getProperty("storage.manager.factory");
+        this.dataDiskPlacementPolicy = config.getProperty("datadisk.placement.policy");
+        this.cacheDiskPlacementPolicy = config.getProperty("cachedisk.placement.policy");
+        this.dataDiskReplicationPolicy = config.getProperty("datadisk.replication.policy");
+        this.bufferAssignor = config.getProperty("buffer.assignor");
+        this.numberOfBuffers = Integer.parseInt(config.getProperty("buffer.number"));
+        this.numberOfCacheDisks = Integer.parseInt(config.getProperty("cachedisk.number"));
+        this.numberOfDataDisks = Integer.parseInt(config.getProperty("datadisk.number"));
+        this.numberOfdisksPerDiskGroup = Integer.parseInt(config.getProperty("diskgroup.members"));
+        this.numberOfReplicas = Integer.parseInt(config.getProperty("replica.level"));
+        this.spindownThresholdTime = Double.parseDouble(config.getProperty("spindown.threshold.time"));
+        this.serverPort = Integer.parseInt(config.getProperty("server.port"));
+        this.driveCharacters = config.getProperty("device.characters").split(",");
+        this.ykstorageHome = config.getProperty("ykstorage.home");
+        this.dataDir = config.getProperty("data.dir");
+        this.diskFilePathPrefix = concatenatePathStrings(ykstorageHome, concatenatePathStrings(dataDir, config.getProperty("disk.file.prefix")));
+        this.devicePathPrefix = config.getProperty("device.file.prefix");
+        this.bufferCapacity = convertSizeParameter(config.getProperty("buffer.size"));
+        this.bufferWaterMark = Double.parseDouble(config.getProperty("buffer.threshold"));
+        this.cachediskCapacity = convertSizeParameter(config.getProperty("cachedisk.size"));
+        this.deleteOnExit = Boolean.parseBoolean(config.getProperty("debug.flag"));
+    }
+
+    private String concatenatePathStrings(String parent, String child) {
+        if (parent == null || child == null)
+            return null;
+
+        if (parent.endsWith("/")) parent = parent.substring(parent.length() - 2);
+        if (child.startsWith("/")) child = child.substring(1);
+
+        return parent + "/" + child;
+    }
+
+    private long convertSizeParameter(String sizeStr) {
+        long result = 1L;
+        sizeStr = sizeStr.toLowerCase();
+        Matcher m = Pattern.compile("(?<number>[0-9][0-9]*)(?<unit>k|m|g|t)?b?").matcher(sizeStr);
+        if (m.matches()) {
+            if(m.group("unit") != null) {
+                switch(m.group("unit")) {
+                    case "t": result *= 1024;
+                    case "g": result *= 1024;
+                    case "m": result *= 1024;
+                    case "k": result *= 1024;
+                    default: break;
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("the format of this parameter is invalid: " + sizeStr);
+        }
+        return result * Long.parseLong(m.group("number"));
+    }
+
+
+    //--- these are the parameters ---//
+
+    /** Debug flag */
+    @Deprecated
 	public static final boolean DEBUG = true;
 
-	/**
-	 * Capacity of cache memory. It's unit is byte.
-	 */
+	/** Capacity of cache memory. It's unit is byte. */
+    @Deprecated
 	public static final int CAPACITY_OF_CACHEMEMORY = 64 * 1024 * 1024;
-//	public static final int CAPACITY_OF_CACHEMEMORY = 0;
 
-	public static final double MEMORY_THRESHOLD = 1.0;
+    /** Capacity of cache memory. It's unit is byte. */
+    @Deprecated
+    public static final long CAPACITY_OF_CACHEDISK = 64 * 1024 * 1024;
 
-	/**
-	 * The disk spin down threshold time(second).
-	 */
+    @Deprecated
+    public static final double MEMORY_THRESHOLD = 1.0;
+
+    @Deprecated
+	/** The disk spin down threshold time(second). */
 	public static final double SPIN_DOWN_THRESHOLD = 10.0;
-//	public static final double SPIN_DOWN_THRESHOLD = 1.0;
-	
-	/**
-	 * Capacity of cache memory. It's unit is byte.
-	 */
-	public static final long CAPACITY_OF_CACHEDISK = 64 * 1024 * 1024;
-//	public static final long CAPACITY_OF_CACHEDISK = 10;
 
-	public static String DATA_DIR = "/ecoim/ykstorage/data";
-//	public static String DATA_DIR = "./data";
+    @Deprecated
+    public static String YKSTORAGE_HOME = System.getProperty("user.dir");
 
-	public static final int NUMBER_OF_DISKS = 14;
-	private static final int origin = 1;
-	public static final int NUMBER_OF_CACHE_DISKS = 5;
-	public static final int NUMBER_OF_DATA_DISKS = NUMBER_OF_DISKS - NUMBER_OF_CACHE_DISKS;
-	private static final char diskIds[] = {'b','c','d','e','f','g','h','i','j','k','l','m','n','o',
-										   'p','q','r','s','t','u','v','w','x','y','z'};
-	
+    @Deprecated
+    public static final String DATA_DIR =YKSTORAGE_HOME + "/data";
+
+    @Deprecated
+    public static final String LOG_DIR =YKSTORAGE_HOME + "/log";
+
+    @Deprecated
+    public static final String DISK_PREFIX = "/disk%d";
+
+    @Deprecated
+    public static final String DEVICE_PREFIX = "/dev/sd%s";
+
+    @Deprecated
+	public static int NUMBER_OF_CACHE_DISKS = 2;
+
+    @Deprecated
+	public static int NUMBER_OF_DATA_DISKS = 18;
+
+    @Deprecated
+    public static int NUMBER_OF_DISKS = NUMBER_OF_CACHE_DISKS + NUMBER_OF_DATA_DISKS;
+
+    private static final int ORIGIN = 1;
+
+    public static int NUMBER_OF_DISKS_PER_CACHE_GROUP = 2;
+
+    @Deprecated
+    public static int NUMBER_OF_REPLICA = 3;
+
+    public boolean deleteOnExit;
+
+    public int numberOfBuffers;
+
+    public int numberOfCacheDisks;
+
+    public int numberOfDataDisks;
+
+    public int numberOfdisksPerDiskGroup;
+
+    public int numberOfReplicas;
+
+    public double spindownThresholdTime ;
+
+    /**
+     * This value is one of them:
+     *  - NormalStorageManagerFactory
+     *  - MAIDStorageManagerFactory
+     *  - RAPoSDAStorageManagerFactory
+     */
+    public String storageManagerFactory;
+
+    /**
+     * This value is one of them;
+     * - CacheStriping
+     * - DiskGroupAggregation
+     * - Simple
+     */
+    public String bufferAssignor;
+
+    public String bufferManagerFactory = "NormalBufferManager";
+
+    public String dataDiskPlacementPolicy ;
+
+    public String cacheDiskPlacementPolicy;
+
+    public String dataDiskReplicationPolicy;
+
+    public long bufferCapacity;
+
+    public double bufferWaterMark;
+
+    public long cachediskCapacity;
+
+    public static int BLOCK_SIZE = 32 * 1024;
+
+    public int serverPort;
+
+    public String[] driveCharacters;
+
+    public String ykstorageHome;
+
+    public String dataDir;
+
+    /**
+     * prefix string of disk file paths.
+     *
+     * ${YKSTORAGE_HOME}/${DATA_DIR}/sd
+     * ex) /var/ykstorage/data/sd
+     */
+    public String diskFilePathPrefix;
+
+    public String devicePathPrefix;
+
+
+
+    /*--- These are settigs for Oguri kun ---*/
+
+    @Deprecated
+    private static final char diskIds[] = {
+            'b','c','d','e','f','g','h','i','j','k',
+            'l','m','n','o','p','q','r','s','t','u',
+            'v','w','x','y','z',
+    };
+
+    @Deprecated
 	public static String[] DISK_PATHS;
 	static {
-//		int numOfDisks = 14;
-//		int origin = 1;
-		String prefix = DATA_DIR + "/disk%d/";
 		DISK_PATHS = new String[NUMBER_OF_DISKS];
 		for (int i=0; i < DISK_PATHS.length; i++) {
-			DISK_PATHS[i] = String.format(prefix, origin + i);
+			DISK_PATHS[i] = String.format(DATA_DIR + DISK_PREFIX, ORIGIN + i);
 		}
-		// above code generate data disk paths like follows:
-		//  /ecoim/ykstorage/data/disk1/, /ecoim/ykstorage/data/disk2/, ...
-	};
-	
-	public static String[] DATA_DISK_PATHS;
-	static {
-//		int numOfDisks = 10;
-//		int origin = 5;
-		int numOfDataDisks = NUMBER_OF_DISKS - NUMBER_OF_CACHE_DISKS;
-		int originOfDataDisks = origin + NUMBER_OF_CACHE_DISKS;
-		String prefix = DATA_DIR + "/disk%d/";
-		DATA_DISK_PATHS = new String[numOfDataDisks];
-		for (int i=0; i < DATA_DISK_PATHS.length; i++) {
-			DATA_DISK_PATHS[i] = String.format(prefix, originOfDataDisks + i);
-		}
-		// above code generate data disk paths like follows:
-		//  /ecoim/ykstorage/data/disk1/, /ecoim/ykstorage/data/disk2/, ...
-	};
-	
-	public static String[] CACHE_DISK_PATHS;
-	static {
-//		int numOfDisks = 4;
-//		int origin = 1;
-		String prefix = DATA_DIR + "/disk%d/";
-		CACHE_DISK_PATHS = new String[NUMBER_OF_CACHE_DISKS];
-		for (int i=0; i < CACHE_DISK_PATHS.length; i++) {
-			CACHE_DISK_PATHS[i] = String.format(prefix, origin + i);
-		}
-		// above code generate data disk paths like follows:
-		//  /ecoim/ykstorage/data/disk1/, /ecoim/ykstorage/data/disk2/, ...
 	};
 
+    @Deprecated
+	public static String[] DATA_DISK_PATHS;
+	static {
+		DATA_DISK_PATHS = new String[NUMBER_OF_DISKS - NUMBER_OF_CACHE_DISKS];
+		for (int i=0; i < DATA_DISK_PATHS.length; i++) {
+			DATA_DISK_PATHS[i] = String.format(
+                    DATA_DIR + DISK_PREFIX, ORIGIN + NUMBER_OF_CACHE_DISKS + i);
+		}
+	};
+
+    @Deprecated
+	public static String[] CACHE_DISK_PATHS;
+	static {
+		CACHE_DISK_PATHS = new String[NUMBER_OF_CACHE_DISKS];
+		for (int i=0; i < CACHE_DISK_PATHS.length; i++) {
+			CACHE_DISK_PATHS[i] = String.format(DATA_DIR + DISK_PREFIX, ORIGIN + i);
+		}
+	};
+
+    @Deprecated
 	public static SortedMap<String, String> MOUNT_POINT_PATHS = new TreeMap<String, String>();
 	static {
-//		char diskIds[] = {'b','c','d','e','f','g','h','i','j','k','l','m','n','o'};
 		char[] ids = new char[NUMBER_OF_DISKS];
 		for(int i = 0; i < ids.length; i++) {
-			ids[i] = diskIds[i + origin - 1];
+			ids[i] = diskIds[i + ORIGIN - 1];
 		}
-		String prefix = "/dev/sd%s";
 		int i = 0;
 		for (char diskId : ids) {
-			MOUNT_POINT_PATHS.put(DISK_PATHS[i], String.format(prefix, diskId));
+			MOUNT_POINT_PATHS.put(DISK_PATHS[i], String.format(DEVICE_PREFIX, diskId));
 			i++;
 		}
-		// above code generate data disk paths like follows:
-		//  /dev/sdb, /dev/sdc, ...
 	}
+
 
 	public static final String DATA_DISK_SAVE_FILE_PATH = "./datamap";
 
-	/**
-	 * Logger name of this system.
-	 */
-	public static final String LOGGER_NAME = "jp.ac.titech.cs.de.ykstorage.logger";
-
-//	public static final String LOG_DIR = System.getProperty("user.home");
-//	public static final String LOG_DIR = "/ecoim/ykstorage";
-	public static String LOG_DIR;
-	static {
-		if(DATA_DIR.equals("./data")) {
-			LOG_DIR = System.getProperty("user.home");
-		} else {
-			LOG_DIR = "/ecoim/ykstorage";
-		}
-	}
-
-	public static final String LOG_FILE_NAME = "ykstorage.log";
-	
-	public static final boolean DISKMANAGER_SPINDOWN = true;
-//	public static final boolean DISKMANAGER_SPINDOWN = false;
-	
-//	public static final boolean PROPOSAL1 = true;
 	public static final boolean PROPOSAL1 = false;
-	
-//	public static final boolean PROPOSAL2 = true;
 	public static final boolean PROPOSAL2 = false;
 	
 	/**
@@ -168,13 +300,11 @@ public class Parameter {
 	 * the number of accesses per second.
 	 */
 	public static final double ACCESS_THRESHOLD = 1.0;
-	
 	public static final long ACCESS_INTERVAL = 10000;
-	
 	public static final long SPINDOWN_INTERVAL = 10000;
-	
 	public static final double ACC = 0.5;
-	
 	public static final long MEMORYHILOGGER_INTERVAL = 10;
-	
+
+    /*--- this should be delete in the future ---*/
+    public static final boolean DISKMANAGER_SPINDOWN = true;
 }

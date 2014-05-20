@@ -1,6 +1,14 @@
 <configuration>
     <variable name="OUT_DIR" value="/ecoim/ykstorage/log" />
 
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <!-- Appender Settings -->
     <appender name="DATA_DISK_LOGGER" class="ch.qos.logback.core.FileAppender" >
         <file>${OUT_DIR}/datadisk.log</file>
@@ -46,23 +54,23 @@
 
 
     <!-- Logger Settings -->
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManager" additivity="false">
         <appender-ref ref="DATA_DISK_LOGGER" />
     </logger>
 
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.MAIDDataDiskStateManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskStateManager" additivity="false">
         <appender-ref ref="DATA_DISK_STATE_LOGGER" />
     </logger>
 
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskManager" additivity="false">
         <appender-ref ref="CACHE_DISK_LOGGER" />
     </logger>
 
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.MAIDCacheDiskStateManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager" additivity="false">
         <appender-ref ref="CACHE_DISK_STATE_LOGGER" />
     </logger>
 
-    <logger name="jp.ac.titech.cs.de.ykstorage.service.cmm.CacheMemoryManager" additivity="false">
+    <logger name="jp.ac.titech.cs.de.ykstorage.storage.buffer.CacheMemoryManager" additivity="false">
         <appender-ref ref="CACHE_MEMORY_LOGGER" />
     </logger>
 

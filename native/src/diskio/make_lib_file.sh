@@ -1,14 +1,15 @@
 #!/bin/sh
 
-CC_FILE_PREFIX=datadiskio
-CC_FILE=$CC_FILE_PREFIX.cc
-OBJ_FILE=$CC_FILE_PREFIX.o
-LIB_FILE=lib$CC_FILE_PREFIX.so
+CC_FILE_PREFIXIES="normaldatadiskio maiddatadiskio raposdadatadiskio cachediskio"
+
+#CC_FILE=$CC_FILE_PREFIX.cc
+#OBJ_FILE=$CC_FILE_PREFIX.o
+#LIB_FILE=lib$CC_FILE_PREFIX.so
 
 HOSTNAME=`hostname`
 
 if [ $HOSTNAME = "ecoim03" ]; then
-    JDK_HOME=/usr/lib/jvm/java-6-sun
+    JDK_HOME=/usr/lib/jvm/jdk1.7.0_51
     CC=g++ 
     INCLUDE="-I$JDK_HOME/include -I$JDK_HOME/include/linux"
 elif [ $HOSTNAME = "camelia" ]; then
@@ -21,16 +22,32 @@ else
 fi
 
 # compile cc file
-echo $CC -fPIC -D_GNU_SOURCE $INCLUDE -c $CC_FILE
-$CC -fPIC -D_GNU_SOURCE $INCLUDE -c $CC_FILE
+for cc_file in `echo $CC_FILE_PREFIXIES | cut -d" " -f 1-`
+do
+    if [ -e ${cc_file}.cc ]; then
+        echo $CC -fPIC -D_GNU_SOURCE $INCLUDE -c ${cc_file}.cc
+        $CC -fPIC -D_GNU_SOURCE $INCLUDE -c ${cc_file}.cc
+     fi
+done
 
 # make shared library
-echo $CC -shared -o $LIB_FILE $OBJ_FILE
-$CC -shared -o $LIB_FILE $OBJ_FILE
+for cc_file in `echo $CC_FILE_PREFIXIES | cut -d" " -f 1-`
+do
+    if [ -e ${cc_file}.o ]; then
+        echo $CC -shared -o lib${cc_file}.so ${cc_file}.o
+        $CC -shared -o lib${cc_file}.so ${cc_file}.o
+    fi
+done
 
-if [ -f $LIB_FILE ]; then
-    echo cp ./$LIB_FILE ../../../lib
-    cp ./$LIB_FILE ../../../lib
-fi
+#if [ -f $LIB_FILE ]; then
+#    echo cp ./$LIB_FILE ../../../lib
+#    cp ./$LIB_FILE ../../../lib
+#fi
+
+echo cp ./*.so ../../../lib
+cp ./*.so ../../../lib
+
+rm *.so
+rm *.o
 
 echo "done successfully."
