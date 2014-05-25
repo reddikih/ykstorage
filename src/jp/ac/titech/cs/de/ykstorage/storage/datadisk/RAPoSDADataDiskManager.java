@@ -10,11 +10,7 @@ import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -341,17 +337,33 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         }
     }
 
-    public DiskStateType getState(int diskId) {
-        return this.stateManager.getState(diskId);
+    // TODO pull up
+    private String getDiskFilePathPrefix(Block block) {
+        int diskId = assignReplicaDiskId(
+                block.getPrimaryDiskId(), block.getReplicaLevel());
+
+        DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
+
+        return pathInfo.getDiskFilePath();
     }
 
-    public long getSleepingTimeByDiskId(int diskId) {
-        return this.stateManager.getStandbyStartTime(diskId);
+    // TODO pull up
+    private RuntimeException launderThrowable(Throwable t) {
+        if (t instanceof RuntimeException) return (RuntimeException) t;
+        else if (t instanceof Error) throw (Error) t;
+        else throw new IllegalStateException("Not unchecked", t);
     }
 
-    public int assignReplicaDiskId(int primaryDiskId, int replicaLevel) {
-        return this.replicationPolicy.assignReplicationDiskId(
-                primaryDiskId, replicaLevel);
+    // TODO pull up
+    @Override
+    public void setDeleteOnExit(boolean deleteOnExit) {
+        this.deleteOnExit = deleteOnExit;
+    }
+
+    @Override
+    public void termination() {
+        ObjectSerializer<PlacementPolicy> serializer = new ObjectSerializer<>();
+        serializer.serializeObject(this.placementPolicy, PLACEMENT_FILE_NAME);
     }
 
     @Override
@@ -386,33 +398,17 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         }
     }
 
-    // TODO pull up
-    private String getDiskFilePathPrefix(Block block) {
-        int diskId = assignReplicaDiskId(
-                block.getPrimaryDiskId(), block.getReplicaLevel());
-
-        DiskFileAndDevicePath pathInfo = this.diskId2FilePath.get(diskId);
-
-        return pathInfo.getDiskFilePath();
+    public DiskStateType getState(int diskId) {
+        return this.stateManager.getState(diskId);
     }
 
-    // TODO pull up
-    private RuntimeException launderThrowable(Throwable t) {
-        if (t instanceof RuntimeException) return (RuntimeException) t;
-        else if (t instanceof Error) throw (Error) t;
-        else throw new IllegalStateException("Not unchecked", t);
+    public long getSleepingTimeByDiskId(int diskId) {
+        return this.stateManager.getStandbyStartTime(diskId);
     }
 
-    // TODO pull up
-    @Override
-    public void setDeleteOnExit(boolean deleteOnExit) {
-        this.deleteOnExit = deleteOnExit;
-    }
-
-    @Override
-    public void termination() {
-        ObjectSerializer<PlacementPolicy> serializer = new ObjectSerializer<>();
-        serializer.serializeObject(this.placementPolicy, PLACEMENT_FILE_NAME);
+    public int assignReplicaDiskId(int primaryDiskId, int replicaLevel) {
+        return this.replicationPolicy.assignReplicationDiskId(
+                primaryDiskId, replicaLevel);
     }
 
 
@@ -501,32 +497,6 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
             byte[] result = null;
 
-//            diskStateLocks[diskId].readLock().lock();
-//            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
-//                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
-//
-//                diskStateLocks[diskId].readLock().unlock();
-//                diskStateLocks[diskId].writeLock().lock();
-//
-//                try {
-//                    stateManager.setState(diskId, DiskStateType.SPINUP);
-//                    if (!spinUp(diskId))
-//                        throw new IllegalStateException(
-//                                "Couldn't spin up the disk id: " + diskId);
-//
-//                    stateManager.setState(diskId, DiskStateType.IDLE);
-//
-//                } finally {
-//                    diskStateLocks[diskId].writeLock().unlock();
-//                }
-//            }
-//
-//            try {} finally {
-//                if (diskStateLocks[diskId].getReadLockCount() > 0)
-//                    diskStateLocks[diskId].readLock().unlock();
-//            }
-
-
             // when the disk is spinning then we can read the data from it.
             // and update the disk status IDLE to ACTIVE
             diskStateLocks[diskId].readLock().lock();
@@ -613,32 +583,6 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
             int diskId = assignReplicaDiskId(
                     block.getPrimaryDiskId(),
                     block.getReplicaLevel());
-
-//            diskStateLocks[diskId].readLock().lock();
-//            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
-//                    DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
-//
-//                diskStateLocks[diskId].readLock().unlock();
-//                diskStateLocks[diskId].writeLock().lock();
-//
-//                try {
-//                    stateManager.setState(diskId, DiskStateType.SPINUP);
-//                    if (!spinUp(diskId))
-//                        throw new IllegalStateException(
-//                                "Couldn't spin up the disk id: " + diskId);
-//
-//                    stateManager.setState(diskId, DiskStateType.IDLE);
-//
-//                } finally {
-//                    diskStateLocks[diskId].writeLock().unlock();
-//                }
-//            }
-//
-//            try {} finally {
-//                if (diskStateLocks[diskId].getReadLockCount() > 0)
-//                    diskStateLocks[diskId].readLock().unlock();
-//            }
-
 
             diskStateLocks[diskId].readLock().lock();
             boolean readLocked = true;
