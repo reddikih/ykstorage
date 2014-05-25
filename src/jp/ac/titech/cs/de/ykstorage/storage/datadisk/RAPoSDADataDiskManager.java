@@ -439,6 +439,9 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         @Override
         public Object call() throws Exception {
             Object result = null;
+
+            long startTime = System.currentTimeMillis();
+
             if (ioType.equals(IOType.READ)) {
                 Callable readTask = new ReadPrimitiveTask(
                         blockId,
@@ -474,6 +477,10 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                 result = future.get();
             }
 
+            long endTime = System.currentTimeMillis();
+            logger.debug("OperationTask elapsedTime:{} [sec]",
+                    String.format("%.3f", (endTime - startTime) / 1000.0));
+
             return result;
         }
     }
@@ -494,6 +501,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         public byte[] call() throws Exception {
 
             logger.debug("[Read Primitive] start");
+            long startTime = System.currentTimeMillis();
 
             byte[] result = null;
 
@@ -557,7 +565,10 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                 }
             }
 
-            logger.debug("[Read Primitive] end");
+            long endTime = System.currentTimeMillis();
+            logger.debug(
+                    "[Read Primitive] end. elapsedTime:{} [sec]",
+                    String.format("%.3f", (endTime - startTime) / 1000.0));
 
             return result;
         }
@@ -577,6 +588,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         public Block call() throws Exception {
 
             logger.debug("[Write Primitive] start");
+            long startTime = System.currentTimeMillis();
 
             Block result = null;
 
@@ -641,7 +653,10 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                 }
             }
 
-            logger.debug("[Write Primitive] end");
+            long endTime = System.currentTimeMillis();
+            logger.debug(
+                    "[Write Primitive] end. elapsedTime:{} [sec]",
+                    String.format("%.3f", (endTime - startTime) / 1000.0));
 
             return result;
         }
