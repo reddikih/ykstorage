@@ -301,11 +301,13 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
         if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
                 DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
-            diskStateLocks[diskId].readLock().unlock();
-            readLocked = false;
-            logger.debug("Unlocked readLock. diskId:{} state:{} ", stateManager.getState(diskId), diskId);
-            diskStateLocks[diskId].writeLock().lock();
-            logger.debug("Locked writeLock. diskId:{} state:{} ", stateManager.getState(diskId), diskId);
+            synchronized(this) {
+                diskStateLocks[diskId].readLock().unlock();
+                readLocked = false;
+                logger.debug("Unlocked readLock. diskId:{} state:{} ", stateManager.getState(diskId), diskId);
+                diskStateLocks[diskId].writeLock().lock();
+                logger.debug("Locked writeLock. diskId:{} state:{} ", stateManager.getState(diskId), diskId);
+            }
 
             try {
                 if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
@@ -373,9 +375,11 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         diskStateLocks[diskId].readLock().lock();
         boolean readLocked = true;
         if (DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
-            diskStateLocks[diskId].readLock().unlock();
-            readLocked = false;
-            diskStateLocks[diskId].writeLock().lock();
+            synchronized(this) {
+                diskStateLocks[diskId].readLock().unlock();
+                readLocked = false;
+                diskStateLocks[diskId].writeLock().lock();
+            }
 
             try {
                 stateManager.setState(diskId, DiskStateType.SPINDOWN);
@@ -516,12 +520,14 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     DiskStateType.IDLE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
-                diskStateLocks[diskId].readLock().unlock();
-                readLocked = false;
-                logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-                diskStateLocks[diskId].writeLock().lock();
-                logger.debug("Locked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-
+                synchronized(this) {
+                    diskStateLocks[diskId].readLock().unlock();
+                    readLocked = false;
+                    logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                    diskStateLocks[diskId].writeLock().lock();
+                    logger.debug("Locked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                }
+                
                 try {
                     File file = new File(this.diskFilePath + blockId);
                     if (!file.exists() || !file.isFile())
@@ -604,12 +610,14 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     DiskStateType.IDLE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
-                diskStateLocks[diskId].readLock().unlock();
-                readLocked = false;
-                logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-                diskStateLocks[diskId].writeLock().lock();
-                logger.debug("Locked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-
+                synchronized(this) {
+                    diskStateLocks[diskId].readLock().unlock();
+                    readLocked = false;
+                    logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                    diskStateLocks[diskId].writeLock().lock();
+                    logger.debug("Locked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                }
+                
                 try {
                     File file = new File(diskFilePath + block.getBlockId());
                     if (deleteOnExit) file.deleteOnExit();
