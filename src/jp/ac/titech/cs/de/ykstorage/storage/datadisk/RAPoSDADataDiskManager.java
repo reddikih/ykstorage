@@ -295,21 +295,12 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
     }
 
     public void spinUpDiskIfSleeping(int diskId) {
-        diskStateLocks[diskId].readLock().lock();
-        boolean readLocked = true;
+        diskStateLocks[diskId].writeLock().lock();
         logger.debug("Locked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
 
-        if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
+        try {
+            if (DiskStateType.STANDBY.equals(stateManager.getState(diskId)) ||
                 DiskStateType.SPINDOWN.equals(stateManager.getState(diskId))) {
-            synchronized(this) {
-                diskStateLocks[diskId].readLock().unlock();
-                readLocked = false;
-                logger.debug("Unlocked readLock. diskId:{} state:{} ", stateManager.getState(diskId), diskId);
-                diskStateLocks[diskId].writeLock().lock();
-                logger.debug("Locked writeLock. diskId:{} state:{} ", stateManager.getState(diskId), diskId);
-            }
-
-            try {
                 if (DiskStateType.STANDBY.equals(stateManager.getState(diskId))) {
                     stateManager.setState(diskId, DiskStateType.SPINUP);
                     if (spinUp(diskId)) {
@@ -323,19 +314,11 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                         logger.debug("Spin up diskId:{} is failed. and return state to STANDBY", diskId);
                     }
                 }
-            } finally {
-                diskStateLocks[diskId].writeLock().unlock();
-                logger.debug("Unlocked writeLock. diskId:{} state:{} ", stateManager.getState(diskId), diskId);
+            } else {
+                logger.debug("diskId:{} is spinning now.", diskId);
             }
-        } else {
-            logger.debug("diskId:{} is spinning now.", diskId);
-        }
-
-        try {} finally {
-            if (readLocked) {
-                diskStateLocks[diskId].readLock().unlock();
-                logger.debug("Unlocked readLock. diskId:{} state:{} ", stateManager.getState(diskId), diskId);
-            }
+        } finally {
+            diskStateLocks[diskId].writeLock().unlock();
         }
     }
 
@@ -372,16 +355,9 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
     public void exceededIdleThreshold(int diskId) {
         logger.debug("diskId: {} is exceeded idleness threshold time", diskId);
 
-        diskStateLocks[diskId].readLock().lock();
-        boolean readLocked = true;
-        if (DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
-            synchronized(this) {
-                diskStateLocks[diskId].readLock().unlock();
-                readLocked = false;
-                diskStateLocks[diskId].writeLock().lock();
-            }
-
-            try {
+        diskStateLocks[diskId].writeLock().lock();
+        try {
+            if (DiskStateType.IDLE.equals(stateManager.getState(diskId))) {
                 stateManager.setState(diskId, DiskStateType.SPINDOWN);
 
                 if (spinDown(diskId)) {
@@ -391,14 +367,9 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     stateManager.setState(diskId, DiskStateType.IDLE);
                     logger.debug("Spinning down diskId:{} is failed. and return state to IDLE", diskId);
                 }
-            } finally {
-                diskStateLocks[diskId].writeLock().unlock();
             }
-        }
-
-        try {} finally {
-            if (readLocked)
-                diskStateLocks[diskId].readLock().unlock();
+        } finally {
+            diskStateLocks[diskId].writeLock().unlock();
         }
     }
 
@@ -511,24 +482,15 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
 
             // when the disk is spinning then we can read the data from it.
             // and update the disk status IDLE to ACTIVE
-            diskStateLocks[diskId].readLock().lock();
-            boolean readLocked = true;
+            diskStateLocks[diskId].writeLock().lock();
 
             logger.debug("Locked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
 
-            if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
+            try {
+                if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.IDLE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
-                synchronized(this) {
-                    diskStateLocks[diskId].readLock().unlock();
-                    readLocked = false;
-                    logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-                    diskStateLocks[diskId].writeLock().lock();
-                    logger.debug("Locked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-                }
-                
-                try {
                     File file = new File(this.diskFilePath + blockId);
                     if (!file.exists() || !file.isFile())
                         throw new IOException("[" + file.getCanonicalPath() + "] is not exist or not a file.");
@@ -556,19 +518,12 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
 
-                } finally {
-                    diskStateLocks[diskId].writeLock().unlock();
-                    logger.debug("Unlocked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                } else {
+                    logger.debug("Disk {} is not ACTIVE or IDLE or SPINUP state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
                 }
-            } else {
-                logger.debug("Disk {} is not ACTIVE or IDLE or SPINUP state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
-            }
-
-            try {} finally {
-                if (readLocked) {
-                    diskStateLocks[diskId].readLock().unlock();
-                    logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-                }
+            } finally {
+                diskStateLocks[diskId].writeLock().unlock();
+                logger.debug("Unlocked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
             }
 
             long endTime = System.currentTimeMillis();
@@ -602,23 +557,14 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     block.getPrimaryDiskId(),
                     block.getReplicaLevel());
 
-            diskStateLocks[diskId].readLock().lock();
-            boolean readLocked = true;
+            diskStateLocks[diskId].writeLock().lock();
             logger.debug("Locked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
 
-            if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
+            try {
+                if (DiskStateType.ACTIVE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.IDLE.equals(stateManager.getState(diskId)) ||
                     DiskStateType.SPINUP.equals(stateManager.getState(diskId))) {
 
-                synchronized(this) {
-                    diskStateLocks[diskId].readLock().unlock();
-                    readLocked = false;
-                    logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-                    diskStateLocks[diskId].writeLock().lock();
-                    logger.debug("Locked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-                }
-                
-                try {
                     File file = new File(diskFilePath + block.getBlockId());
                     if (deleteOnExit) file.deleteOnExit();
 
@@ -646,19 +592,12 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
                     stateManager.resetWatchDogTimer(diskId);
                     stateManager.startIdleStateWatchDog(diskId);
 
-                } finally {
-                    diskStateLocks[diskId].writeLock().unlock();
-                    logger.debug("Unlocked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
+                } else {
+                    logger.debug("Disk {} is not ACTIVE or IDLE or SPINUP state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
                 }
-            } else {
-                logger.debug("Disk {} is not ACTIVE or IDLE or SPINUP state when to write to tha disk. It is [{}]", diskId, stateManager.getState(diskId));
-            }
-
-            try {} finally {
-                if (readLocked) {
-                    diskStateLocks[diskId].readLock().unlock();
-                    logger.debug("Unlocked readLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
-                }
+            } finally {
+                diskStateLocks[diskId].writeLock().unlock();
+                logger.debug("Unlocked writeLock. disk state:{} diskId:{}", stateManager.getState(diskId), diskId);
             }
 
             long endTime = System.currentTimeMillis();
