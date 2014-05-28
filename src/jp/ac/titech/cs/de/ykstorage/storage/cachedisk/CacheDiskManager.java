@@ -119,6 +119,7 @@ public class CacheDiskManager implements ICacheDiskManager {
             return null;
 
         logger.debug("Read from cache disk start. blockId:{}", blockId);
+        long start = System.currentTimeMillis();
 
         Block result = readFromCacheDisk(blockId);
 
@@ -132,7 +133,11 @@ public class CacheDiskManager implements ICacheDiskManager {
             return result;
         }
 
-        logger.debug("Read from cache disk end. blockId:{}", blockId);
+        long end = System.currentTimeMillis();
+        logger.debug(
+                "Read from cache disk end. blockId:{} elapsedTime:{} [sec]",
+                blockId,
+                String.format("%.3f", (end - start) / 1000.0));
 
         return result;
     }
@@ -143,6 +148,7 @@ public class CacheDiskManager implements ICacheDiskManager {
             return null;
 
         logger.debug("Write to cache disk start. blockId:{}", block.getBlockId());
+        long start = System.currentTimeMillis();
 
         Block result;
 
@@ -168,7 +174,11 @@ public class CacheDiskManager implements ICacheDiskManager {
             result = writeToCacheDisk(block);
         }
 
-        logger.debug("Write to cache disk end. blockId:{}", block.getBlockId());
+        long end = System.currentTimeMillis();
+        logger.debug(
+                "Write to cache disk end. blockId:{} elapsedTime:{} [sec]",
+                block.getBlockId(),
+                String.format("%.3f", (end - start) / 1000.0));
 
         return result;
     }
