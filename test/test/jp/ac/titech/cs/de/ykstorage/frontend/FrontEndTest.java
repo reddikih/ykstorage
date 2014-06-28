@@ -1,12 +1,5 @@
 package test.jp.ac.titech.cs.de.ykstorage.frontend;
 
-import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
-import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,10 +7,20 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Properties;
-
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import jp.ac.titech.cs.de.ykstorage.frontend.ClientResponse;
+import jp.ac.titech.cs.de.ykstorage.frontend.FrontEnd;
+import jp.ac.titech.cs.de.ykstorage.frontend.ResponseHeader;
+import jp.ac.titech.cs.de.ykstorage.storage.DumStorageManager;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class FrontEndTest {
@@ -29,8 +32,11 @@ public class FrontEndTest {
     private final static Properties config = new Properties();
     private boolean isConfigured = false;
 
+    private FrontEnd frontEnd;
+    private ExecutorService frontEndExecutor = Executors.newSingleThreadExecutor();
+
     @Before
-    public void startUp() {
+    public void startUp() throws IOException {
         if (!isConfigured) {
             try {
                 config.load(new FileInputStream("./test/test/jp/ac/titech/cs/de/ykstorage/frontend/server_info.properties"));
@@ -44,8 +50,22 @@ public class FrontEndTest {
                 System.exit(1);
             }
         }
-    }
 
+        // TODO
+        // FrontEndをテスト毎にちゃんとシャットダウン出来るようにスレッドのシャットダウン
+        // をよく理解してこの部分をリファクタリングすること
+        this.port += new Random().nextInt(1000);
+        this.frontEnd = FrontEnd.getInstance(
+                this.port, new DumStorageManager(null,null,null,null), null);
+        frontEndExecutor.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        frontEnd.start();
+                    }
+                }
+        );
+    }
 
     @Test(timeout=15000)
     public void writeToFrontEnd() {
