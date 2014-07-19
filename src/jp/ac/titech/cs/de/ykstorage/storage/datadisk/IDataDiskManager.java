@@ -12,8 +12,11 @@ public interface IDataDiskManager {
 
     public int assignPrimaryDiskId(long blockId);
 
+    public int assignReplicaDiskId(int primaryDiskId, int replicaLevel);
+
     public void setDeleteOnExit(boolean deleteOnExit);
 
-    public void termination();
+    public void startWatchDog();
 
+    public void termination();
 }

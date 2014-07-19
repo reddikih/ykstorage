@@ -1,15 +1,16 @@
-package jp.ac.titech.cs.de.ykstorage.storage.buffer;
-
-import jp.ac.titech.cs.de.ykstorage.storage.Block;
-import jp.ac.titech.cs.de.ykstorage.storage.buffer.assignor.IAssignor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package jp.ac.titech.cs.de.ykstorage.storage.buffer.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import jp.ac.titech.cs.de.ykstorage.storage.Block;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.BufferRegion;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.IRAPoSDABufferManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.assignor.IAssignor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class RAPoSDABufferManager implements IBufferManager {
+public class RAPoSDABufferManager implements IRAPoSDABufferManager {
 
     private final static Logger logger = LoggerFactory.getLogger(RAPoSDABufferManager.class);
 
@@ -75,6 +76,7 @@ public class RAPoSDABufferManager implements IBufferManager {
         throw new IllegalAccessError("This method shouldn't be use in RAPoSDA storage.");
     }
 
+    @Override
     public Block read(Block block) {
 
         int bufferId = assignor.assign(
@@ -106,6 +108,7 @@ public class RAPoSDABufferManager implements IBufferManager {
         throw new IllegalAccessError("This method shouldn't be use in RAPoSDA storage.");
     }
 
+    @Override
     public Block remove(Block block) {
 
         if (block == null)
@@ -121,10 +124,12 @@ public class RAPoSDABufferManager implements IBufferManager {
         return region.remove(block.getBlockId());
     }
 
+    @Override
     public int getNumberOfBuffers() {
         return this.regionTable.size();
     }
 
+    @Override
     public int getNumberOfRegions() {
         int numberOfRegions = 0;
         for (List<BufferRegion> regions : regionTable.values()) {
@@ -133,6 +138,7 @@ public class RAPoSDABufferManager implements IBufferManager {
         return numberOfRegions;
     }
 
+    @Override
     public int getCorrespondingBufferId(Block block) {
         return assignor.assign(
                 block.getBlockId(),
@@ -140,11 +146,13 @@ public class RAPoSDABufferManager implements IBufferManager {
                 block.getReplicaLevel());
     }
 
+    @Override
     public int getMaximumBufferLengthDiskId(int overflowedBufferId, int replicaLevel) {
         BufferRegion region = getBufferRegion(overflowedBufferId, replicaLevel);
         return region.getMaximumBufferLengthDiskId();
     }
 
+    @Override
     public List<Block> getBlocksCorrespondingToSpecifiedDisk(int diskId) {
         List<Block> result = new ArrayList<>();
 
@@ -159,6 +167,7 @@ public class RAPoSDABufferManager implements IBufferManager {
         return result;
     }
 
+    @Override
     public List<Block> getBlocksInTheSameRegion(Block block) {
 
         int bufferId = assignor.assign(
@@ -171,6 +180,7 @@ public class RAPoSDABufferManager implements IBufferManager {
         return region.getBufferedBlocks();
     }
 
+    @Override
     public int getBufferLengthCorrespondingToSpecifiedDisk(int diskId) {
         return getBlocksCorrespondingToSpecifiedDisk(diskId).size();
     }

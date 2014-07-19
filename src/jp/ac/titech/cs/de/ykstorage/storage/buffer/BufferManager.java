@@ -59,6 +59,11 @@ public class BufferManager implements IBufferManager {
     }
 
     @Override
+    public Block read(Block block) {
+        return null;
+    }
+
+    @Override
     public Block write(Block block) {
         if (block == null) {
             throw new NullPointerException("To buffer block is null");
@@ -97,6 +102,11 @@ public class BufferManager implements IBufferManager {
 
     @Override
     public Block remove(long blockId) {
+        return null;
+    }
+
+    @Override
+    public Block remove(Block block) {
         return null;
     }
 }

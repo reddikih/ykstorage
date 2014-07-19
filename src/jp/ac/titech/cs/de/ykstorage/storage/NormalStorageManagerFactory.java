@@ -19,12 +19,22 @@ public class NormalStorageManagerFactory extends StorageManagerFactory {
             }
 
             @Override
+            public Block read(Block block) {
+                return null;
+            }
+
+            @Override
             public Block write(Block block) {
                 return null;
             }
 
             @Override
             public Block remove(long blockId) {
+                return null;
+            }
+
+            @Override
+            public Block remove(Block block) {
                 return null;
             }
         };

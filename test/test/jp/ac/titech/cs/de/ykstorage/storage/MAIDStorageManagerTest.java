@@ -1,73 +1,48 @@
 package test.jp.ac.titech.cs.de.ykstorage.storage;
 
+import java.util.Arrays;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.StorageManager;
-import jp.ac.titech.cs.de.ykstorage.storage.StorageManagerFactory;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
-import java.util.Arrays;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import test.util.UnitTestUtility;
 
 @RunWith(JUnit4.class)
 public class MAIDStorageManagerTest {
 
-    private final static String CONF_PATH = "./config/test.properties";
-
-    private Parameter createParameter(String configPath) {
-        return  new Parameter(configPath);
-    }
-
-    private StorageManager createStorageManager(Parameter parameter) {
-        StorageManagerFactory smFactory =
-                StorageManagerFactory.getStorageManagerFactory(parameter);
-        return smFactory.createStorageManager();
-    }
-
-    private void setBufferConfiguration(long capacity, int blockSize, Parameter parameter) {
-        parameter.bufferCapacity = capacity;
-        parameter.BLOCK_SIZE = blockSize;
-    }
-
-    private byte[] generateContent(int size, byte b) {
-        byte[] result = new byte[size];
-        for (int i=0; i < size; i++) {
-            result[i] = b;
-        }
-        return result;
-    }
+    private final static String CONF_PATH = "./config/test/maid_sm_unittest.properties";
 
     @Test
     public void checkCorrectStorageManager() {
-        Parameter parameter = createParameter(CONF_PATH);
-        setBufferConfiguration(40, 8, parameter);
-        StorageManager storageManager = createStorageManager(parameter);
+        Parameter parameter = UnitTestUtility.getParameter(CONF_PATH);
+        UnitTestUtility.setBufferConfiguration(40, 8, parameter);
+        StorageManager storageManager = UnitTestUtility.createStorageManager(parameter);
         assertThat((storageManager instanceof MAIDStorageManager), is(true));
     }
 
     @Test
     public void simpleWrite() {
-        Parameter parameter = createParameter(CONF_PATH);
-        setBufferConfiguration(40, 8, parameter);
-        StorageManager storageManager = createStorageManager(parameter);
+        Parameter parameter = UnitTestUtility.getParameter(CONF_PATH);
+        UnitTestUtility.setBufferConfiguration(40, 8, parameter);
+        StorageManager storageManager = UnitTestUtility.createStorageManager(parameter);
 
-        byte[] payload = generateContent(8, (byte)'e');
+        byte[] payload = UnitTestUtility.generateContent(8, (byte)'e');
         boolean result = storageManager.write(0L, payload);
         assertThat(result, is(true));
     }
 
     @Test
     public void oneWriteAndRead() {
-        Parameter parameter = createParameter(CONF_PATH);
-        setBufferConfiguration(40, 8, parameter);
-        StorageManager storageManager = createStorageManager(parameter);
+        Parameter parameter = UnitTestUtility.getParameter(CONF_PATH);
+        UnitTestUtility.setBufferConfiguration(40, 8, parameter);
+        StorageManager storageManager = UnitTestUtility.createStorageManager(parameter);
 
-        byte[] payload = generateContent(8, (byte)'f');
+        byte[] payload = UnitTestUtility.generateContent(8, (byte)'f');
         boolean result = storageManager.write(0L, payload);
         assertThat(result, is(true));
 
@@ -78,24 +53,24 @@ public class MAIDStorageManagerTest {
 
     @Test
     public void writeWithReplaceBufferEntries() {
-        Parameter parameter = createParameter(CONF_PATH);
-        setBufferConfiguration(40, 8, parameter); // buffer entries: 5
-        StorageManager storageManager = createStorageManager(parameter);
+        Parameter parameter = UnitTestUtility.getParameter(CONF_PATH);
+        UnitTestUtility.setBufferConfiguration(40, 8, parameter); // buffer entries: 5
+        StorageManager storageManager = UnitTestUtility.createStorageManager(parameter);
 
         boolean result;
-        byte[] b_a = generateContent(8, (byte)'a');
+        byte[] b_a = UnitTestUtility.generateContent(8, (byte)'a');
         result = storageManager.write(0L, b_a);
         assertThat(result, is(true));
-        byte[] b_b = generateContent(8, (byte)'b');
+        byte[] b_b = UnitTestUtility.generateContent(8, (byte)'b');
         result = storageManager.write(1L, b_b);
         assertThat(result, is(true));
-        byte[] b_c = generateContent(8, (byte)'c');
+        byte[] b_c = UnitTestUtility.generateContent(8, (byte)'c');
         result = storageManager.write(2L, b_c);
         assertThat(result, is(true));
-        byte[] b_d = generateContent(8, (byte)'d');
+        byte[] b_d = UnitTestUtility.generateContent(8, (byte)'d');
         result = storageManager.write(3L, b_d);
         assertThat(result, is(true));
-        byte[] b_e = generateContent(8, (byte)'e');
+        byte[] b_e = UnitTestUtility.generateContent(8, (byte)'e');
         result = storageManager.write(4L, b_e);
         assertThat(result, is(true));
 
@@ -111,7 +86,7 @@ public class MAIDStorageManagerTest {
         read  = storageManager.read(4L);
         assertThat((Arrays.equals(b_e, read)), is(true));
 
-        byte[] b_f = generateContent(8, (byte)'f');
+        byte[] b_f = UnitTestUtility.generateContent(8, (byte)'f');
         result = storageManager.write(5L, b_f);
         assertThat(result, is(true));
 

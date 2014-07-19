@@ -330,6 +330,11 @@ public class MAIDDataDiskManager implements IDataDiskManager, IdleThresholdListe
         return this.placementPolicy.assignDiskId(blockId);
     }
 
+    @Override
+    public int assignReplicaDiskId(int primaryDiskId, int replicaLevel) {
+        return primaryDiskId;
+    }
+
     public void spinUpDiskIfSleeping(int diskId) {
         diskStateLocks[diskId].readLock().lock();
         boolean readLocked = true;

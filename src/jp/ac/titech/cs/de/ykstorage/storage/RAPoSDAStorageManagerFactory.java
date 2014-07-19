@@ -2,11 +2,11 @@ package jp.ac.titech.cs.de.ykstorage.storage;
 
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
-import jp.ac.titech.cs.de.ykstorage.storage.buffer.RAPoSDABufferManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.impl.RAPoSDABufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.CacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.RAPoSDADataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.impl.RAPoSDADataDiskManager;
 import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
 
 public class RAPoSDAStorageManagerFactory extends StorageManagerFactory {

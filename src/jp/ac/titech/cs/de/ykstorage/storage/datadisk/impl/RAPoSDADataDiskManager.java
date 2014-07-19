@@ -1,14 +1,4 @@
-package jp.ac.titech.cs.de.ykstorage.storage.datadisk;
-
-import jp.ac.titech.cs.de.ykstorage.storage.Block;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.dataplacement.PlacementPolicy;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.replication.ReplicationPolicy;
-import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
-import jp.ac.titech.cs.de.ykstorage.storage.diskstate.IdleThresholdListener;
-import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
-import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package jp.ac.titech.cs.de.ykstorage.storage.datadisk.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,8 +13,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import jp.ac.titech.cs.de.ykstorage.storage.Block;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IStoppableDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.dataplacement.PlacementPolicy;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.replication.ReplicationPolicy;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.IdleThresholdListener;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.StateManager;
+import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdListener {
+public class RAPoSDADataDiskManager implements IStoppableDataDiskManager, IdleThresholdListener {
 
     private final static Logger logger = LoggerFactory.getLogger(RAPoSDADataDiskManager.class);
 
@@ -120,6 +120,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         }
     }
 
+    @Override
     public void startWatchDog() {
         if (this.startedWatchdog) return;
 
@@ -165,6 +166,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
      * @param blocks
      * @return A block list that includes blocks written to data disks successfully.
      */
+    @Override
     public List<Block> writeBlocks(Collection<Block> blocks) {
         List<Block> result = new ArrayList<>();
 
@@ -294,6 +296,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         return this.placementPolicy.assignDiskId(blockId);
     }
 
+    @Override
     public void spinUpDiskIfSleeping(int diskId) {
         diskStateLocks[diskId].readLock().lock();
         boolean readLocked = true;
@@ -406,6 +409,7 @@ public class RAPoSDADataDiskManager implements IDataDiskManager, IdleThresholdLi
         return this.stateManager.getStandbyStartTime(diskId);
     }
 
+    @Override
     public int assignReplicaDiskId(int primaryDiskId, int replicaLevel) {
         return this.replicationPolicy.assignReplicationDiskId(
                 primaryDiskId, replicaLevel);

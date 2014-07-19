@@ -1,7 +1,7 @@
 package test.jp.ac.titech.cs.de.ykstorage.storage.buffer;
 
 import jp.ac.titech.cs.de.ykstorage.storage.Block;
-import jp.ac.titech.cs.de.ykstorage.storage.buffer.RAPoSDABufferManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.impl.RAPoSDABufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.assignor.CacheStripingAssignor;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.assignor.IAssignor;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.assignor.SimpleAssignor;

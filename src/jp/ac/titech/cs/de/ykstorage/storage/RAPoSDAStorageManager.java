@@ -1,23 +1,6 @@
 package jp.ac.titech.cs.de.ykstorage.storage;
 
 
-import jp.ac.titech.cs.de.ykstorage.service.Parameter;
-import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
-import jp.ac.titech.cs.de.ykstorage.storage.buffer.RAPoSDABufferManager;
-import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
-import jp.ac.titech.cs.de.ykstorage.storage.datadisk.RAPoSDADataDiskManager;
-import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
-import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +15,17 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.IBufferManager;
+import jp.ac.titech.cs.de.ykstorage.storage.buffer.IRAPoSDABufferManager;
+import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.IStoppableDataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.datadisk.impl.RAPoSDADataDiskManager;
+import jp.ac.titech.cs.de.ykstorage.storage.diskstate.DiskStateType;
+import jp.ac.titech.cs.de.ykstorage.util.ObjectSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class RAPoSDAStorageManager extends StorageManager {
@@ -43,6 +37,10 @@ public class RAPoSDAStorageManager extends StorageManager {
     private final String KEY_2_BLOCKID_MAP_NAME = "raposdakey2blockidmap";
 
     private int numberOfReplica;
+
+    private IRAPoSDABufferManager bufferManager;
+
+    private IStoppableDataDiskManager dataDiskManager;
 
     public RAPoSDAStorageManager(
             IBufferManager bufferManager,
@@ -66,12 +64,15 @@ public class RAPoSDAStorageManager extends StorageManager {
             logger.info("Unloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
         }
 
+        this.bufferManager = (IRAPoSDABufferManager)super.bufferManager;
+        this.dataDiskManager = (IStoppableDataDiskManager)super.dataDiskManager;
+
         watchdogStart();
     }
 
+    // TODO pull up this method to StorageManager
     public void watchdogStart() {
-        //TODO consider refactoring of following code: explicit type casting.
-        ((RAPoSDADataDiskManager)this.dataDiskManager).startWatchDog();
+        this.dataDiskManager.startWatchDog();
     }
 
     @Override
@@ -145,8 +146,8 @@ public class RAPoSDAStorageManager extends StorageManager {
 
             // Read from buffer
             for (int i=0; i<blockIds.size(); i++) {
-                result = ((RAPoSDABufferManager)bufferManager)
-                        .read(new Block(blockIds.get(i), i, primaryDiskId, -1, null));
+                result = bufferManager.read(
+                        new Block(blockIds.get(i), i, primaryDiskId, -1, null));
                 if (result != null) break;
             }
             if (result != null) return result;
@@ -172,7 +173,8 @@ public class RAPoSDAStorageManager extends StorageManager {
 
             // case 1. one of N disks is active or idle
             if (activeDiskIds.size() == 1) {
-                logger.debug("[Read from DataDisk] case 1.one of N disks is active or idle. diskId:{} N:{}", activeDiskIds.get(0), parameter.numberOfDataDisks);
+                logger.debug("[Read from DataDisk] case 1.one of N disks is active or idle. diskId:{} N:{}",
+                        activeDiskIds.get(0), parameter.numberOfDataDisks);
 
                 long blockId = did2bid.get(activeDiskIds.get(0));
                 Block block = new Block(
@@ -196,8 +198,8 @@ public class RAPoSDAStorageManager extends StorageManager {
                 int maximumBufferLength = -1;
 
                 for (int diskId : activeDiskIds) {
-                    int bufferLength = (((RAPoSDABufferManager)bufferManager)
-                            .getBufferLengthCorrespondingToSpecifiedDisk(diskId));
+                    int bufferLength =
+                            bufferManager.getBufferLengthCorrespondingToSpecifiedDisk(diskId);
 
                     if (maximumBufferLength < bufferLength) {
                         maximumBufferLength = bufferLength;
@@ -220,7 +222,8 @@ public class RAPoSDAStorageManager extends StorageManager {
             // case 3. all of N disks are standby
             else {
 
-                logger.debug("[Read from DataDisk] case 3. all of N disks are standby. N:{}", activeDiskIds.size(), parameter.numberOfDataDisks);
+                logger.debug("[Read from DataDisk] case 3. all of N disks are standby. N:{}",
+                        activeDiskIds.size(), parameter.numberOfDataDisks);
 
                 // 停止期間の長いディスクから
                 int longestSleepingDiskId = -1;
@@ -291,13 +294,11 @@ public class RAPoSDAStorageManager extends StorageManager {
                     //// Overflow process ////
 
                     int overflowedBufferId =
-                            ((RAPoSDABufferManager)bufferManager)
-                                    .getCorrespondingBufferId(block);
+                            bufferManager.getCorrespondingBufferId(block);
 
                     int maximumBufferedDiskId =
-                            ((RAPoSDABufferManager)bufferManager)
-                                    .getMaximumBufferLengthDiskId(
-                                            overflowedBufferId, block.getReplicaLevel());
+                            bufferManager.getMaximumBufferLengthDiskId(
+                                    overflowedBufferId, block.getReplicaLevel());
 
                     if (maximumBufferedDiskId < 0) {
                         logger.debug(
@@ -306,16 +307,15 @@ public class RAPoSDAStorageManager extends StorageManager {
                         maximumBufferedDiskId = block.getOwnerDiskId();
                     }
 
-                    ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(maximumBufferedDiskId);
+                    dataDiskManager.spinUpDiskIfSleeping(maximumBufferedDiskId);
 
                     Set<Block> toBeFlushedBlocks = new HashSet<>();
                     toBeFlushedBlocks.addAll(
-                            ((RAPoSDABufferManager)bufferManager).getBlocksInTheSameRegion(block)
+                            bufferManager.getBlocksInTheSameRegion(block)
                     );
 
                     List<Block> correspondingBlocks =
-                            ((RAPoSDABufferManager)bufferManager)
-                                    .getBlocksCorrespondingToSpecifiedDisk(maximumBufferedDiskId);
+                            bufferManager.getBlocksCorrespondingToSpecifiedDisk(maximumBufferedDiskId);
 
                     toBeFlushedBlocks.addAll(correspondingBlocks);
 
@@ -323,11 +323,11 @@ public class RAPoSDAStorageManager extends StorageManager {
                     toBeFlushedBlocks.add(block);
 
                     List<Block> toBeRemoved =
-                            ((RAPoSDADataDiskManager) dataDiskManager).writeBlocks(toBeFlushedBlocks);
+                            dataDiskManager.writeBlocks(toBeFlushedBlocks);
 
                     if (toBeRemoved != null) {
                         for (Block toRemove : toBeRemoved) {
-                            Block removed = ((RAPoSDABufferManager)bufferManager).remove(toRemove);
+                            Block removed = bufferManager.remove(toRemove);
                             if (removed == null) {
                                 logger.info("Removed block is missing in the buffer.");
                             }
@@ -471,8 +471,9 @@ public class RAPoSDAStorageManager extends StorageManager {
         return this.dataDiskManager.assignPrimaryDiskId(blockId);
     }
 
+    // TODO pull up method
     private int assignReplicaDiskId(int primaryDiskId, int replicaLevel) {
-        return ((RAPoSDADataDiskManager)dataDiskManager).assignReplicaDiskId(primaryDiskId, replicaLevel);
+        return this.dataDiskManager.assignReplicaDiskId(primaryDiskId, replicaLevel);
     }
 
     // TODO pull up

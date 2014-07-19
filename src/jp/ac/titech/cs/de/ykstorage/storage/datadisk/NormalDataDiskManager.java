@@ -170,6 +170,11 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
         return this.placementPolicy.assignDiskId(blockId);
     }
 
+    @Override
+    public int assignReplicaDiskId(int primaryDiskId, int replicaLevel) {
+        return primaryDiskId;
+    }
+
     // TODO pull up
     private RuntimeException launderThrowable(Throwable t) {
         if (t instanceof RuntimeException) return (RuntimeException) t;
@@ -181,6 +186,11 @@ public class NormalDataDiskManager implements IDataDiskManager, IdleThresholdLis
     @Override
     public void setDeleteOnExit(boolean deleteOnExit) {
         this.deleteOnExit = deleteOnExit;
+    }
+
+    @Override
+    public void startWatchDog() {
+        // DO Nothing
     }
 
     @Override
