@@ -2,6 +2,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import test.jp.ac.titech.cs.de.ykstorage.frontend.FrontEndTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.BlockTest;
+import test.jp.ac.titech.cs.de.ykstorage.storage.MAIDStorageManagerTest;
+import test.jp.ac.titech.cs.de.ykstorage.storage.RAPoSDAStorageManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.BufferManagerTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.BufferRegionTest;
 import test.jp.ac.titech.cs.de.ykstorage.storage.buffer.LRUBufferTest;
@@ -10,10 +12,7 @@ import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.MAIDDataDiskManagerTes
 import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.NormalDataDiskManagerTest;
 
 /**
- * Note1:
- *     You should have teen run the StorageManager for FrontEnt test.
- *
- * Note2:
+ * Note:
  *     You should run the MAIDStorageManagerTest independently.
  *     It need to override some final configuration of Parameter
  *     to test.
@@ -29,6 +28,8 @@ import test.jp.ac.titech.cs.de.ykstorage.storage.datadisk.NormalDataDiskManagerT
         BlockTest.class,
         BufferRegionTest.class,
         RAPoSDABufferManagerTest.class,
+        RAPoSDAStorageManagerTest.class,
+        MAIDStorageManagerTest.class,
 })
 
 public class YKStorageTestSuite {
