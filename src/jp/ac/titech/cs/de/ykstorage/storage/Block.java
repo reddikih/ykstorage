@@ -16,7 +16,7 @@ public class Block {
     @GuardedBy("this") private int ownerDiskId;
     @GuardedBy("this") private byte[] payload;
 
-    //TODO to be deprecated
+    @Deprecated
     public Block(long blockId, int replicaLevel, int primaryDiskId, int diskGroupId, byte[] payload) {
         this(blockId, replicaLevel, primaryDiskId, diskGroupId, -1, payload);
     }
