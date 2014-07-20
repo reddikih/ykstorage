@@ -1,6 +1,7 @@
 package test.jp.ac.titech.cs.de.ykstorage.storage;
 
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
+import jp.ac.titech.cs.de.ykstorage.storage.Block;
 import jp.ac.titech.cs.de.ykstorage.storage.RAPoSDAStorageManager;
 import jp.ac.titech.cs.de.ykstorage.storage.buffer.IRAPoSDABufferManager;
 import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.ICacheDiskManager;
@@ -47,14 +48,16 @@ public class RAPoSDAStorageManagerTest {
         final ICacheDiskManager cacheDiskManager = context.mock(ICacheDiskManager.class);
         final IStoppableDataDiskManager dataDiskManager = context.mock(IStoppableDataDiskManager.class);
 
+        final Block dummyBlock = new Block(0, 0, 0, 0, new byte[0]);
+
         // expectations setting
         context.checking(new Expectations() {{
             allowing(dataDiskManager);
-            allowing(bufferManager);
+            oneOf(bufferManager).write(with(any(Block.class))); will(returnValue(dummyBlock));
         }});
 
         // test code
-        final Parameter parameter = UnitTestUtility.getParameter(CONF_PATH);
+        Parameter parameter = UnitTestUtility.getParameter(CONF_PATH);
         RAPoSDAStorageManager sm = new RAPoSDAStorageManager(
                 bufferManager,
                 cacheDiskManager,
@@ -65,6 +68,37 @@ public class RAPoSDAStorageManagerTest {
         byte[] content = UnitTestUtility.generateContent(1, (byte)1);
 
         // assertion
-        assertThat(sm.write(0L, content), is(true));
+        boolean result = sm.write(0L, content);
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void writeTwoReplicasToBuffer() {
+        final IRAPoSDABufferManager bufferManager = context.mock(IRAPoSDABufferManager.class);
+        final ICacheDiskManager cacheDiskManager = context.mock(ICacheDiskManager.class);
+        final IStoppableDataDiskManager dataDiskManager = context.mock(IStoppableDataDiskManager.class);
+        final Block dummyBlock = new Block(0, 0, 0, 0, new byte[0]);
+
+        // expectations setting
+        context.checking(new Expectations() {{
+            allowing(dataDiskManager);
+            exactly(2).of(bufferManager).write(with(any(Block.class))); will(returnValue(dummyBlock));
+        }});
+
+        Parameter parameter = UnitTestUtility.getParameter(CONF_PATH);
+        parameter.numberOfReplicas = 2; // set the number of replicas to two
+        RAPoSDAStorageManager sm = new RAPoSDAStorageManager(
+                bufferManager,
+                cacheDiskManager,
+                dataDiskManager,
+                parameter,
+                parameter.numberOfReplicas);
+        UnitTestUtility.setBufferConfiguration(1,1,parameter);
+        byte[] content = UnitTestUtility.generateContent(1, (byte)1);
+
+        // assertion
+        boolean result = sm.write(0L, content);
+        assertThat(result, is(true));
+
     }
 }
