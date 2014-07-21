@@ -184,7 +184,7 @@ public class RAPoSDAStorageManager extends StorageManager {
                         -1,
                         null);
 
-                ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(
+                dataDiskManager.spinUpDiskIfSleeping(
                         assignReplicaDiskId(block.getPrimaryDiskId(), block.getReplicaLevel()));
 
                 result = ((RAPoSDADataDiskManager)dataDiskManager).read(block);
@@ -207,13 +207,14 @@ public class RAPoSDAStorageManager extends StorageManager {
                     }
                 }
 
-                ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(maximumLengthDiskId);
+                dataDiskManager.spinUpDiskIfSleeping(maximumLengthDiskId);
 
                 long blockId = did2bid.get(maximumLengthDiskId);
                 Block block = new Block(
                         blockId,
                         bid2repLevel.get(blockId),
                         primaryDiskId,
+                        -1,
                         -1,
                         null);
                 result = ((RAPoSDADataDiskManager)dataDiskManager).read(block);
@@ -237,13 +238,14 @@ public class RAPoSDAStorageManager extends StorageManager {
                     }
                 }
 
-                ((RAPoSDADataDiskManager)dataDiskManager).spinUpDiskIfSleeping(longestSleepingDiskId);
+                dataDiskManager.spinUpDiskIfSleeping(longestSleepingDiskId);
 
                 long blockId = did2bid.get(longestSleepingDiskId);
                 Block block = new Block(
                         blockId,
                         bid2repLevel.get(blockId),
                         primaryDiskId,
+                        -1,
                         -1,
                         null);
                 result = ((RAPoSDADataDiskManager)dataDiskManager).read(block);
