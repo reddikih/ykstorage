@@ -80,7 +80,7 @@
 
 
     <!-- Root Logger Setting -->
-    <root level="${root-level:-debug}">
+    <root level="${root-level:-info}">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
