@@ -147,7 +147,7 @@ public class RAPoSDAStorageManager extends StorageManager {
             // Read from buffer
             for (int i=0; i<blockIds.size(); i++) {
                 result = bufferManager.read(
-                        new Block(blockIds.get(i), i, primaryDiskId, -1, null));
+                        new Block(blockIds.get(i), i, primaryDiskId, -1, -1, null));
                 if (result != null) break;
             }
             if (result != null) return result;
