@@ -4,8 +4,13 @@ bin/
 junit/
 .idea/
 .settings/
+.gradle/
 data/
 *.iml
+*.ipr
+*.iws
 *.so
 *.dat
 log/
+build/
+classes/

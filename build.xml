@@ -144,7 +144,7 @@
         <patternset refid="compiler.resources"/>
         <type type="file"/>
       </fileset>
-      <fileset dir="${module.ykstorage.basedir}/test">
+      <fileset dir="/src/test">
         <patternset refid="compiler.resources"/>
         <type type="file"/>
       </fileset>
