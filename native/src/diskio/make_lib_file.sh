@@ -13,7 +13,7 @@ HOSTNAME=`hostname`
 
 if [ $HOSTNAME = "ecoim03" ]; then
     JDK_HOME=/usr/lib/jvm/jdk1.7.0_51
-    CC=g++ 
+    CC=g++
     INCLUDE="-I$JDK_HOME/include -I$JDK_HOME/include/linux"
 elif [ $HOSTNAME = "camelia" ]; then
     JDK_HOME=/usr/lib/jvm/java-7-openjdk-amd64
