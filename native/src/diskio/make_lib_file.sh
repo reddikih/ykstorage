@@ -1,4 +1,7 @@
 #!/bin/sh
+# CAUTION:
+# You need to change current directory to ${YKSTORAGE_HOME}/native/src/diskio before you run this script.
+# This limitation will fixed in the future.
 
 CC_FILE_PREFIXIES="normaldatadiskio maiddatadiskio raposdadatadiskio cachediskio"
 
