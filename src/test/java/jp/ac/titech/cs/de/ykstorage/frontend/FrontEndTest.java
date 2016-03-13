@@ -22,8 +22,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
 public class FrontEndTest {
+
+    private static final String TEST_PROPERTIES = "server_info.properties";
 
     private int thread;
     private int port;
@@ -39,7 +40,8 @@ public class FrontEndTest {
     public void startUp() throws IOException {
         if (!isConfigured) {
             try {
-                config.load(new FileInputStream("./test/test/jp/ac/titech/cs/de/ykstorage/frontend/server_info.properties"));
+                String fixturePath = this.getClass().getPackage().getName().replace('.','/') + "/" + TEST_PROPERTIES;
+                config.load(new FileInputStream(this.getClass().getClassLoader().getResource(fixturePath).getPath()));
 
                 this.thread = Integer.parseInt(config.getProperty("server.info.threads"));
                 this.hostName = config.getProperty("server.info.hostname");

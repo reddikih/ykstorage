@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "jp_ac_titech_cs_de_ykstorage_storage_datadisk_RAPoSDADataDiskManager.h"
+#include "jp_ac_titech_cs_de_ykstorage_storage_datadisk_impl_RAPoSDADataDiskManager.h"
 
 #define BLOCK_SIZE 512
 
@@ -32,7 +32,7 @@ void debug_buffer_contents(jbyte* buffer, long size)
  * Signature: (Ljava/lang/String;[B)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_jp_ac_titech_cs_de_ykstorage_storage_datadisk_RAPoSDADataDiskManager_write
+Java_jp_ac_titech_cs_de_ykstorage_storage_datadisk_impl_RAPoSDADataDiskManager_write
 (JNIEnv *env, jobject thisObj, jstring filePath, jbyteArray byteArray)
 {
   int fd;
@@ -87,7 +87,7 @@ Java_jp_ac_titech_cs_de_ykstorage_storage_datadisk_RAPoSDADataDiskManager_write
  * Signature: (Ljava/lang/String;)[B
  */
 JNIEXPORT jbyteArray JNICALL
-Java_jp_ac_titech_cs_de_ykstorage_storage_datadisk_RAPoSDADataDiskManager_read
+Java_jp_ac_titech_cs_de_ykstorage_storage_datadisk_impl_RAPoSDADataDiskManager_read
 (JNIEnv *env, jobject thisObj, jstring filePath)
 {
   long file_size, buf_size, ret;

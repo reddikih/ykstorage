@@ -7,6 +7,7 @@ import java.io.File;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -15,8 +16,7 @@ import jp.ac.titech.cs.de.ykstorage.storage.cachedisk.MAIDCacheDiskStateManager;
 import jp.ac.titech.cs.de.ykstorage.service.Parameter;
 import jp.ac.titech.cs.de.ykstorage.util.DiskState;
 
-
-@RunWith(JUnit4.class)
+@Ignore
 public class MAIDCacheDiskStateManagerTest {
 	private MAIDCacheDiskStateManager sm;
 	private String devicePaths[];
