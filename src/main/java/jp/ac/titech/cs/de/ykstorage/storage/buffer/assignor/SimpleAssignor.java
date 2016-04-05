@@ -2,9 +2,11 @@ package jp.ac.titech.cs.de.ykstorage.storage.buffer.assignor;
 
 public class SimpleAssignor implements IAssignor {
 
-    private int numberOfBuffer;
+    private final int numberOfBuffer;
 
     public SimpleAssignor(int numberOfBuffer) {
+        if (numberOfBuffer == 0)
+            throw new IllegalArgumentException("invalid number of buffer: " + numberOfBuffer);
         this.numberOfBuffer = numberOfBuffer;
     }
 
