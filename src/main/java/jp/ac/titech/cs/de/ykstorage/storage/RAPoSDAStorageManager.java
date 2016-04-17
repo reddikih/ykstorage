@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public class RAPoSDAStorageManager extends StorageManager {
 
-    private final static Logger logger = LoggerFactory.getLogger(RAPoSDAStorageManager.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(RAPoSDAStorageManager.class);
 
     private HashMap<Long, List<List<Long>>> key2blockIdMap = new HashMap<>();
 
@@ -59,9 +59,9 @@ public class RAPoSDAStorageManager extends StorageManager {
                 new ObjectSerializer<HashMap>().deSerializeObject(KEY_2_BLOCKID_MAP_NAME);
         if (savedMap != null) {
             this.key2blockIdMap = savedMap;
-            logger.info("Reloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
+            LOGGER.info("Reloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
         } else {
-            logger.info("Unloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
+            LOGGER.info("Unloaded saved key to blockId mapping file: {}", KEY_2_BLOCKID_MAP_NAME);
         }
 
         this.bufferManager = (IRAPoSDABufferManager)super.bufferManager;
@@ -81,7 +81,7 @@ public class RAPoSDAStorageManager extends StorageManager {
         List<List<Long>> blockIds = getCorrespondingBlockIds(key);
 
         if (blockIds == null || blockIds.size() == 0) {
-            logger.debug("Key:{} has not assigned to any blocks yet.", key);
+            LOGGER.debug("Key:{} has not assigned to any blocks yet.", key);
             return null;
         }
 
@@ -103,7 +103,7 @@ public class RAPoSDAStorageManager extends StorageManager {
                 Block block = future.get();
 
                 if (block.getPayload() == null) {
-                    logger.error("Read block's payload is null. BlockId:{} and set dummy payload to continue this process.", block.getBlockId());
+                    LOGGER.error("Read block's payload is null. BlockId:{} and set dummy payload to continue this process.", block.getBlockId());
                     // TODO to be fixed this defect near future.
 //                    throw new IllegalStateException("Read block's payload is null. BlockId:" + block.getBlockId());
                     block.setPayload(new byte[Block.BLOCK_SIZE]);
@@ -173,7 +173,7 @@ public class RAPoSDAStorageManager extends StorageManager {
 
             // case 1. one of N disks is active or idle
             if (activeDiskIds.size() == 1) {
-                logger.debug("[Read from DataDisk] case 1.one of N disks is active or idle. diskId:{} N:{}",
+                LOGGER.debug("[Read from DataDisk] case 1.one of N disks is active or idle. diskId:{} N:{}",
                         activeDiskIds.get(0), parameter.numberOfDataDisks);
 
                 long blockId = did2bid.get(activeDiskIds.get(0));
@@ -192,7 +192,7 @@ public class RAPoSDAStorageManager extends StorageManager {
 
             // case 2. M of N disks are active or idle (0 < M <= N)
             else if (0 < activeDiskIds.size() && activeDiskIds.size() <= diskIds.size()) {
-                logger.debug("[Read from DataDisk] M of N disks are active or idle (0 < M <= N) M:{} N:{}", activeDiskIds.size(), parameter.numberOfDataDisks);
+                LOGGER.debug("[Read from DataDisk] M of N disks are active or idle (0 < M <= N) M:{} N:{}", activeDiskIds.size(), parameter.numberOfDataDisks);
 
                 int maximumLengthDiskId = -1;
                 int maximumBufferLength = -1;
@@ -223,7 +223,7 @@ public class RAPoSDAStorageManager extends StorageManager {
             // case 3. all of N disks are standby
             else {
 
-                logger.debug("[Read from DataDisk] case 3. all of N disks are standby. N:{}",
+                LOGGER.debug("[Read from DataDisk] case 3. all of N disks are standby. N:{}",
                         activeDiskIds.size(), parameter.numberOfDataDisks);
 
                 // 停止期間の長いディスクから
@@ -286,68 +286,117 @@ public class RAPoSDAStorageManager extends StorageManager {
                 createReplicatedBlocks(blockIds, value, Block.BLOCK_SIZE);
 
         // Write to the buffer for each block
-        //TODO to be concurrent process for each blocks.
+        List<WriteReplicaSetTask> writeTasks = new ArrayList<>(blocks.size());
         for (List<Block> replicas : blocks) {
-            for (Block block : replicas) {
-                Block result = this.bufferManager.write(block);
-
-                if (result == null) {
-
-                    //// Overflow process ////
-
-                    int overflowedBufferId =
-                            bufferManager.getCorrespondingBufferId(block);
-
-                    int maximumBufferedDiskId =
-                            bufferManager.getMaximumBufferLengthDiskId(
-                                    overflowedBufferId, block.getReplicaLevel());
-
-                    if (maximumBufferedDiskId < 0) {
-                        logger.debug(
-                                "maximumBufferedDiskId is invalid:{} set its value to block's ownerDiskId:{}",
-                                maximumBufferedDiskId, block.getOwnerDiskId());
-                        maximumBufferedDiskId = block.getOwnerDiskId();
-                    }
-
-                    dataDiskManager.spinUpDiskIfSleeping(maximumBufferedDiskId);
-
-                    Set<Block> toBeFlushedBlocks = new HashSet<>();
-                    toBeFlushedBlocks.addAll(
-                            bufferManager.getBlocksInTheSameRegion(block)
-                    );
-
-                    List<Block> correspondingBlocks =
-                            bufferManager.getBlocksCorrespondingToSpecifiedDisk(maximumBufferedDiskId);
-
-                    toBeFlushedBlocks.addAll(correspondingBlocks);
-
-                    // add the momentum block to blocks list to be flushed.
-                    toBeFlushedBlocks.add(block);
-
-                    List<Block> toBeRemoved =
-                            dataDiskManager.writeBlocks(toBeFlushedBlocks);
-
-                    if (toBeRemoved != null) {
-                        for (Block toRemove : toBeRemoved) {
-                            Block removed = bufferManager.remove(toRemove);
-                            if (removed == null) {
-                                logger.info("Removed block is missing in the buffer.");
-                            }
-                        }
-                    }
-
-                    Block written = this.bufferManager.write(block);
-                    if (written == null)
-                        logger.debug("Write to buffer failed. block(Id):{}.", block.getBlockId());
-
-                    // When the blocks is flushed to data disks, then these are
-                    // written to the cache disks asynchronously.
-                    writeToCacheDisk(toBeRemoved);
-                }
-            }
+            writeTasks.add(new WriteReplicaSetTask(replicas));
         }
 
+        try {
+            List<Future<List<WriteReplicaResult>>> futures = Executors.newCachedThreadPool().invokeAll(writeTasks);
+
+            for (Future<List<WriteReplicaResult>> future : futures) {
+                for (WriteReplicaResult written : future.get()) {
+                    LOGGER.debug("written. result: {} blockId: {}", written.getResult(), written.getBlockId());
+                }
+            }
+        } catch (InterruptedException e) {
+            LOGGER.error("unexpected error occurred.", e);
+            launderThrowable(e);
+        } catch (ExecutionException e) {
+            LOGGER.error("unexpected error occurred.", e);
+            launderThrowable(e);
+        }
         return true;
+    }
+
+    private class WriteReplicaSetTask implements Callable<List<WriteReplicaResult>> {
+
+        private final List<Block> replicas;
+
+        public WriteReplicaSetTask(List<Block> replicas) {
+            this.replicas = replicas;
+        }
+
+        @Override
+        public List<WriteReplicaResult> call() throws Exception {
+            List<Callable<WriteReplicaResult>> writeBlockTasks = new ArrayList<>();
+
+            for (final Block block : replicas) {
+                writeBlockTasks.add(new Callable<WriteReplicaResult>() {
+
+                    @Override
+                    public WriteReplicaResult call() throws Exception {
+                        boolean result = true;
+                        Block written = bufferManager.write(block);
+
+                        if (written == null) {
+                            //// Overflow process ////
+
+                            int overflowedBufferId =
+                                    bufferManager.getCorrespondingBufferId(block);
+
+                            int maximumBufferedDiskId =
+                                    bufferManager.getMaximumBufferLengthDiskId(
+                                            overflowedBufferId, block.getReplicaLevel());
+
+                            if (maximumBufferedDiskId < 0) {
+                                LOGGER.debug(
+                                        "maximumBufferedDiskId is invalid:{} set its value to block's ownerDiskId:{}",
+                                        maximumBufferedDiskId, block.getOwnerDiskId());
+                                maximumBufferedDiskId = block.getOwnerDiskId();
+                            }
+
+                            dataDiskManager.spinUpDiskIfSleeping(maximumBufferedDiskId);
+
+                            Set<Block> toBeFlushedBlocks = new HashSet<>();
+                            toBeFlushedBlocks.addAll(
+                                    bufferManager.getBlocksInTheSameRegion(block)
+                            );
+
+                            List<Block> correspondingBlocks =
+                                    bufferManager.getBlocksCorrespondingToSpecifiedDisk(maximumBufferedDiskId);
+
+                            toBeFlushedBlocks.addAll(correspondingBlocks);
+
+                            // add the momentum block to blocks list to be flushed.
+                            toBeFlushedBlocks.add(block);
+
+                            List<Block> toBeRemoved =
+                                    dataDiskManager.writeBlocks(toBeFlushedBlocks);
+
+                            if (toBeRemoved != null) {
+                                for (Block toRemove : toBeRemoved) {
+                                    Block removed = bufferManager.remove(toRemove);
+                                    if (removed == null) {
+                                        LOGGER.info("Removed block is missing in the buffer.");
+                                    }
+                                }
+                            }
+
+                            written = bufferManager.write(block);
+                            if (written == null) {
+                                LOGGER.error("Write to buffer failed. block(Id):{}.", block.getBlockId());
+                                result = false;
+                            }
+
+                            // When the blocks is flushed to data disks, then these are
+                            // written to the cache disks asynchronously.
+                            writeToCacheDisk(toBeRemoved);
+                        }
+                        return new WriteReplicaResult(result, written);
+                    }
+                });
+            }
+
+            List<Future<WriteReplicaResult>> futures =
+                    Executors.newCachedThreadPool().invokeAll(writeBlockTasks);
+
+            List<WriteReplicaResult> writtenResults = new ArrayList<>(futures.size());
+            for (Future<WriteReplicaResult> future : futures) {
+                writtenResults.add(future.get());
+            }
+            return writtenResults;
+        }
     }
 
     @Override
@@ -355,7 +404,7 @@ public class RAPoSDAStorageManager extends StorageManager {
         ObjectSerializer<HashMap> serializer = new ObjectSerializer<>();
         serializer.serializeObject(this.key2blockIdMap, KEY_2_BLOCKID_MAP_NAME);
         this.dataDiskManager.termination();
-        logger.info("Done the termination process.");
+        LOGGER.info("Done the termination process.");
     }
 
     private void writeToCacheDisk(final List<Block> toBeFlushedBlocks) {
@@ -399,7 +448,7 @@ public class RAPoSDAStorageManager extends StorageManager {
 
                 if (j == 0) primaryBlockId = blockId;
                 replicaIds.add(blockId);
-                logger.info("Assigned blockId. key:{} blockId:{} replicaLevel:{} primaryBlockId:{}",
+                LOGGER.info("Assigned blockId. key:{} blockId:{} replicaLevel:{} primaryBlockId:{}",
                         key, blockId, j, primaryBlockId);
             }
             blockIds.add(replicaIds);
@@ -447,7 +496,7 @@ public class RAPoSDAStorageManager extends StorageManager {
                     assignReplicaDiskId(primaryDiskId, i),
                             copyValue);
 
-            logger.info("Create block. {}", block.toString());
+            LOGGER.info("Create block. {}", block.toString());
 
             replicas.add(block);
         }
