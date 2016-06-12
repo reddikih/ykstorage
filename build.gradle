@@ -17,3 +17,10 @@ dependencies {
     // TODO replce to jmockito
     //testCompile 'org.jmock:jmock:2.8.1'
 }
+
+task copyAllDependencies(type: Copy) {
+    def dependsDir = new File(buildDir, 'libs')
+    if (!dependsDir.exists()) dependsDir.mkdir()
+    from configurations.compile
+    into dependsDir.getPath()
+}

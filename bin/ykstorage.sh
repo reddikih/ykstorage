@@ -1,7 +1,5 @@
 #!/bin/sh
 
-CONF_PATH=$1
-
 # load include file
 if [ "x$YKSTORAGE_INCLUDE" = "x" ]; then
     include=$(dirname $0)/ykstorage.in.sh
@@ -31,7 +29,7 @@ if [ -z $JAVA ]; then
     exit 1
 fi
 
-# check config file PATH
+# check environmental config file PATH
 if [ "x$CONF_PATH" != "x" ]; then
     YKSTORAGE_CONF="$CONF_PATH"
 fi
@@ -56,7 +54,7 @@ launch_service() {
     local class="$3"
     local conf="$4"
 
-    if [ "x$foreground" != "x"]; then
+    if [ "x$foreground" != "x" ]; then
 	exec "$JAVA" $JVM_OPTS -cp "$CLASSPATH" "$class" "$conf"
     else
 	exec "$JAVA" $JVM_OPTS -cp "$CLASSPATH" "$class" "$conf" <&- &
@@ -74,16 +72,18 @@ while true; do
 	-f)
 	    foreground="yes"
 	    shift
+	    ;;
 	--init)
 	    initial="yes"
 	    shift
 	    ;;
 	*)
 	    conf="$1"
-	    if [ -n "$conf" ]; then
+	    if [ -z "$conf" ]; then
 		echo "Error parsing arguments!" >&2
 		exit 1
 	    fi
+	    break
 	    ;;
     esac
 done

@@ -17,6 +17,6 @@ CLASSPATH="$YKSTORAGE_CONF:$ykstorage_bin"
 CLASSPATH="$CLASSPATH:$YKSTORAGE_HOME/build/libs/*"
 
 # Added jni libraries
-JAVA_OPTS="$JAVA_OPTS:-Djava.library.path=$YKSTORAGE_HOME/lib"
+JVM_OPTS="$JVM_OPTS -Djava.library.path=$YKSTORAGE_HOME/lib"
 
 
